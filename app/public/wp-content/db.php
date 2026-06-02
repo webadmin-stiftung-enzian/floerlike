@@ -1,0 +1,1 @@
+/Users/adomaitis/repos/floerlike/app/public/wp-content/plugins/query-monitor/wp-content/db.php
