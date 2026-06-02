@@ -69,7 +69,7 @@ myplugin/
 - **Typ:** Standalone Block (kein InnerBlocks-Wrapper)
 - **Rendering:** Serverseitig via `render_callback` / `render.php`
 - **Platzierung:** Im Single Product Template via Site Editor (vor Add-to-Cart-Button)
-- **Slider:** Swiper.js (bereits in WordPress verfügbar)
+- **Slider:** Swiper.js (via npm, in `view.js` gebundelt mit `@wordpress/scripts`)
 
 #### render.php – Ausgabe
 

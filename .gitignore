@@ -10,9 +10,9 @@ app/public/*.html
 app/public/wp-admin/
 app/public/wp-includes/
 
-# wp-content - nur themes und sell index in plugins behalten
+# wp-content - nur themes und greeting-card-block in plugins behalten
 app/public/wp-content/plugins/*
-!app/public/wp-content/plugins/sell-index/
+!app/public/wp-content/plugins/greeting-card-block/
 app/public/wp-content/uploads/
 app/public/wp-content/uploads-old/
 app/public/wp-content/upgrade/

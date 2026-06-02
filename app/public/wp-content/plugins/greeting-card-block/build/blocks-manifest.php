@@ -1,0 +1,32 @@
+<?php
+// This file is generated. Do not modify it manually.
+return array(
+	'greeting-card-block' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'greeting-card-block/greeting-card-block',
+		'version' => '0.1.0',
+		'title' => 'greeting-card-block',
+		'category' => 'widgets',
+		'icon' => 'smiley',
+		'description' => 'Hinzufügen von Grusskarten als Option im Woocommerce Produkt Block',
+		'example' => array(
+			
+		),
+		'supports' => array(
+			'html' => false
+		),
+		'attributes' => array(
+			'order' => array(
+				'type' => 'string',
+				'default' => ''
+			)
+		),
+		'textdomain' => 'greeting-card-block',
+		'editorScript' => 'file:./index.js',
+		'editorStyle' => 'file:./index.css',
+		'style' => 'file:./style-index.css',
+		'render' => 'file:./render.php',
+		'viewScript' => 'file:./view.js'
+	)
+);
