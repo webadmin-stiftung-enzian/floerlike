@@ -9,7 +9,8 @@
   "description": "Hinzufügen von Grusskarten als Option im Woocommerce Produkt Block",
   "example": {},
   "supports": {
-    "html": false
+    "html": false,
+    "interactivity": true
   },
   "attributes": {
     "order": {
@@ -22,5 +23,6 @@
   "editorStyle": "file:./index.css",
   "style": "file:./style-index.css",
   "render": "file:./render.php",
-  "viewScript": "file:./view.js"
+  "viewScriptModule": "file:./view.js",
+  "viewScript": "file:./cart-sync.js"
 }

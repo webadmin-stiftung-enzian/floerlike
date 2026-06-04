@@ -1,4 +1,5 @@
 <?php
+
 /**
  * Plugin Name:       greeting-card-block
  * Description:       Hinzufügen von Grusskarten als Option im Woocommerce Produkt Block
@@ -13,7 +14,7 @@
  * @package GreetingCardBlock
  */
 
-if ( ! defined( 'ABSPATH' ) ) {
+if (! defined('ABSPATH')) {
 	exit; // Exit if accessed directly.
 }
 /**
@@ -24,7 +25,11 @@ if ( ! defined( 'ABSPATH' ) ) {
  * @see https://make.wordpress.org/core/2025/03/13/more-efficient-block-type-registration-in-6-8/
  * @see https://make.wordpress.org/core/2024/10/17/new-block-type-registration-apis-to-improve-performance-in-wordpress-6-7/
  */
-function greeting_card_block_greeting_card_block_block_init() {
-	wp_register_block_types_from_metadata_collection( __DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php' );
+
+require_once __DIR__ . '/includes/woocommerce-hooks.php';
+
+function greeting_card_block_greeting_card_block_block_init()
+{
+	wp_register_block_types_from_metadata_collection(__DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php');
 }
-add_action( 'init', 'greeting_card_block_greeting_card_block_block_init' );
+add_action('init', 'greeting_card_block_greeting_card_block_block_init');

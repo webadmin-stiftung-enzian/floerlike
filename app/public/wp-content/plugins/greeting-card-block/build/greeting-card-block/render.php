@@ -20,33 +20,81 @@ $cards = wc_get_products([
 	'order'  => $attributes['order'] ?? 'ASC',
 ]);
 
+// Initialer Server-State für die Interactivity API.
+wp_interactivity_state('greeting-card-block', [
+	'wantsCard'      => true,
+	'selectedCardId' => '',
+	'text'           => '',
+	'validated'      => false,
+]);
+
 ?>
-<div <?php echo get_block_wrapper_attributes(); ?>>
+<div
+	<?php echo get_block_wrapper_attributes(); ?>
+	data-wp-interactive="greeting-card-block"
+	data-wp-init="callbacks.debugInit">
 	<div class="greeting-card-block__checkbox">
-		<input type="checkbox" id="isGreetingCardChecked" name="isGreetingCardChecked" checked />
+		<input
+			type="checkbox"
+			id="isGreetingCardChecked"
+			name="isGreetingCardChecked"
+			data-wp-bind--checked="state.wantsCard"
+			data-wp-on--change="actions.toggleWantsCard"
+			checked />
 		<label for="isGreetingCardChecked">Möchten Sie eine Grußkarte hinzufügen?</label>
 	</div>
-	<div class="greeting-card-block__content">
-		<div class="greeting-card-block__cards">
-			<input type="hidden" name="greeting_card_id">
-			<div class="greeting-card-block__cards-slider swiper">
+	<div class="greeting-card-block__content" data-wp-bind--hidden="!state.wantsCard">
+		<div class="greeting-card-block__cards" data-wp-class--has-error="state.showCardError">
+			<div class="greeting-card-block__cards-slider swiper" data-wp-init="callbacks.initSwiper">
 				<div class="swiper-wrapper">
 					<?php foreach ($cards as $card) : ?>
-						<button type="button" aria-pressed="false" class="swiper-slide" data-card-id="<?php echo esc_attr($card->get_id()); ?>">
-							<?php echo esc_html($card->get_name()); ?>
-							<img src="<?php echo esc_url(wp_get_attachment_image_url($card->get_image_id(), 'woocommerce_thumbnail')); ?>" alt="<?php echo esc_attr($card->get_name()); ?>" />
-							<p><?php echo esc_html($card->get_price()); ?></p>
-						</button>
+						<div class="swiper-slide">
+							<button
+								type="button"
+								class="greeting-card-block__card"
+								data-card-id="<?php echo esc_attr($card->get_id()); ?>"
+								data-wp-on--click="actions.selectCard"
+								data-wp-bind--aria-pressed="state.isCardPressed"
+								aria-pressed="false">
+								<!-- <?php echo esc_html($card->get_name()); ?> -->
+								<img src="<?php echo esc_url(wp_get_attachment_image_url($card->get_image_id(), 'woocommerce_thumbnail')); ?>" alt="<?php echo esc_attr($card->get_name()); ?>" />
+								<p>CHF <?php echo esc_html($card->get_price()); ?></p>
+							</button>
+						</div>
 					<?php endforeach; ?>
 				</div>
 				<div class="swiper-button-next"></div>
 				<div class="swiper-button-prev"></div>
 				<div class="swiper-pagination"></div>
 			</div>
+			<div
+				class="wc-block-components-notice-banner is-error"
+				role="alert"
+				data-wp-bind--hidden="!state.showCardError"
+				hidden>
+				<div class="wc-block-components-notice-banner__content">Bitte wählen Sie eine Grußkarte aus.</div>
+			</div>
 		</div>
 		<div class="greeting-card-block__message">
 			<label for="greetingCardMessage">Nachricht auf der Grußkarte:</label>
-			<textarea id="greetingCardMessage" name="greeting_card_message" rows="4" cols="50"></textarea>
+			<div class="greeting-card-block__message-wrapper">
+				<textarea
+					id="greetingCardMessage"
+					name="greeting_card_message"
+					rows="4"
+					cols="50"
+					maxlength="300"
+					data-wp-on--input="actions.updateText"
+					data-wp-class--has-error="state.showTextError"></textarea>
+				<span class="greeting-card-block__char-counter" data-wp-text="state.charCounter">Zeichen verbleibend: 300</span>
+			</div>
+			<div
+				class="wc-block-components-notice-banner is-error"
+				role="alert"
+				data-wp-bind--hidden="!state.showTextError"
+				hidden>
+				<div class="wc-block-components-notice-banner__content">Bitte geben Sie einen Grußtext ein.</div>
+			</div>
 		</div>
 	</div>
 </div>

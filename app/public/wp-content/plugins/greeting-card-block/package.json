@@ -6,13 +6,13 @@
 	"license": "GPL-2.0-or-later",
 	"main": "build/index.js",
 	"scripts": {
-		"build": "wp-scripts build --webpack-copy-php --blocks-manifest",
+		"build": "wp-scripts build --webpack-copy-php --blocks-manifest --experimental-modules",
 		"format": "wp-scripts format",
 		"lint:css": "wp-scripts lint-style",
 		"lint:js": "wp-scripts lint-js",
 		"packages-update": "wp-scripts packages-update",
 		"plugin-zip": "wp-scripts plugin-zip",
-		"start": "wp-scripts start --webpack-copy-php --blocks-manifest"
+		"start": "wp-scripts start --webpack-copy-php --blocks-manifest --experimental-modules"
 	},
 	"dependencies": {
 		"@wordpress/block-editor": "latest",
@@ -21,6 +21,7 @@
 		"swiper": "^12.2.0"
 	},
 	"devDependencies": {
+		"@woocommerce/dependency-extraction-webpack-plugin": "^2.2.0",
 		"@wordpress/scripts": "^32.3.0"
 	}
 }
