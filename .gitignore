@@ -13,6 +13,7 @@ app/public/wp-includes/
 # wp-content - nur themes und greeting-card-block in plugins behalten
 app/public/wp-content/plugins/*
 !app/public/wp-content/plugins/greeting-card-block/
+!app/public/wp-content/plugins/woo-order-ext/
 app/public/wp-content/uploads/
 app/public/wp-content/uploads-old/
 app/public/wp-content/upgrade/

@@ -1,0 +1,52 @@
+/**
+ * External dependencies
+ */
+import { useEffect, useState } from '@wordpress/element';
+import { CheckboxControl } from '@woocommerce/blocks-checkout';
+import { getSetting } from '@woocommerce/settings';
+import { useSelect, useDispatch } from '@wordpress/data';
+
+const { optInDefaultText } = getSetting( 'woo-order-ext_data', '' );
+
+const Block = ( { children, checkoutExtensionData } ) => {
+	const [ checked, setChecked ] = useState( false );
+	const { setExtensionData } = checkoutExtensionData;
+
+	const { setValidationErrors, clearValidationError } = useDispatch(
+		'wc/store/validation'
+	);
+
+	useEffect( () => {
+		setExtensionData( 'woo-order-ext', 'optin', checked );
+		if ( ! checked ) {
+			setValidationErrors( {
+				'woo-order-ext': {
+					message: 'Please tick the box',
+					hidden: false,
+				},
+			} );
+			return;
+		}
+		clearValidationError( 'woo-order-ext' );
+	}, [
+		clearValidationError,
+		setValidationErrors,
+		checked,
+		setExtensionData,
+	] );
+
+	const { validationError } = useSelect( ( select ) => {
+		const store = select( 'wc/store/validation' );
+		return {
+			validationError: store.getValidationError( 'woo-order-ext' ),
+		};
+	} );
+
+	return (
+		<>
+			<div>greetings from greeting card block</div>
+		</>
+	);
+};
+
+export default Block;
