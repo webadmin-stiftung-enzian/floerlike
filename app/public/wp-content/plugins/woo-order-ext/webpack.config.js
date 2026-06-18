@@ -36,10 +36,8 @@ module.exports = {
 			'index.js'
 		),
 		'woo-order-ext-checkout-greeting-card-block-frontend': path.resolve(
-			process.cwd(),
-			'src',
-			'js',
-			'checkout-add-greetincard-block',
+			process.cwd(), 'src', 'js',
+			'checkout-greeting-card-block',   // ← war: checkout-add-greetincard-block
 			'frontend.js'
 		),
 	},

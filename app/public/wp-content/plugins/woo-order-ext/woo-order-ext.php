@@ -22,7 +22,7 @@ add_action(
 	function () {
 		register_block_type_from_metadata(__DIR__ . '/build/js/checkout-newsletter-subscription-block');
 		register_block_type_from_metadata(
-			__DIR__ . '/build/js/checkout-add-greetincard-block'
+			__DIR__ . '/build/js/checkout-greeting-card-block'
 		);
 	}
 );
