@@ -1,142 +1,173 @@
-# WordPress- & WooCommerce-Block-Entwicklung verstehen
+# WordPress- & WooCommerce-Block-Entwicklung: Grundlagen
 
-Eine strukturierte Grundlage zu Block-Entwicklung, Block-Erweiterung und Slot/Fill – mit dem offiziellen Beispiel `extend-cart-checkout-block` als roter Faden.
+Eine Anleitung für Einsteiger – vom ersten Block bis zur gespeicherten Bestelldaten.
 
 ---
 
-## 1. Die vier Ebenen auf einen Blick
+## Bevor du anfängst: Was wollen wir eigentlich bauen?
 
-Du verwechselst (verständlicherweise) vier Dinge, die zwar zusammenhängen, aber unterschiedliche Werkzeuge brauchen. Halte diese Trennung im Kopf:
+Stell dir vor, du willst im WooCommerce-Checkout eine eigene Checkbox einbauen – z.B. „Ich möchte den Newsletter abonnieren". Der Kunde hakt sie an, klickt auf „Bestellen", und danach soll auf der Danke-Seite erscheinen, ob er sich angemeldet hat.
 
-| Ebene | Was es ist | Werkzeug / API | Wann du es brauchst |
+Das klingt simpel. Aber WooCommerce Blocks sind kein klassisches PHP-Template mehr – sie sind eine React-App. Deswegen braucht man mehr als einen PHP-Hook. Dieses Dokument erklärt Schritt für Schritt, wie das zusammenhängt.
+
+---
+
+## 1. Schnell-Orientierung: Was ist wo zuständig?
+
+Bevor man in Details geht, hilft diese Übersicht, den Überblick zu behalten:
+
+| Ebene | Was es ist | Werkzeug | Wann nötig |
 |---|---|---|---|
-| **1. WP-Block (Gutenberg)** | Ein normaler Editor-Block (Block.json, `edit`, `save`) | `@wordpress/blocks`, `registerBlockType` | Du baust irgendeinen Block für den Editor |
-| **2. WooCommerce-Block** | Cart/Checkout sind selbst Blöcke, aufgebaut aus vielen Inner-Blocks | dieselbe Block-API + WooCommerce-Datastores | Du verstehst, *wo* du andocken kannst |
-| **3. Checkout-Block-Erweiterung** | Du fügst einen eigenen Inner-Block in Cart/Checkout ein | `registerCheckoutBlock` + `parent` in block.json | Du willst ein neues UI-Element an fester Stelle (z.B. Newsletter-Checkbox) |
-| **4. Slot/Fill** | Du renderst Inhalt an vordefinierten „Einschüben", ohne eigenen Block | `ExperimentalOrderMeta` & Co. via `registerPlugin` | Du willst flexibel Inhalt einschieben, ohne dass der Shop-Betreiber einen Block platzieren muss |
+| **WP-Block** | Ein Editor-Block (normales Gutenberg) | `registerBlockType`, `block.json` | Immer – das Fundament |
+| **WooCommerce-Block** | Cart/Checkout sind selbst Blöcke aus vielen inneren Blöcken | Dieselbe Block-API | Zum Verstehen, wo man andocken kann |
+| **Checkout-Erweiterung** | Eigener Block wird in Cart/Checkout eingefügt | `registerCheckoutBlock` + `parent` | Für eigene UI-Elemente im Checkout |
+| **Slot/Fill** | Inhalt an vordefinierte Plätze einschieben, ohne eigenen Block | `ExperimentalOrderMeta` + `registerPlugin` | Für Anzeige-Elemente ohne Editor-Platzierung |
 
-Der entscheidende mentale Sprung: **Cart und Checkout sind keine PHP-Templates mehr.** Sie sind React-Block-Bäume. Erweitern heißt deshalb: entweder einen Block in den Baum hängen (Ebene 3) oder einen vordefinierten Einschub füllen (Ebene 4).
+**Der wichtigste mentale Sprung:** Cart und Checkout sind keine PHP-Templates mehr. Sie sind React-Block-Bäume. Erweitern heißt: entweder einen eigenen Block in diesen Baum hängen oder einen vordefinierten Einschub (Slot) füllen.
 
 ---
 
-## 2. Grundlage: Was ist ein WordPress-Block überhaupt?
+## 2. Empfohlene Reihenfolge zum Lernen
 
-Ein Block besteht aus drei Teilen, die du im Newsletter-Beispiel alle wiederfindest:
+Wer neu einsteigt, sollte diese Reihenfolge einhalten – jede Stufe baut auf der vorherigen auf:
 
-### 2.1 `block.json` – das Manifest
-Die Single Source of Truth. WordPress liest hier Name, Kategorie, Attribute, Scripts und Eltern-Beziehung.
+1. **WP-Block-Basis**: `block.json`, `edit`, `save` an einem einfachen Block ohne WooCommerce verstehen
+2. **Checkout als Block-Baum begreifen**: Im Block-Editor den Checkout aufklappen und die Inner-Blocks inspizieren – das macht `parent` greifbar
+3. **Mechanismus A nachbauen**: Newsletter-Block isoliert – `registerBlockType` (Editor) + `registerCheckoutBlock` (Frontend) + `parent`
+4. **`setExtensionData` + Schema** verstehen – der Kern jeder echten Checkout-Erweiterung
+5. **Slot/Fill** als Alternative kennenlernen (`ExperimentalOrderMeta`)
+6. **PHP-Integration** zuletzt – sie ist der Klebstoff für Scripts und Server-Daten
+
+---
+
+## 3. Was ist ein WordPress-Block überhaupt?
+
+Ein Block besteht aus drei Dateien, die zusammenarbeiten:
+
+### 3.1 `block.json` – das Manifest
+
+Das ist die Steuerzentrale. WordPress liest von hier: Name, Kategorie, welche Einstellungen der Block hat, und wo er erscheinen darf.
 
 ```json
 {
   "apiVersion": 3,
-  "name": "my-plugin/checkout-newsletter-subscription",
-  "title": "Newsletter Subscription!",
+  "name": "mein-plugin/newsletter-checkbox",
+  "title": "Newsletter Subscription",
   "category": "woocommerce",
   "parent": [ "woocommerce/checkout-contact-information-block" ],
   "attributes": {
-    "text": { "type": "string", "source": "html", "default": "" }
+    "text": { "type": "string", "default": "Newsletter abonnieren" }
   },
-  "textdomain": "my-plugin"
+  "textdomain": "mein-plugin"
 }
 ```
 
-Zwei Felder sind hier zentral:
-- **`parent`** – sagt: „Dieser Block darf *nur* innerhalb dieses Eltern-Blocks existieren." Das ist der Schlüssel, um deinen Block im Checkout zu verankern.
-- **`attributes`** – die persistenten Daten des Blocks (was der Shop-Betreiber im Editor einstellt, z.B. der Begrüßungstext).
+Zwei Felder sind besonders wichtig:
+- **`parent`** – legt fest, in welchem übergeordneten Block dieser Block erscheinen darf. Ohne das kann der Block nirgendwo platziert werden.
+- **`attributes`** – die Einstellungen, die der Shop-Betreiber im Editor vornehmen kann (z.B. Beschriftungstext der Checkbox).
 
-### 2.2 `edit` – wie der Block im Editor aussieht
-React-Komponente. Hier nutzt der Shop-Betreiber `RichText`, `InspectorControls` etc. Das ist **nicht** die Kunden-Ansicht.
+### 3.2 `edit.js` – die Editor-Ansicht
+
+Diese Datei beschreibt, was der **Shop-Betreiber** im Gutenberg-Editor sieht, wenn er den Block auswählt. Der Kunde sieht diese Ansicht nie.
 
 ```jsx
+import { useBlockProps, RichText } from '@wordpress/block-editor';
+
 export const Edit = ( { attributes, setAttributes } ) => {
-  const { text } = attributes;
-  const blockProps = useBlockProps();
-  return (
-    <div { ...blockProps }>
-      <InspectorControls>…</InspectorControls>
-      <CheckboxControl id="newsletter-text" checked={ false } disabled={ true } />
-      <RichText value={ text } onChange={ ( v ) => setAttributes( { text: v } ) } />
-    </div>
-  );
+    const blockProps = useBlockProps();
+    const { text } = attributes;
+
+    return (
+        <div { ...blockProps }>
+            {/* Betreiber kann den Beschriftungstext direkt im Editor ändern */}
+            <RichText
+                value={ text }
+                onChange={ ( val ) => setAttributes( { text: val } ) }
+                placeholder="Newsletter-Text eingeben…"
+            />
+        </div>
+    );
 };
+
+// Checkout-Blöcke sind dynamisch – kein statisches HTML speichern
+export const Save = () => null;
 ```
 
-### 2.3 `save` – was in die Datenbank gespeichert wird
-Bei **statischen** Blöcken erzeugt `save` das HTML, das gespeichert und ausgeliefert wird. Bei **dynamischen** Blöcken übernimmt PHP (`render.php`) das Rendern (das kennst du schon aus deiner React-im-Frontend-Recherche).
+### 3.3 `save` – warum hier `null`?
 
-> **Wichtige Besonderheit beim Checkout:** Der Block wird im Frontend *nicht* über `save` gerendert, sondern über eine eigene React-Komponente, die du via `registerCheckoutBlock` registrierst (siehe Abschnitt 4). `save` liefert hier nur den editierbaren Text als Platzhalter.
+Bei normalen WordPress-Blöcken speichert `save` HTML in der Datenbank. Beim WooCommerce-Checkout-Block funktioniert das anders: Das Frontend wird als **lebende React-App** gerendert, nicht aus gespeichertem HTML. Deshalb gibt `save` immer `null` zurück. Die eigentliche Kunden-Ansicht kommt aus `block.js` (siehe Kapitel 5).
 
 ---
 
-## 3. Die Anatomie des Beispiel-Plugins
+## 4. Die Struktur eines Checkout-Erweiterungs-Plugins
 
-Das offizielle Beispiel ist ein **Scaffold-Template** (deshalb die `.mustache`-Endungen und `{{slug}}`-Platzhalter). Beim Generieren wird `{{slug}}` durch deinen Plugin-Namen ersetzt. Struktur:
+Ein Plugin, das den WooCommerce Checkout erweitert, hat immer diese Grundstruktur:
 
 ```
-extend-cart-checkout-block/
-├── $slug.php                         ← Haupt-Plugin-Datei (Einsprungpunkt)
-├── $slug-blocks-integration.php      ← Integration-Klasse (lädt Scripts, liefert Server-Daten)
+mein-plugin/
+├── mein-plugin.php                        ← Haupt-Plugin-Datei
+├── mein-plugin-blocks-integration.php    ← Lädt Scripts, liefert Daten an JS
 └── src/js/
-    ├── index.js                      ← Slot/Fill-Registrierung (Ebene 4)
-    ├── filters.js                    ← Checkout-Filter & Payment-Callbacks
-    ├── ExampleComponent.js           ← Inhalt für den Slot
-    └── checkout-newsletter-subscription-block/
-        ├── block.json                ← Manifest des eigenen Blocks (Ebene 3)
-        ├── index.js                  ← registerBlockType (Editor-Seite)
-        ├── edit.js                   ← Editor-Ansicht (edit + save)
-        ├── block.js                  ← Frontend-Komponente (Kunden-Ansicht)
-        └── frontend.js               ← registerCheckoutBlock (Frontend-Registrierung)
+    ├── index.js                           ← Slot/Fill & Filter (optional)
+    └── checkout-newsletter-block/
+        ├── block.json                     ← Manifest
+        ├── index.js                       ← Editor-Registrierung
+        ├── edit.js                        ← Editor-Ansicht
+        ├── block.js                       ← Kunden-Ansicht (Frontend)
+        └── frontend.js                    ← Frontend-Registrierung
 ```
 
-Das Beispiel demonstriert bewusst **alle vier Erweiterungsmechanismen gleichzeitig**:
-1. Einen eigenen Block (Newsletter-Checkbox)
-2. Slot/Fill (`ExampleComponent` via `ExperimentalOrderMeta`)
-3. Checkout-Filter (Produktnamen anpassen)
-4. Additional Checkout Fields (serverseitig via PHP)
+Das Beispiel-Plugin von WooCommerce zeigt bewusst alle Mechanismen gleichzeitig:
+1. Eigener Block (Newsletter-Checkbox)
+2. Slot/Fill (Inhalte an vordefinierten Plätzen einschieben)
+3. Checkout-Filter (Texte/Preise verändern)
+4. Additional Checkout Fields (einfache Felder per PHP)
 
 ---
 
-## 4. Mechanismus A: Eigener Block im Checkout (`registerCheckoutBlock`)
+## 5. Mechanismus A: Eigener Block im Checkout
 
-Das ist die Antwort auf deine Kernfrage „Erweiterung via Block". Es braucht **zwei Registrierungen** für ein und denselben Block – das ist der Punkt, der am meisten verwirrt:
+Das ist der Hauptweg, um ein eigenes UI-Element (Checkbox, Texteingabe, Auswahl) in den Checkout einzubauen.
 
-### 4.1 Editor-Seite – `registerBlockType` (in `index.js`)
-Macht den Block im Block-Editor sichtbar und platzierbar.
+> **In einem Satz:** Man registriert denselben Block zweimal – einmal für den Editor und einmal für das Frontend des Shops.
+
+### 5.1 Editor-Registrierung – `registerBlockType`
+
+Macht den Block im Gutenberg-Editor sichtbar und platzierbar.
 
 ```jsx
+// src/js/checkout-newsletter-block/index.js
 import { registerBlockType } from '@wordpress/blocks';
 import { Edit, Save } from './edit';
 import metadata from './block.json';
 
 registerBlockType( metadata, {
-  icon: { … },
-  edit: Edit,
-  save: Save,
+    edit: Edit,
+    save: Save,
 } );
 ```
 
-### 4.2 Frontend-Seite – `registerCheckoutBlock` (in `frontend.js`)
-Sagt WooCommerce: „Wenn dieser Block im Checkout-Baum vorkommt, rendere im Frontend *diese* Komponente." Das ist WooCommerce-spezifisch und ersetzt den `save`-Mechanismus.
+### 5.2 Frontend-Registrierung – `registerCheckoutBlock`
+
+Sagt WooCommerce: „Wenn dieser Block im Checkout auftaucht, zeige dem Kunden diese Komponente." Ohne diesen Schritt rendert der Block im Shop gar nichts.
 
 ```jsx
+// src/js/checkout-newsletter-block/frontend.js
 import { registerCheckoutBlock } from '@woocommerce/blocks-checkout';
 import Block from './block';
 import metadata from './block.json';
 
 registerCheckoutBlock( {
-  metadata,
-  component: Block,   // ← die Kunden-Ansicht
+    metadata,    // block.json – bringt Name und Attribute mit
+    component: Block,
 } );
 ```
 
-### 4.3 Wo landet der Block? → `parent` entscheidet
-In `block.json` steht:
-```json
-"parent": [ "woocommerce/checkout-contact-information-block" ]
-```
-Damit ist der Block **fest an die Kontakt-Informationen** des Checkouts gebunden. Genau hier liegt dein Stolperstein aus dem `woo-order-ext`-Projekt: Welcher Parent ist der richtige?
+### 5.3 Wo landet der Block? – `parent` in `block.json`
 
-**Die wichtigsten Checkout-Parent-Blöcke:**
+Der `parent`-Wert bestimmt, in welchem Bereich des Checkouts der Block platziert werden kann. Nur existierende Parent-Blöcke funktionieren – ein falscher Name führt dazu, dass der Block im Editor nie erscheint.
+
+**Die wichtigsten Checkout-Bereiche:**
 
 | Parent-Block | Position im Checkout |
 |---|---|
@@ -145,80 +176,77 @@ Damit ist der Block **fest an die Kontakt-Informationen** des Checkouts gebunden
 | `woocommerce/checkout-billing-address-block` | Rechnungsadresse |
 | `woocommerce/checkout-shipping-methods-block` | Versandarten |
 | `woocommerce/checkout-payment-block` | Zahlung |
-| `woocommerce/checkout-additional-information-block` | Zusätzliche Infos (gut für Grußkarte/Newsletter) |
+| `woocommerce/checkout-additional-information-block` | Zusätzliche Infos (gut für Newsletter/Grußkarte) |
 | `woocommerce/checkout-order-note-block` | Bestellnotiz |
 
-### 4.4 Die Frontend-Komponente (`block.js`) – hier passiert die Logik
-Das ist die eigentlich interessante Datei. Sie zeigt drei Kern-Patterns der Checkout-Erweiterung:
+### 5.4 Die Kunden-Ansicht – `block.js`
+
+Diese Datei ist das Herzstück: Hier passiert die Logik, die der Kunde beim Checkout erlebt.
 
 ```jsx
-const Block = ( { children, checkoutExtensionData } ) => {
-  const [ checked, setChecked ] = useState( false );
-  const { setExtensionData } = checkoutExtensionData;
-  const { setValidationErrors, clearValidationError } =
-    useDispatch( 'wc/store/validation' );
+// src/js/checkout-newsletter-block/block.js
+import { useState } from '@wordpress/element';
+import { CheckboxControl } from '@woocommerce/blocks-checkout';
 
-  useEffect( () => {
-    // 1) Daten an WooCommerce übergeben → landen später in der Bestellung
-    setExtensionData( 'my-plugin', 'optin', checked );
+const Block = ( { attributes, checkoutExtensionData } ) => {
+    const { text } = attributes; // kommt aus dem Editor (block.json)
+    const [ checked, setChecked ] = useState( false );
+    const { setExtensionData } = checkoutExtensionData;
 
-    // 2) Validierung: Checkout blockieren, solange nicht angehakt
-    if ( ! checked ) {
-      setValidationErrors( {
-        'my-plugin': { message: 'Please tick the box', hidden: false },
-      } );
-      return;
-    }
-    clearValidationError( 'my-plugin' );
-  }, [ checked, … ] );
+    const handleChange = ( newValue ) => {
+        setChecked( newValue );
+        // Wert in den Checkout-State schreiben → landet später in der Bestellung
+        setExtensionData( 'mein-plugin', 'newsletter_optin', newValue );
+    };
 
-  // 3) Validierungsfehler aus dem Store lesen
-  const { validationError } = useSelect( ( select ) =>
-    ( { validationError: select( 'wc/store/validation' )
-        .getValidationError( 'my-plugin' ) } )
-  );
-
-  return ( … <CheckboxControl checked={checked} onChange={setChecked} /> … );
+    return (
+        <CheckboxControl
+            id="newsletter-optin"
+            checked={ checked }
+            label={ text }
+            onChange={ handleChange }
+        />
+    );
 };
+
+export default Block;
 ```
 
-Die drei Patterns, die du immer wieder brauchst:
-- **`checkoutExtensionData.setExtensionData(namespace, key, value)`** – schiebt Daten in den Checkout-State. Diese kannst du serverseitig wieder auslesen, wenn die Bestellung abgeschickt wird.
-- **`wc/store/validation`** – der zentrale Datastore für Validierung. Mit `setValidationErrors` blockierst du den „Bestellen"-Button.
-- **`useSelect` / `useDispatch`** (aus `@wordpress/data`) – Lesen aus / Schreiben in die WooCommerce-Datastores. Das ist Redux-artiges State-Management.
+**Die drei wichtigsten Patterns in `block.js`:**
+- **`checkoutExtensionData.setExtensionData(namespace, key, value)`** – schreibt Daten in den Checkout-State. Sie landen beim Absenden in der Bestellung.
+- **`wc/store/validation`** – Datastore für Validierung. Mit `setValidationErrors` kann man den „Bestellen"-Button sperren.
+- **`useSelect` / `useDispatch`** aus `@wordpress/data` – Lesen aus und Schreiben in WooCommerce-Datastores (Redux-artiges State-Management).
 
 ---
 
-## 5. Mechanismus B: Slot/Fill (`registerPlugin` + `ExperimentalOrderMeta`)
+## 6. Mechanismus B: Slot/Fill
 
-Slot/Fill ist das **flexiblere** Gegenstück. Statt einen Block an einer festen Stelle zu platzieren, füllst du einen vom WooCommerce-Team vordefinierten „Einschub" (Slot). Der Shop-Betreiber muss *nichts* im Editor platzieren – dein Inhalt erscheint automatisch.
+> **In einem Satz:** Man füllt einen vom WooCommerce-Team vordefinierten Platzhalter mit eigenem Inhalt – ohne dass der Betreiber etwas im Editor platzieren muss.
 
-**Das Mental Model:**
-- **Slot** = ein benannter Platzhalter, den WooCommerce im Checkout-UI bereitstellt (z.B. „unten in der Bestellübersicht").
-- **Fill** = dein Inhalt, der in diesen Slot „hineinfließt".
-
-In `index.js` des Beispiels:
+**Wann nutzen?** Für Anzeige-Elemente, die automatisch erscheinen sollen (kein Nutzer-Input nötig). Für Eingabe-Elemente ist Mechanismus A (eigener Block) besser.
 
 ```jsx
+// src/js/index.js
 import { registerPlugin } from '@wordpress/plugins';
 import { ExperimentalOrderMeta } from '@woocommerce/blocks-checkout';
 import { getSetting } from '@woocommerce/settings';
 
-const exampleDataFromSettings = getSetting( 'my-plugin_data' );
+const MeinInhalt = () => {
+    const daten = getSetting( 'mein-plugin_data' ); // Daten vom PHP-Server
+    return <p>{ daten['beispiel-text'] }</p>;
+};
 
-const render = () => (
-  <ExperimentalOrderMeta>           {/* ← der Slot (Fill) */}
-    <ExampleComponent data={ exampleDataFromSettings } />
-  </ExperimentalOrderMeta>
-);
-
-registerPlugin( 'my-plugin', {
-  render,
-  scope: 'woocommerce-checkout',     {/* ← wichtig: bindet an den Checkout */}
+registerPlugin( 'mein-plugin', {
+    render: () => (
+        <ExperimentalOrderMeta>
+            <MeinInhalt />
+        </ExperimentalOrderMeta>
+    ),
+    scope: 'woocommerce-checkout', // nur im Checkout laden
 } );
 ```
 
-**Die wichtigsten vordefinierten Slots (Fill-Komponenten):**
+**Verfügbare Slots:**
 
 | Komponente | Position |
 |---|---|
@@ -226,511 +254,436 @@ registerPlugin( 'my-plugin', {
 | `ExperimentalOrderShippingPackages` | Bei den Versandpaketen |
 | `ExperimentalDiscountsMeta` | Beim Gutschein-/Rabattbereich |
 
-**`scope`** ist hier entscheidend: `woocommerce-checkout` lädt nur im Checkout, `woocommerce-cart` nur im Warenkorb.
-
 ### Block vs. Slot/Fill – wann was?
 
-| | **Eigener Block** | **Slot/Fill** |
+| | Eigener Block | Slot/Fill |
 |---|---|---|
-| Position | Fest (über `parent`), Betreiber kann verschieben | An vordefinierten Slots |
-| Platzierung nötig? | Ja, im Block-Editor | Nein, automatisch |
-| Konfigurierbar durch Betreiber? | Ja (Editor-UI) | Nein |
-| Gut für | UI-Elemente mit Eingabe (Checkbox, Select) | Zusatz-Infos, dynamische Anzeigen |
-
-Für deine **Grußkarten-Auswahl** mit Eingabefeldern ist der eigene Block (Mechanismus A) richtig. Für reine Anzeige-Elemente wäre Slot/Fill schlanker.
+| Position | Frei wählbar über `parent` | An vordefinierten Slots |
+| Betreiber muss platzieren? | Ja, im Block-Editor | Nein, erscheint automatisch |
+| Konfigurierbar? | Ja (Editor-UI) | Nein |
+| Gut für | UI mit Eingabe (Checkbox, Select) | Automatische Anzeige-Elemente |
 
 ---
 
-## 6. Mechanismus C: Checkout-Filter
+## 7. Mechanismus C: Checkout-Filter
 
-Filter erlauben es, vorhandene Werte abzufangen und zu verändern – ohne UI. Aus `filters.js`:
+> **In einem Satz:** Vorhandene Werte im Checkout (Produktnamen, Preise, Labels) abfangen und verändern – ohne eigenes UI.
 
 ```jsx
-import { __experimentalRegisterCheckoutFilters } from '@woocommerce/blocks-checkout';
+import { registerCheckoutFilters } from '@woocommerce/blocks-checkout';
 
-__experimentalRegisterCheckoutFilters( 'my-plugin', {
-  itemName: ( name ) => `${name} + extra data!`,
+// Produktname im Checkout anpassen
+registerCheckoutFilters( 'mein-plugin', {
+    itemName: ( name ) => `${ name } ✓`,
 } );
 ```
 
-> **Achtung – Versionshinweis:** Das Beispiel nutzt noch `__experimentalRegisterCheckoutFilters`. In aktuellen WooCommerce-Versionen heißt die stabile API **`registerCheckoutFilters`** (ohne `__experimental`-Präfix). Das deckt sich mit dem, was du im `woo-order-ext`-Projekt bereits umgestellt hast. Verwende die stabile Variante.
+> **Hinweis zur API-Stabilität:** Ältere Dokumentation verwendet `__experimentalRegisterCheckoutFilters`. Die stabile aktuelle API heißt `registerCheckoutFilters` (ohne `__experimental`-Präfix).
 
-Typische filterbare Werte: `itemName`, `subtotalPriceFormat`, `cartItemPrice`, `coupons` u.a. Filter sind ideal, um Texte/Preise/Labels anzupassen.
+Filterbare Werte: `itemName`, `subtotalPriceFormat`, `cartItemPrice`, `coupons` u.a.
 
-### Payment-Method-Callbacks
-Im selben File:
+**Payment-Method-Callbacks** ermöglichen das dynamische Ein-/Ausblenden von Zahlungsarten:
+
 ```jsx
-registerPaymentMethodExtensionCallbacks( 'my-plugin', {
-  cod: ( arg ) => arg.billingData.city !== 'Denver',
+registerPaymentMethodExtensionCallbacks( 'mein-plugin', {
+    cod: ( arg ) => arg.billingData.city !== 'Berlin', // Nachnahme außerhalb Berlins
 } );
 ```
-Damit kannst du Zahlungsarten dynamisch ein-/ausblenden (hier: Nachnahme nur außerhalb von „Denver"). Nützlich für regionale Regeln.
 
 ---
 
-## 7. Mechanismus D: Additional Checkout Fields (serverseitig, PHP)
+## 8. Mechanismus D: Additional Checkout Fields (nur PHP)
 
-Seit neueren WooCommerce-Versionen gibt es eine **rein serverseitige** API für Standard-Felder – du brauchst dafür *kein* JavaScript. Aus `$slug.php`:
-
-```php
-add_action( 'woocommerce_init', 'register_custom_checkout_fields' );
-
-function register_custom_checkout_fields() {
-  if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) ) {
-    return;
-  }
-
-  woocommerce_register_additional_checkout_field( array(
-    'id'       => 'my-plugin/custom-checkbox',
-    'label'    => 'Check this box…',
-    'location' => 'contact',          // contact | address | order
-    'type'     => 'checkbox',          // checkbox | text | select
-  ) );
-}
-```
-
-Dazu gibt es Hooks für **Sanitization** und **Validierung**:
+> **In einem Satz:** Für einfache Standard-Felder (Checkbox, Text, Select) gibt es eine rein serverseitige PHP-API – kein React, kein Build-Schritt nötig.
 
 ```php
-// Sanitize – Wert vor dem Speichern bereinigen
-add_action( 'woocommerce_sanitize_additional_field', function ( $value, $key ) {
-  if ( 'my-plugin/custom-text-input' === $key ) {
-    return strtoupper( $value );
-  }
-  return $value;
-}, 10, 2 );
-
-// Validate – Bestellung ablehnen bei ungültigem Wert
-add_action( 'woocommerce_blocks_validate_location_address_fields',
-  function ( \WP_Error $errors, $fields ) {
-    if ( 'INVALID' === ( $fields['my-plugin/custom-text-input'] ?? '' ) ) {
-      $errors->add( 'invalid_text_detected', 'Bitte keinen ungültigen Text.' );
+add_action( 'woocommerce_init', function () {
+    if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) ) {
+        return;
     }
-  }, 10, 2 );
-```
 
-**Drei mögliche `location`-Werte:** `contact`, `address`, `order`. Diese Felder erscheinen automatisch an passender Stelle und werden automatisch in der Bestellung gespeichert.
-
-> **Entscheidungshilfe:** Für einfache Standardfelder (Checkbox, Text, Select) ist diese PHP-API der **schnellste** Weg – kein React, kein Build. Für komplexes UI (deine Grußkarten-Auswahl mit Vorschau, eigener Logik) brauchst du den eigenen Block (Mechanismus A).
-
----
-
-## 8. Die PHP-Integration: Wie alles zusammenkommt
-
-Das verbindende Glied ist die **Integration-Klasse**, die `IntegrationInterface` implementiert. Sie macht drei Dinge:
-
-```php
-class My_Plugin_Blocks_Integration implements IntegrationInterface {
-
-  public function get_name() { return 'my-plugin'; }
-
-  // 1) Scripts/Styles registrieren
-  public function initialize() {
-    $this->register_main_integration();
-    // … weitere register_*-Methoden
-  }
-
-  // 2) Welche Scripts im Frontend / Editor laden?
-  public function get_script_handles() {
-    return array( 'my-plugin-blocks-integration',
-                  'my-plugin-…-block-frontend' );
-  }
-  public function get_editor_script_handles() { … }
-
-  // 3) Daten vom Server an den Block übergeben (→ getSetting im JS)
-  public function get_script_data() {
-    return array(
-      'example-data'     => 'Daten vom Server',
-      'optInDefaultText' => 'Ich möchte Updates erhalten.',
-    );
-  }
-}
-```
-
-Registriert wird sie über die Block-Registry-Hooks:
-
-```php
-add_action( 'woocommerce_blocks_loaded', function () {
-  require_once __DIR__ . '/my-plugin-blocks-integration.php';
-
-  add_action( 'woocommerce_blocks_cart_block_registration',
-    fn( $registry ) => $registry->register( new My_Plugin_Blocks_Integration() ) );
-
-  add_action( 'woocommerce_blocks_checkout_block_registration',
-    fn( $registry ) => $registry->register( new My_Plugin_Blocks_Integration() ) );
+    woocommerce_register_additional_checkout_field( array(
+        'id'       => 'mein-plugin/liefer-hinweis',
+        'label'    => 'Hinweis für die Lieferung',
+        'location' => 'order',   // contact | address | order
+        'type'     => 'text',    // text | checkbox | select
+    ) );
 } );
 ```
 
-**Die Server→Client-Datenbrücke:** Was du in PHP via `get_script_data()` zurückgibst, liest du im JS mit `getSetting( 'my-plugin_data' )`. So kommen z.B. übersetzte Default-Texte oder Konfigurationswerte vom Server in den React-Block.
+Diese Felder erscheinen automatisch an der richtigen Stelle und werden automatisch in der Bestellung gespeichert.
 
-> **Dein bekannter Stolperstein:** Die `.asset.php`-Pfade. Das Build erzeugt zu jeder JS-Datei eine `*.asset.php` mit den korrekten Dependencies und der Version. Wenn der Pfad in `wp_register_script` nicht exakt auf die gebaute Datei zeigt, fehlen die Dependencies und der Block lädt nicht. Genau diese Pfad-Referenzen musst du sauber halten – das deckt sich mit deinen früheren Debugging-Sessions.
+**Sanitierung und Validierung per PHP:**
+
+```php
+// Wert bereinigen bevor er gespeichert wird
+add_action( 'woocommerce_sanitize_additional_field',
+    function ( $value, $key ) {
+        if ( 'mein-plugin/liefer-hinweis' === $key ) {
+            return sanitize_text_field( $value );
+        }
+        return $value;
+    }, 10, 2
+);
+
+// Bestellung ablehnen bei ungültigem Wert
+add_action( 'woocommerce_blocks_validate_location_order_fields',
+    function ( \WP_Error $errors, $fields ) {
+        if ( isset( $fields['mein-plugin/liefer-hinweis'] )
+            && strlen( $fields['mein-plugin/liefer-hinweis'] ) > 100 ) {
+            $errors->add( 'zu_lang', 'Bitte kürzer als 100 Zeichen.' );
+        }
+    }, 10, 2
+);
+```
+
+> **Entscheidungshilfe:** Für einfache Felder → PHP-API. Für komplexes UI mit Vorschau, Abhängigkeiten, eigener Logik → eigener Block (Mechanismus A).
 
 ---
 
-## 9. Der Build-Prozess
+## 9. Die PHP-Integrationsklasse: Wie alles zusammenkommt
 
-WooCommerce-Blocks brauchen einen Build-Schritt (`@wordpress/scripts` + `@woocommerce/dependency-extraction-webpack-plugin`):
+Die Integrationsklasse ist der Klebstoff zwischen PHP und dem JavaScript-Frontend. Sie teilt WooCommerce mit, welche Scripts geladen werden sollen und welche Daten vom Server ins JS übertragen werden.
 
-- `src/` enthält den lesbaren Quellcode (JSX, SCSS).
-- `npm run build` (bzw. `start` für Watch-Modus) erzeugt `build/` mit:
+```php
+// mein-plugin-blocks-integration.php
+use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
+
+class MeinPlugin_Blocks_Integration implements IntegrationInterface {
+
+    public function get_name() {
+        return 'mein-plugin'; // muss eindeutig und konsistent sein
+    }
+
+    public function initialize() {
+        // Scripts registrieren (siehe unten)
+        $this->register_frontend_script();
+        $this->register_editor_script();
+    }
+
+    // Welche Scripts sollen Kunden im Shop sehen?
+    public function get_script_handles() {
+        return array( 'mein-plugin-newsletter-block-frontend' );
+    }
+
+    // Welche Scripts sollen im Gutenberg-Editor geladen werden?
+    public function get_editor_script_handles() {
+        return array( 'mein-plugin-newsletter-block-editor' );
+    }
+
+    // PHP-Daten an den JS-Block übergeben
+    public function get_script_data() {
+        return array(
+            'optInDefaultText' => __( 'Ja, ich möchte den Newsletter.', 'mein-plugin' ),
+        );
+    }
+
+    private function register_frontend_script() {
+        $script_path  = '/build/mein-plugin-newsletter-block-frontend.js';
+        $asset_path   = dirname( __FILE__ ) . '/build/mein-plugin-newsletter-block-frontend.asset.php';
+        $script_asset = file_exists( $asset_path ) ? require $asset_path : array( 'dependencies' => array(), 'version' => '1.0' );
+
+        wp_register_script(
+            'mein-plugin-newsletter-block-frontend',
+            plugins_url( $script_path, __FILE__ ),
+            $script_asset['dependencies'],
+            $script_asset['version'],
+            true
+        );
+    }
+
+    // register_editor_script analog aufgebaut
+}
+```
+
+**Registrierung der Integrationsklasse:**
+
+```php
+// mein-plugin.php
+add_action( 'woocommerce_blocks_loaded', function () {
+    require_once __DIR__ . '/mein-plugin-blocks-integration.php';
+
+    // Im Warenkorb-Block registrieren
+    add_action( 'woocommerce_blocks_cart_block_registration',
+        fn( $registry ) => $registry->register( new MeinPlugin_Blocks_Integration() )
+    );
+
+    // Im Checkout-Block registrieren
+    add_action( 'woocommerce_blocks_checkout_block_registration',
+        fn( $registry ) => $registry->register( new MeinPlugin_Blocks_Integration() )
+    );
+} );
+```
+
+**Die Server→Client-Datenbrücke:**
+- PHP: `get_script_data()` gibt ein Array zurück
+- JS: `getSetting( 'mein-plugin_data' )` liest es aus (Schlüssel = `<get_name()>_data`)
+
+---
+
+## 10. Der Build-Prozess
+
+WooCommerce-Blöcke brauchen einen Build-Schritt, weil JSX und moderne JS-Syntax vom Browser nicht direkt verstanden werden.
+
+- `src/` enthält den lesbaren Quellcode (JSX, SCSS)
+- `npm run build` erzeugt `build/` mit:
   - kompiliertem JS
-  - der `*.asset.php` je Eintrag (Dependencies + Version)
+  - einer `*.asset.php` pro Datei (enthält Dependencies und Version)
   - kompiliertem CSS
-- Das `@woocommerce/dependency-extraction-webpack-plugin` sorgt dafür, dass `@wordpress/*`- und `@woocommerce/*`-Imports **nicht** mitgebündelt werden, sondern als WordPress-Dependencies referenziert werden. Deshalb tauchen sie korrekt in der `.asset.php` auf.
 
----
+Das `@woocommerce/dependency-extraction-webpack-plugin` sorgt dafür, dass `@wordpress/*`- und `@woocommerce/*`-Pakete **nicht** ins Bundle gepackt werden, sondern als WordPress-Dependencies referenziert werden. Deshalb stehen sie korrekt in der `.asset.php`.
 
-## 10. Lernpfad – konkrete Reihenfolge für dich
-
-1. **Erst die WP-Block-Basis** verstehen: `block.json`, `edit`, `save` an einem trivialen eigenen Block (ohne WooCommerce). Du kennst das aus deiner React/Block-Theme-Recherche – hier liegt das Fundament.
-2. **Dann den Checkout als Block-Baum** begreifen: Im Block-Editor mal den Checkout aufklappen und die Inner-Blocks (`contact-information`, `shipping-address` …) inspizieren. Das macht `parent` greifbar.
-3. **Mechanismus A nachbauen:** Den Newsletter-Block isoliert nachvollziehen – `registerBlockType` (Editor) + `registerCheckoutBlock` (Frontend) + `parent`.
-4. **`setExtensionData` + Validierung** verstehen – das ist der Kern jeder echten Checkout-Erweiterung.
-5. **Slot/Fill** als Alternative ausprobieren (`ExperimentalOrderMeta`).
-6. **PHP-Integration** zuletzt – sie ist „nur" der Klebstoff, aber für `.asset.php`-Pfade und Server-Daten essenziell.
+> **Wichtig:** Die `.asset.php` muss denselben Namen wie die zugehörige `.js`-Datei haben:
+> ```
+> build/mein-plugin-newsletter-block-frontend.js
+> build/mein-plugin-newsletter-block-frontend.asset.php  ← gleicher Name, andere Endung
+> ```
 
 ---
 
 ## 11. Spickzettel: Welcher Mechanismus wofür?
 
-- **Eingabe-UI an fester Checkout-Position** (Grußkarte, Newsletter-Checkbox) → **eigener Block** (`registerCheckoutBlock` + `parent`)
-- **Einfaches Standardfeld ohne eigenes UI** → **Additional Checkout Field** (PHP, `woocommerce_register_additional_checkout_field`)
-- **Zusatz-Anzeige ohne Betreiber-Platzierung** → **Slot/Fill** (`ExperimentalOrderMeta` + `registerPlugin`)
-- **Vorhandene Werte/Texte/Preise verändern** → **Checkout-Filter** (`registerCheckoutFilters`)
-- **Zahlungsarten ein-/ausblenden** → **`registerPaymentMethodExtensionCallbacks`**
-- **Daten vom Server in den Block** → `get_script_data()` (PHP) ↔ `getSetting()` (JS)
-- **Daten aus dem Block in die Bestellung** → `setExtensionData()` (JS) ↔ serverseitiges Auslesen
+| Ziel | Lösung |
+|---|---|
+| Eingabe-UI im Checkout (Checkbox, Select) | Eigener Block – `registerCheckoutBlock` + `parent` |
+| Einfaches Feld ohne eigenes UI | Additional Checkout Field (PHP, `woocommerce_register_additional_checkout_field`) |
+| Automatische Anzeige ohne Betreiber-Platzierung | Slot/Fill (`ExperimentalOrderMeta` + `registerPlugin`) |
+| Texte/Preise/Labels anpassen | Checkout-Filter (`registerCheckoutFilters`) |
+| Zahlungsarten ein-/ausblenden | `registerPaymentMethodExtensionCallbacks` |
+| PHP-Daten ins JS | `get_script_data()` (PHP) ↔ `getSetting()` (JS) |
+| Kundeneingabe in die Bestellung | `setExtensionData()` (JS) ↔ `woocommerce_store_api_checkout_update_order_from_request` (PHP) |
 
----
+**Wichtige Imports:**
 
-## Wichtige API-Referenzen (Imports)
-
-| Import | Quelle |
+| Import | Paket |
 |---|---|
 | `registerBlockType` | `@wordpress/blocks` |
 | `registerCheckoutBlock` | `@woocommerce/blocks-checkout` |
 | `registerCheckoutFilters` | `@woocommerce/blocks-checkout` |
 | `registerPlugin` | `@wordpress/plugins` |
 | `ExperimentalOrderMeta` | `@woocommerce/blocks-checkout` |
-| `registerPaymentMethodExtensionCallbacks` | `@woocommerce/blocks-registry` |
 | `getSetting` | `@woocommerce/settings` |
 | `useSelect`, `useDispatch` | `@wordpress/data` |
 | `IntegrationInterface` | `Automattic\WooCommerce\Blocks\Integrations` (PHP) |
 
 ---
 
-*Hinweis zu API-Stabilität: Die WooCommerce-Blocks-APIs haben einige Methoden vom `__experimental`-Präfix in stabile Namen überführt (z.B. `registerCheckoutFilters`). Das offizielle Beispiel-Repo hinkt hier teils hinterher. Prüfe bei Problemen die aktuelle Version unter developer.woocommerce.com.*
+## 12. Praxis: Zwei eigene Blöcke parallel im Checkout
 
----
+Sobald man mehrere eigene Blöcke (z.B. Newsletter-Checkbox **und** Grußkarte) gleichzeitig betreibt, gibt es spezifische Fallstricke.
 
-## 12. Praxis-Erkenntnisse: Zwei eigene Blöcke parallel im Checkout (verifiziert)
+### 12.1 Jeder Block braucht zwei Registrierungen
 
-Dieser Abschnitt hält die konkreten Erkenntnisse aus dem `woo-order-ext`-Projekt fest, nachdem **beide** Blöcke (Newsletter-Subscription **und** Greeting-Card) erfolgreich im Checkout geladen wurden. Es sind die Punkte, an denen das Setup tatsächlich gehakt hat – nicht die Theorie.
-
-### 12.1 Die zwei getrennten Registrierungs-Welten – nicht vermischen
-
-Ein eigener Checkout-Block lädt nur dann zuverlässig, wenn **beide** Registrierungs-Wege sauber parallel laufen – sie machen unterschiedliche Dinge:
-
-| Weg | Datei / Hook | Aufgabe |
+| Registrierung | Wo | Aufgabe |
 |---|---|---|
-| **Block-Type-Registrierung** | `woo-order-ext.php`, Hook `init`, `register_block_type_from_metadata()` | Macht den Block dem Editor bekannt (liest die kopierte `block.json` unter `build/js/<ordner>/`) |
-| **Integration-Registrierung** | `woo-order-ext-blocks-integration.php` über die Blocks-Registry-Hooks | Lädt die **Frontend-** und **Editor-Scripts** in Cart/Checkout |
+| `register_block_type_from_metadata()` | `init`-Hook in der Haupt-PHP-Datei | Block im Editor bekannt machen |
+| Integration-Klasse | `woocommerce_blocks_loaded` | Frontend- und Editor-Scripts laden |
 
-Beide Blöcke müssen in **beiden** Welten auftauchen. Konkret heißt das im verifizierten Setup:
+Fehlt ein Block in nur einer dieser Registrierungen, lädt er entweder nur im Editor oder nur im Frontend – klassisches Symptom: „im Editor sichtbar, beim Kunden unsichtbar".
 
-- In `init` werden **beide** `register_block_type_from_metadata()`-Aufrufe ausgeführt (Newsletter **und** Greeting-Card).
-- In `initialize()` der Integration werden für **jeden** Block die drei `register_*`-Methoden aufgerufen (frontend / editor scripts / editor styles).
-- In `get_script_handles()` **und** `get_editor_script_handles()` stehen die Handles **beider** Blöcke plus das Integrations-Bundle.
+### 12.2 `.asset.php`-Pfade müssen exakt stimmen
 
-Fehlt ein Block in nur einer dieser Listen, lädt er entweder nur im Editor oder nur im Frontend – das war eine der Hauptursachen für „erscheint im Editor, rendert aber nicht beim Kunden".
+Der häufigste Fehler: Der Pfad zur `.asset.php` in `wp_register_script` zeigt auf eine nicht existierende Datei. Dann greift der Fallback mit leeren `dependencies`, `wc-blocks-checkout` fehlt als Abhängigkeit, und `registerCheckoutBlock` ist `undefined` → der Block rendert still nichts.
 
-### 12.2 Der `.asset.php`-Pfad ist der häufigste Stolperstein (bestätigt)
-
-Bestätigt sich erneut: Wenn der Pfad in `wp_register_script` nicht **exakt** auf die gebaute `.asset.php` zeigt, fällt der Code in den Fallback mit leeren `dependencies`. Dann lädt das Frontend-Script **ohne** `wc-blocks-checkout`, und `registerCheckoutBlock` ist `undefined` → der Block rendert still nicht.
-
-Verifizierte Namenskonvention im `build/`-Ordner: **Die `.asset.php`-Datei heißt identisch zum jeweiligen JS-Bundle**, z.B.
-
+Verifizierte Namenskonvention:
 ```
-woo-order-ext-checkout-greeting-card-block-frontend.js
-woo-order-ext-checkout-greeting-card-block-frontend.asset.php
+build/woo-order-ext-checkout-greeting-card-block-frontend.js
+build/woo-order-ext-checkout-greeting-card-block-frontend.asset.php
 ```
+Name der `.asset.php` = exakt gleich wie die `.js`-Datei.
 
-Also nicht abgekürzt (`greeting-card-block-frontend.asset.php` war falsch). Bei zwei Blöcken vervielfacht sich diese Fehlerquelle – jeden der vier Frontend-/Editor-Pfade einzeln gegen den echten Build-Output prüfen.
+### 12.3 `parent` muss ein existierender Block sein
 
-**Kleiner, schon bekannter Schönheitsfehler:** In einigen Fallback-Zweigen wird `$this->get_file_version($script_asset_path)` statt `$script_path` übergeben. Funktional unkritisch (greift nur, wenn die `.asset.php` fehlt), aber bei Gelegenheit auf `$script_path` korrigieren.
-
-### 12.3 Der richtige `parent` entscheidet über die Position – und über Existenz
-
-Bestätigt: `checkout-additional-delivery-block` existiert **nicht** als Einhängepunkt. Ein nicht existierender Parent lässt den Block im Editor gar nicht erst andockbar werden.
-
-Verifiziert funktioniert für beide Zusatz-Blöcke:
+Ein falscher oder nicht existierender Parent-Block-Name führt dazu, dass der Block im Editor nirgendwo andockbar ist. Verifiziert funktioniert für eigene Zusatz-Blöcke:
 
 ```json
 "parent": [ "woocommerce/checkout-additional-information-block" ]
 ```
 
-Damit landen Newsletter-Checkbox und Greeting-Card im Bereich „Additional information" (per Default der letzte Checkout-Schritt).
-
-### 12.4 `save` muss `null` zurückgeben (dynamischer Block)
-
-Für beide Blöcke gilt: Die Kunden-Ansicht kommt aus der via `registerCheckoutBlock` registrierten Komponente, **nicht** aus `save`. Deshalb:
+### 12.4 `save` gibt `null` zurück – immer
 
 ```javascript
 export const Save = () => null;
 ```
 
-Gibt `save` stattdessen Markup zurück, riskiert man Block-Validierungsfehler im Editor.
+Gibt `save` Markup zurück, entstehen Block-Validierungsfehler im Editor.
 
-### 12.5 Block NICHT zusätzlich in der Wurzel-`src/index.js` importieren
+### 12.5 Keinen Block in der Wurzel-`src/index.js` importieren
 
-Beide Blöcke haben **eigene Webpack-Entry-Points** und werden über die PHP-Integration geladen. Ein zusätzlicher Import in der Wurzel-`src/index.js` würde sie **doppelt registrieren** (Konsolen-Warnung „Block ... is already registered"). Die Wurzel-`index.js` ist nur für Filter/Slot-Fill-Logik zuständig, nicht für die eigenen Blöcke.
+Eigene Blöcke haben eigene Webpack-Entry-Points. Ein zusätzlicher Import in `src/index.js` führt zu doppelter Registrierung (Konsolenwarnung: „Block is already registered"). Die `index.js` ist nur für Filter/Slot-Fill.
 
-### 12.6 Die Einhäng-Punkte für die Inner-Block-Liste (`editor.js`)
+### 12.6 Inner-Block-Liste im Editor (`editor.js`)
 
-Damit die eigenen Blöcke im Editor als erlaubte Inner-Blocks im jeweiligen Bereich auftauchen, wird der Filter `additionalCartCheckoutInnerBlockTypes` genutzt. Im verifizierten Stand werden dort beide Block-Namen registriert (Greeting-Card gezielt im Additional-Information-Bereich, Newsletter generisch). Wichtig: Die hier verwendeten Block-Namen müssen **exakt** den `name`-Feldern der jeweiligen `block.json` entsprechen (`woo-order-ext/checkout-greeting-card`, `woo-order-ext/checkout-newsletter-subscription`).
+Damit eigene Blöcke im Editor als auswählbare Inner-Blocks erscheinen:
 
-### 12.7 Reihenfolge-Checkliste für „beide Blöcke laden zuverlässig"
+```javascript
+import { registerCheckoutFilters } from '@woocommerce/blocks-checkout';
 
-Wenn ein zweiter eigener Block hinzugefügt wird, diese Punkte der Reihe nach abhaken:
+registerCheckoutFilters( 'woo-order-ext', {
+    additionalCartCheckoutInnerBlockTypes: ( value, { block } ) => {
+        if ( block === 'woocommerce/checkout-additional-information-block' ) {
+            return [
+                ...value,
+                'woo-order-ext/checkout-greeting-card',
+                'woo-order-ext/checkout-newsletter-subscription',
+            ];
+        }
+        return value;
+    },
+} );
+```
 
-1. Eigener Ordner unter `src/js/<block>/` mit `block.json`, `index.js`, `edit.js`, `frontend.js`, `block.js`.
-2. `block.json`: korrekter `name`, korrekter existierender `parent`.
-3. Webpack-Entry-Point für `<block>` und `<block>-frontend` ergänzt.
-4. `npm run build` → prüfen, dass JS **und** gleichnamige `.asset.php` im `build/` liegen.
-5. `init`-Hook: `register_block_type_from_metadata()` für den neuen Block ergänzt.
-6. Integration `initialize()`: `register_*_frontend_scripts()` + `register_*_editor_scripts()` (+ Styles) ergänzt, mit **exakten** `.asset.php`-Pfaden.
-7. `get_script_handles()` **und** `get_editor_script_handles()`: Handle des neuen Blocks ergänzt.
-8. `editor.js`: Block-Name in die Inner-Block-Liste aufgenommen.
-9. Editor: Checkout aufklappen, Block im richtigen Bereich sichtbar? Frontend: Block rendert beim Kunden?
+Die Block-Namen müssen exakt den `name`-Feldern der jeweiligen `block.json` entsprechen.
 
-Erst wenn alle neun Punkte stimmen, laden zwei (oder mehr) eigene Blöcke parallel zuverlässig.
+### 12.7 Checkliste: neuen Block hinzufügen
+
+1. Ordner `src/js/<block>/` mit `block.json`, `index.js`, `edit.js`, `frontend.js`, `block.js`
+2. `block.json`: korrekter `name`, existierender `parent`
+3. Webpack-Entry-Point für `<block>` und `<block>-frontend` ergänzen
+4. `npm run build` → prüfen, dass JS **und** gleichnamige `.asset.php` in `build/` liegen
+5. `init`-Hook: `register_block_type_from_metadata()` ergänzen
+6. Integration `initialize()`: `register_*_frontend_scripts()` + `register_*_editor_scripts()` mit exakten Pfaden
+7. `get_script_handles()` + `get_editor_script_handles()`: Handle ergänzen
+8. `editor.js`: Block-Name in Inner-Block-Liste aufnehmen
+9. Testen: Block im Editor platzierbar? Rendert er beim Kunden?
 
 ---
 
-## 13. Datenfluss verstehen: `edit.js` → `block.json` → `block.js`
+## 13. Datenfluss: Editor → Block.json → Frontend
 
-Dieses Kapitel beantwortet die Frage, die bei eigenen Checkout-Blöcken am meisten Verwirrung stiftet: **Wie kommen Daten, die der Shop-Betreiber im Editor (`edit.js`) einstellt, in die Kundenansicht im Frontend (`block.js`)?** Und warum funktioniert dabei das normale Gutenberg-`save`-Muster *nicht*?
+> **Die häufigste Verwirrung:** Wie kommen Einstellungen, die der Betreiber im Editor vornimmt, in die Kunden-Ansicht?
 
-### 13.1 Der mentale Bruch mit dem normalen Gutenberg-Block
+### 13.1 Der Unterschied zum normalen WordPress-Block
 
-Ein **normaler** WordPress-Block kennt zwei Renderings:
-- `edit` → wie der Block im Editor aussieht
-- `save` → das HTML, das in der DB gespeichert und im Frontend ausgegeben wird
+Ein **normaler** WordPress-Block:
+- `edit` → Editor-Ansicht
+- `save` → speichert HTML in die Datenbank → erscheint im Frontend
 
-Beim **WooCommerce-Checkout-Block** ist diese Linie durchtrennt. Der Checkout wird im Frontend **nicht** aus gespeichertem HTML gerendert, sondern als **lebende React-App** zur Laufzeit aufgebaut. Deshalb gilt:
+Ein **WooCommerce-Checkout-Block**:
+- `edit` → Editor-Ansicht (gleich)
+- `save` → gibt `null` zurück (kein gespeichertes HTML)
+- `block.js` → rendert die Kunden-Ansicht zur Laufzeit als React-Komponente
 
-- `save` gibt `null` zurück → es wird **kein** statisches Frontend-HTML gespeichert.
-- Das Frontend-Rendering übernimmt `block.js`, eingehängt über `registerCheckoutBlock` (in `frontend.js`).
+### 13.2 Die Datenbrücke: `attributes`
 
-> **Kernsatz:** `edit.js`, die `Save`-Funktion und `block.js` rendern denselben Block, aber in unterschiedlichen Momenten und für unterschiedliche Zielgruppen. `block.json` ist die gemeinsame Klammer, die alle drei verbindet.
+Damit ein im Editor eingestellter Wert das Frontend erreicht:
 
-### 13.2 Wer läuft wann?
+1. Betreiber ändert Wert im Editor → `setAttributes()` wird aufgerufen
+2. WordPress speichert den Wert als `data-*`-Attribut am Block-Element
+3. WooCommerce liest das Attribut und reicht es als Prop an `block.js` weiter
 
-| Datei | Läuft … | Zielgruppe | Aufgabe |
-|---|---|---|---|
-| `edit.js` | im Block-Editor (Backend) | Shop-Betreiber | Vorschau + Konfiguration des Blocks |
-| `Save` (in `edit.js`/`save.js`) | beim Speichern im Editor | – | gibt `null` zurück (dynamischer Block) |
-| `block.js` | im echten Checkout (Frontend) | Kunde | Eingabe, Validierung, `setExtensionData` |
+```
+block.json (attributes) → edit.js (setAttributes) → gespeichert → block.js (attributes-Prop)
+```
 
-`edit.js` sieht nie ein Kunde, `block.js` nie ein Betreiber. Deshalb lebt die Kundenlogik (`useState`, `useEffect`, `setExtensionData`) ausschließlich in `block.js`.
+**`save` ist an diesem Fluss nicht beteiligt.** Deshalb gibt es `null` zurück.
 
-### 13.3 Die Datenbrücke: `attributes` in `block.json`
+### 13.3 Beispiel: Konfigurierbarer Titel
 
-Damit ein im Editor eingestellter Wert das Frontend erreicht, läuft er **nicht** über `save`, sondern über die **`attributes`** der `block.json`. Der Ablauf:
-
-1. `edit.js` schreibt den Wert via `setAttributes()` in ein Attribut.
-2. WordPress persistiert das Attribut (im Block-Markup der Seite).
-3. WooCommerce reicht die gespeicherten Attribute beim Frontend-Rendering als **Props** an die `block.js`-Komponente weiter.
-
-**Wichtiger, oft übersehener Punkt:** Bei dynamischen Checkout-Blöcken werden die Attribut-Werte als `data-*`-Attribute an das Block-`<div>` gehängt und von dort an die Frontend-Komponente übergeben – sie kommen **nicht** über ein in `save` gespeichertes HTML. Genau deshalb gibt `save` `null` zurück und trotzdem erreichen die Werte das Frontend.
-
-### 13.4 Durchgehendes Beispiel: Konfigurierbarer Grußkarten-Titel
-
-Ausbaustufe für den `woo-order-ext`-Greeting-Card-Block: Der Shop-Betreiber soll im Editor einen **Standard-Titel** („Schreibe deine Grußkarte") festlegen können, den der Kunde dann im Frontend über dem Eingabefeld sieht.
-
-#### Schritt 1 — Attribut in `block.json` deklarieren
-
+`block.json`:
 ```json
-{
-  "apiVersion": 3,
-  "name": "woo-order-ext/checkout-greeting-card",
-  "title": "Greeting Card",
-  "category": "woo-order-ext",
-  "parent": [ "woocommerce/checkout-additional-information-block" ],
-  "attributes": {
+"attributes": {
     "cardTitle": {
-      "type": "string",
-      "default": "Schreibe deine Grußkarte"
+        "type": "string",
+        "default": "Schreibe deine Grußkarte"
     }
-  },
-  "textdomain": "woo-order-ext"
 }
 ```
 
-Das Attribut `cardTitle` ist jetzt die offizielle „Leitung", durch die der Wert vom Editor ins Frontend fließt.
-
-#### Schritt 2 — `edit.js`: Betreiber stellt den Wert ein
-
-`edit.js` bekommt `attributes` und `setAttributes` als Props. Mit `RichText` (oder `TextControl`) lässt sich der Titel direkt im Editor bearbeiten:
-
+`edit.js` (Betreiber stellt ein):
 ```javascript
-import { useBlockProps, RichText } from '@wordpress/block-editor';
-
 export const Edit = ( { attributes, setAttributes } ) => {
-    const blockProps = useBlockProps();
-    const { cardTitle } = attributes;
-
     return (
-        <div { ...blockProps }>
-            <RichText
-                tagName="h3"
-                value={ cardTitle }
-                onChange={ ( value ) => setAttributes( { cardTitle: value } ) }
-                placeholder="Titel der Grußkarte…"
-            />
-        </div>
+        <RichText
+            value={ attributes.cardTitle }
+            onChange={ ( val ) => setAttributes( { cardTitle: val } ) }
+        />
     );
 };
-
-// Dynamischer Block → kein statisches HTML speichern
-export const Save = () => null;
 ```
 
-Sobald der Betreiber tippt, schreibt `setAttributes` den Wert ins Attribut `cardTitle`. WordPress speichert ihn.
-
-#### Schritt 3 — `block.js`: Kunde sieht den Wert im Frontend
-
-Die Frontend-Komponente bekommt die gespeicherten `attributes` als Prop. Der Titel wird gelesen, der Rest ist die bekannte Eingabe-/Validierungs-Logik:
-
+`block.js` (Kunde sieht):
 ```javascript
-import { useEffect, useState } from '@wordpress/element';
-import { useDispatch } from '@wordpress/data';
-
-const Block = ( { attributes, checkoutExtensionData } ) => {
-    const { cardTitle } = attributes;          // ← Wert aus edit.js
-    const [ message, setMessage ] = useState( '' );
-    const { setExtensionData } = checkoutExtensionData;
-    const { setValidationErrors, clearValidationError } =
-        useDispatch( 'wc/store/validation' );
-
-    useEffect( () => {
-        setExtensionData( 'woo-order-ext', 'greeting', message );
-        clearValidationError( 'woo-order-ext-greeting' );
-    }, [ message, setExtensionData, clearValidationError ] );
-
-    return (
-        <div className="wp-block-woo-order-ext-checkout-greeting-card">
-            <h3>{ cardTitle }</h3>
-            <textarea
-                value={ message }
-                onChange={ ( e ) => setMessage( e.target.value ) }
-                placeholder="Dein Grußtext…"
-            />
-        </div>
-    );
+const Block = ( { attributes } ) => {
+    return <h3>{ attributes.cardTitle }</h3>; // kommt direkt aus dem Editor
 };
-
-export default Block;
 ```
 
-#### Schritt 4 — `frontend.js`: die Verdrahtung (unverändert)
+### 13.4 `attributes` vs. `setExtensionData` – nicht verwechseln
 
-```javascript
-import { registerCheckoutBlock } from '@woocommerce/blocks-checkout';
-import metadata from './block.json';
-import Block from './block';
+| | Richtung | Zweck |
+|---|---|---|
+| `attributes` (block.json) | Betreiber → Frontend | **Konfiguration** (Labels, Defaults) |
+| `setExtensionData` | Kunde → Bestellung | **Kundeneingabe** (Newsletter-Opt-in, Grußtext) |
 
-registerCheckoutBlock( { metadata, component: Block } );
-```
+### 13.5 Häufige Fehler
 
-Hier wird klar, warum `metadata` (= die `block.json`) übergeben wird: Sie bringt die `attributes`-Definition mit, über die WooCommerce weiß, welche Werte es an `block.js` durchreichen muss.
-
-### 13.5 Der Fluss in einem Satz
-
-Betreiber tippt in `edit.js` → `setAttributes` schreibt nach `cardTitle` → `block.json` definiert das Attribut und macht es persistierbar → WooCommerce reicht es als Prop an `block.js` → Kunde sieht den Wert. **`save` ist an diesem Fluss nicht beteiligt** und gibt nur `null` zurück.
-
-### 13.6 Häufige Stolpersteine (verifiziert)
-
-- **Wert ist im Frontend `undefined`:** Das Attribut fehlt in `block.json` oder ist dort anders geschrieben als in `edit.js`/`block.js`. Der Attribut-Name muss an allen drei Stellen identisch sein.
-- **„Block validation failed" im Editor:** `Save` gibt Markup statt `null` zurück. Bei dynamischen Blöcken muss `Save` `null` liefern.
-- **Editor-Imports im Frontend:** In `block.js` **keine** Komponenten aus `@wordpress/block-editor` oder `@wordpress/blocks` verwenden (z.B. `RichText`, `useBlockProps`). Die gehören nur in `edit.js`. Andernfalls schleppt das Frontend-Bundle unnötig große Editor-Abhängigkeiten mit – und kann brechen.
-- **Änderung wirkt nur im Editor, nicht im Frontend:** Klassisches Zeichen dafür, dass der Wert im Frontend hartkodiert ist, statt über das Attribut aus `block.json` gelesen zu werden. In `block.js` konsequent `attributes.<name>` verwenden.
-
-### 13.7 Abgrenzung: `attributes` vs. `setExtensionData`
-
-Die beiden dürfen nicht verwechselt werden – sie laufen in **entgegengesetzte Richtungen**:
-
-| | Richtung | Zweck | Persistenz |
-|---|---|---|---|
-| `attributes` (block.json) | Betreiber → Block (Editor → Frontend) | **Konfiguration** des Blocks (Titel, Labels, Defaults) | mit der Seite gespeichert |
-| `setExtensionData` | Kunde → Server (Frontend → Bestellung) | **Kundeneingabe** in den Checkout-State | mit der Bestellung gespeichert (siehe Kapitel zur serverseitigen Weiterverarbeitung) |
-
-Im Grußkarten-Beispiel: `cardTitle` ist Konfiguration (Attribut), der eingetippte Grußtext ist Kundeneingabe (`setExtensionData`).
+- **Wert im Frontend `undefined`:** Attribut-Name in `block.json`, `edit.js` und `block.js` stimmt nicht überein
+- **„Block validation failed":** `save` gibt Markup statt `null` zurück
+- **Editor-Komponenten im Frontend:** `RichText`, `useBlockProps` usw. gehören nur in `edit.js`, nicht in `block.js`
 
 ---
 
-## 14. Vom Checkout-State in die Bestellung: serverseitige Weiterverarbeitung
+## 14. Kundeneingaben in der Bestellung speichern
 
-Dieses Kapitel schließt den Bogen: In Kapitel 13 hat der Kunde über `setExtensionData` einen Wert (den Grußtext) in den Checkout-State geschrieben. Hier geht es darum, wie dieser Wert **serverseitig** ankommt, in der Bestellung gespeichert wird und schließlich in der **Bestell-E-Mail** landet, die der Kunde bekommt.
+Dieser Abschnitt erklärt den kompletten Weg von `setExtensionData` im Browser bis zum gespeicherten Order-Meta-Wert auf dem Server.
 
-### 14.1 Was `setExtensionData` tatsächlich auslöst
+### 14.1 Was `setExtensionData` auslöst
 
-`setExtensionData( 'woo-order-ext', 'greeting', value )` legt den Wert im Checkout-Kontext unter deinem Namespace ab. Beim Absenden des Checkouts taucht er automatisch im Store-API-Request unter der Property `extensions` auf:
+`setExtensionData( 'mein-plugin', 'newsletter_optin', true )` legt den Wert im Checkout-State ab. Beim Absenden erscheint er automatisch im Store-API-Request:
 
-```
-extensions: {
-  "woo-order-ext": {
-    greeting: "<eingegebener Wert>"
+```json
+{
+  "extensions": {
+    "mein-plugin": {
+      "newsletter_optin": true
+    }
   }
 }
 ```
 
-Du musst dafür auf JS-Seite **nichts** weiter tun, als `setExtensionData` aufzurufen – das macht `block.js` bereits.
+Auf JS-Seite ist nichts weiter nötig als dieser Aufruf.
 
-> **Wichtige Abgrenzung:** Dieser Weg ist für Daten, die **nur mit der Bestellung gespeichert** werden sollen (kein sofortiges Cart-Update). Soll der Wert dagegen den Warenkorb verändern (Gebühr, Rabatt, Versandarten), brauchst du stattdessen `extensionCartUpdate` – siehe Abschnitt 14.6. Für eine reine Grußkarte (Text, kein Preis-Einfluss) ist der hier beschriebene einfache Weg richtig.
+### 14.2 Schritt 1 – Schema registrieren (Pflicht)
 
-### 14.2 Schritt 1 — Store API erweitern (Schema registrieren)
-
-Damit WooCommerce dein Feld im `extensions`-Objekt überhaupt akzeptiert, registrierst du ein Schema über `woocommerce_store_api_register_endpoint_data` an der `CheckoutSchema`:
+Ohne diesen Schritt filtert WooCommerce die Extension-Daten aus dem Request, bevor der PHP-Hook sie sehen kann. `$request->get_param('extensions')` wäre dann leer, egal was das JS sendet.
 
 ```php
-add_action('woocommerce_blocks_loaded', function () {
-    woocommerce_store_api_register_endpoint_data(
-        array(
-            'endpoint'        => \Automattic\WooCommerce\StoreApi\Schemas\V1\CheckoutSchema::IDENTIFIER,
-            'namespace'       => 'woo-order-ext',
-            'schema_callback' => function () {
-                return array(
-                    'greeting' => array(
-                        'description' => __('Grußkarten-Text', 'woo-order-ext'),
-                        'type'        => array('string', 'null'),
-                        'context'     => array('view', 'edit'),
-                        'optional'    => true,
-                    ),
-                );
-            },
-        )
-    );
-});
+add_action( 'woocommerce_blocks_loaded', function () {
+    woocommerce_store_api_register_endpoint_data( array(
+        'endpoint'        => \Automattic\WooCommerce\StoreApi\Schemas\V1\CheckoutSchema::IDENTIFIER,
+        'namespace'       => 'mein-plugin',   // exakt wie 1. Arg von setExtensionData
+        'schema_callback' => function () {
+            return array(
+                'newsletter_optin' => array(  // exakt wie 2. Arg von setExtensionData
+                    'description' => 'Newsletter opt-in',
+                    'type'        => 'boolean',
+                    'context'     => array( 'view', 'edit' ),
+                    'readonly'    => false,
+                ),
+            );
+        },
+        'schema_type' => ARRAY_A,
+    ) );
+} );
 ```
 
-Der `namespace` muss **exakt** dem ersten Argument von `setExtensionData` entsprechen (`woo-order-ext`), der Schema-Key (`greeting`) dem zweiten.
+Mehrere Felder (z.B. `newsletter_optin` und `greeting`) können im selben Schema-Array registriert werden, solange sie denselben Namespace teilen.
 
-### 14.3 Schritt 2 — Wert beim Bestellabschluss in die Order-Meta schreiben
-
-Hier ist der zentrale Punkt: Für Blocks-Checkout-Daten greifen die **klassischen** WooCommerce-Hooks nicht. Stattdessen feuert beim Anlegen der Bestellung der Hook `woocommerce_store_api_checkout_update_order_from_request`:
+### 14.3 Schritt 2 – Wert in Order-Meta speichern
 
 ```php
 add_action(
     'woocommerce_store_api_checkout_update_order_from_request',
-    function (\WC_Order $order, \WP_REST_Request $request) {
-        $data = $request['extensions']['woo-order-ext'] ?? array();
+    function ( $order, $request ) {
+        $extensions = $request->get_param( 'extensions' );
+        $data       = $extensions['mein-plugin'] ?? array();
 
-        if (! empty($data['greeting'])) {
-            $order->update_meta_data(
-                '_woo_order_ext_greeting',
-                sanitize_text_field($data['greeting'])
-            );
+        if ( isset( $data['newsletter_optin'] ) ) {
+            // Boolean als String speichern – PHP false wird in WP-Meta sonst zu ''
+            $optin = $data['newsletter_optin'] ? '1' : '0';
+            $order->update_meta_data( 'mein_plugin_newsletter_optin', $optin );
+            $order->save();
         }
     },
     10,
@@ -738,105 +691,175 @@ add_action(
 );
 ```
 
-Der Unterstrich-Präfix (`_`) hält das Feld aus der allgemeinen Custom-Fields-Liste heraus (internes Meta). Den Wert speicherst du erst, validierst ihn aber idealerweise vorher – siehe 14.5.
+> **Wichtig:** `$request['extensions']` funktioniert auch, aber `$request->get_param('extensions')` ist der korrekte REST-API-Weg.
 
-### 14.4 Schritt 3 — In Bestellübersicht und E-Mail anzeigen
+### 14.4 Schritt 3 – Wert anzeigen
 
-Jetzt das eigentliche Ziel. Es gibt zwei Wege:
-
-#### Weg A — Sichtbares Meta (schnell, automatisch)
-
-Speichert man den Wert unter einem **sichtbaren** Label (ohne führenden Unterstrich), gibt WooCommerce ihn automatisch in Admin, Kundenkonto **und** den E-Mails aus:
+**Auf der Danke-Seite und in Bestelldetails:**
 
 ```php
-$order->update_meta_data(
-    __('Grußkarte', 'woo-order-ext'),   // kein Unterstrich → sichtbar
-    sanitize_text_field($data['greeting'])
+add_action(
+    'woocommerce_order_details_after_order_table',
+    function ( $order ) {
+        $val = $order->get_meta( 'mein_plugin_newsletter_optin' );
+        if ( $val === '' ) return; // nicht gesetzt
+
+        echo '<p><strong>Newsletter:</strong> ';
+        echo $val === '1'
+            ? esc_html__( 'Abonniert', 'mein-plugin' )
+            : esc_html__( 'Nicht abonniert', 'mein-plugin' );
+        echo '</p>';
+    }
 );
 ```
 
-Das ist der schnellste Weg, aber du hast wenig Kontrolle über Platzierung und Formatierung.
-
-#### Weg B — Internes Meta + gezielter Display-Hook (volle Kontrolle)
-
-Wert intern speichern (Weg aus 14.3) und gezielt ausgeben. Für die **E-Mail**:
+**In Bestell-E-Mails:**
 
 ```php
 add_action(
     'woocommerce_email_order_meta',
-    function ($order, $sent_to_admin, $plain_text, $email) {
-        $greeting = $order->get_meta('_woo_order_ext_greeting');
-        if (! $greeting) {
-            return;
-        }
-        if ($plain_text) {
-            echo "\n" . esc_html__('Grußkarte', 'woo-order-ext') . ': '
-               . esc_html($greeting) . "\n";
-        } else {
-            echo '<p><strong>' . esc_html__('Grußkarte', 'woo-order-ext') . ':</strong> '
-               . esc_html($greeting) . '</p>';
-        }
+    function ( $order, $sent_to_admin, $plain_text, $email ) {
+        $val = $order->get_meta( 'mein_plugin_newsletter_optin' );
+        if ( $val === '' ) return;
+
+        $label = $val === '1' ? 'Newsletter: Ja' : 'Newsletter: Nein';
+        echo $plain_text ? "\n$label\n" : "<p><strong>$label</strong></p>";
     },
     10,
     4
 );
 ```
 
-Analoge Hooks für die anderen Ansichten:
+**Analoge Hooks für weitere Ansichten:**
 
 | Hook | Ansicht |
 |---|---|
-| `woocommerce_email_order_meta` | Bestell-E-Mails (Kunde + Admin) |
 | `woocommerce_order_details_after_order_table` | Danke-Seite + Konto-Bestelldetails |
+| `woocommerce_email_order_meta` | Bestell-E-Mails (Kunde + Admin) |
 | `woocommerce_admin_order_data_after_billing_address` | Admin-Bestelldetails |
 
-### 14.5 Serverseitige Validierung (optional, empfohlen)
+### 14.5 Serverseitige Validierung
 
-Im selben `update_order_from_request`-Hook kannst du den Wert validieren und den Checkout bei Fehler sauber abbrechen, indem du eine `RouteException` wirfst:
+Bestellung ablehnen, wenn ein Wert nicht stimmt – die Fehlermeldung erscheint dem Kunden im Checkout:
 
 ```php
-if (mb_strlen($data['greeting']) > 200) {
-    throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
-        'woo_order_ext_greeting_too_long',
-        __('Der Grußtext darf höchstens 200 Zeichen haben.', 'woo-order-ext'),
-        400
-    );
-}
+add_action(
+    'woocommerce_store_api_checkout_update_order_from_request',
+    function ( $order, $request ) {
+        $data = $request->get_param( 'extensions' )['mein-plugin'] ?? array();
+
+        // Validierung VOR dem Speichern
+        if ( isset( $data['greeting'] ) && mb_strlen( $data['greeting'] ) > 200 ) {
+            throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+                'mein_plugin_greeting_too_long',
+                __( 'Grußtext darf höchstens 200 Zeichen haben.', 'mein-plugin' ),
+                400
+            );
+        }
+
+        // Dann speichern
+        if ( ! empty( $data['greeting'] ) ) {
+            $order->update_meta_data( '_mein_plugin_greeting', sanitize_textarea_field( $data['greeting'] ) );
+            $order->save();
+        }
+    },
+    10,
+    2
+);
 ```
 
-Die Fehlermeldung erscheint dem Kunden im Checkout, die Bestellung wird nicht angelegt. Validierung gehört **vor** das `update_meta_data`.
+### 14.6 Wann `extensionCartUpdate` statt `setExtensionData`?
 
-### 14.6 Wann stattdessen `extensionCartUpdate`?
+`setExtensionData` speichert Daten nur mit der **Bestellung**. Wenn der Wert stattdessen den **Warenkorb** verändern soll (Gebühr hinzufügen, Versandoptionen ändern), braucht man `extensionCartUpdate`:
 
-Nur wenn der Wert den **Warenkorb selbst** verändern soll (Gebühr, Rabatt, Versand, Steuern). Extensions dürfen den clientseitigen Cart-State nicht direkt setzen – ein fehlerhaftes Update würde den ganzen Block lahmlegen. Stattdessen:
+1. JS ruft `extensionCartUpdate( { namespace, data } )` auf → trifft `cart/extensions`-Endpoint
+2. Eine per `woocommerce_store_api_register_update_callback` registrierte PHP-Funktion ändert den Cart
+3. Der aktualisierte Cart kommt zurück, der Block rendert neu
 
-1. Client ruft `extensionCartUpdate( { namespace, data } )` auf → trifft den `cart/extensions`-Endpoint.
-2. Eine serverseitig registrierte Callback (über `woocommerce_store_api_register_update_callback`) wird ausgeführt und ändert den Cart (z.B. `WC()->cart->add_fee(...)`).
-3. Der aktualisierte Cart kommt zurück, der Block rendert neu.
+Für reine Text-/Checkbox-Eingaben ohne Preiseinfluss ist `setExtensionData` der richtige Weg.
 
-Würde die Grußkarte z.B. 2 € kosten, bräuchtest du diesen Weg **zusätzlich** zum einfachen Speicher-Pfad. Für reinen Text ist er nicht nötig.
-
-### 14.7 Der vollständige Bogen (Kapitel 12–14)
+### 14.7 Der vollständige Datenfluss
 
 ```
 Editor (edit.js)
-   └─ setAttributes('cardTitle')        → Konfiguration
+   └─ setAttributes('cardTitle')              → Konfiguration durch Betreiber
         ↓ (block.json attributes)
 Frontend (block.js)
-   ├─ liest attributes.cardTitle        → zeigt Titel
-   └─ setExtensionData('woo-order-ext', 'greeting', wert)   → Kundeneingabe
-        ↓ (Store API: extensions)
-Server (PHP)
-   ├─ Schema registriert das Feld       (woocommerce_store_api_register_endpoint_data)
-   ├─ update_order_from_request         → Order-Meta gespeichert (+ Validierung)
-   └─ woocommerce_email_order_meta      → erscheint in der Bestell-E-Mail
+   ├─ liest attributes.cardTitle             → zeigt Titel an
+   └─ setExtensionData('mein-plugin', 'newsletter_optin', true)
+        ↓ (Store API Request: extensions)
+Server – Schema (woocommerce_blocks_loaded)
+   └─ woocommerce_store_api_register_endpoint_data()   ← PFLICHT
+        ↓ (Daten passieren den Filter)
+Server – Speichern (woocommerce_store_api_checkout_update_order_from_request)
+   ├─ $request->get_param('extensions')      ← nicht $_POST
+   └─ $order->update_meta_data('...', '1')   ← String statt bool
+        ↓
+Order-Meta gespeichert
+   └─ woocommerce_order_details_after_order_table → Anzeige auf Danke-Seite
 ```
 
-Damit ist der Weg lückenlos: von der Betreiber-Konfiguration im Editor über die Kundeneingabe im Frontend bis in die Bestell-E-Mail, die der Kunde zugeschickt bekommt.
+### 14.8 Stolpersteine
 
-### 14.8 Stolpersteine (verifiziert)
+- **Daten kommen nie an:** Schema nicht registriert (14.2) oder Namespace/Key stimmt nicht mit `setExtensionData` überein
+- **Falscher Hook:** `woocommerce_store_api_checkout_order_processed` hat kein `$request` – immer `update_order_from_request` verwenden
+- **`$_POST` ist leer:** Blocks-Checkout sendet JSON, nicht Formulardaten
+- **Wert `false` verschwindet:** PHP `false` in WP-Meta wird zu `''` – immer `'1'`/`'0'` als Strings speichern
+- **Kein `sanitize_*`:** Kundeneingaben immer bereinigen und bei Ausgabe mit `esc_html()` escapen
 
-- **Wert kommt serverseitig nie an:** Schema nicht registriert (14.2) oder Namespace/Key stimmt nicht exakt mit `setExtensionData` überein.
-- **Klassische Hooks greifen nicht:** `woocommerce_checkout_update_order_meta` o.ä. feuern beim Blocks-Checkout **nicht** zuverlässig. Den Store-API-Hook aus 14.3 verwenden.
-- **Wert erscheint nicht in der E-Mail:** Bei Weg B den richtigen E-Mail-Hook (`woocommerce_email_order_meta`) mit 4 Parametern registrieren; bei Weg A sichergehen, dass das Meta-Label **keinen** führenden Unterstrich hat.
-- **Kein `sanitize_*`:** Kundeneingaben immer bereinigen (`sanitize_text_field`, `sanitize_textarea_field`) und bei Ausgabe escapen (`esc_html`).
+---
+
+## 15. Debugging-Referenz: Extension-Daten (WC 10.8.1)
+
+Dieser Abschnitt ist für den Fall, dass Daten nicht ankommen – als geordnete Checkliste zum Durchgehen.
+
+### 15.1 Schnell-Check: kommen die Daten an?
+
+Debug-Logging temporär einfügen:
+
+```php
+add_action(
+    'woocommerce_store_api_checkout_update_order_from_request',
+    function ( $order, $request ) {
+        error_log( '[debug] extensions: ' . print_r( $request->get_param( 'extensions' ), true ) );
+    },
+    5, 2
+);
+```
+
+- **Leer / `null`** → Schema nicht registriert (→ 15.3)
+- **Namespace fehlt** → Namespace in PHP und JS stimmt nicht überein
+- **Feld fehlt** → Key in PHP und JS stimmt nicht überein
+
+Das Log landet unter: `logs/php/error.log` (lokale Entwicklungsumgebung) oder im WordPress-Debug-Log.
+
+### 15.2 `$_POST` ist beim Blocks-Checkout immer leer
+
+**Ursache:** Blocks-Checkout sendet als JSON-Body, nicht als HTML-Formular.
+
+**Fix:** Immer `$request->get_param('extensions')` verwenden, nie `$_POST['extensions']`.
+
+### 15.3 Ohne Schema-Registrierung werden Daten gefiltert
+
+WooCommerce lässt keine unbekannten Extension-Daten durch. Ohne `woocommerce_store_api_register_endpoint_data` ist `extensions` im Hook immer leer, egal was das JS sendet.
+
+Die Registrierung muss innerhalb von `woocommerce_blocks_loaded` stattfinden (nicht auf Top-Level), weil die Store-API-Klassen sonst noch nicht geladen sind.
+
+### 15.4 `woocommerce_store_api_checkout_order_processed` hat kein `$request`
+
+| Hook | Parameter | Für was |
+|---|---|---|
+| `woocommerce_store_api_checkout_update_order_from_request` | `$order`, `$request` | Extension-Daten lesen und speichern ✓ |
+| `woocommerce_store_api_checkout_order_processed` | nur `$order` | Nachverarbeitung nach dem Speichern |
+
+### 15.5 Boolean `false` in WP-Meta wird zu `''`
+
+`$order->update_meta_data('optin', false)` → `$order->get_meta('optin')` gibt `''` zurück.
+
+Das ist ununterscheidbar von „nicht gesetzt". Lösung: `'1'`/`'0'` als Strings speichern.
+
+### 15.6 `woocommerce_order_details_after_order_table` feuert auch in Block-Templates
+
+Mit WooCommerce 10.x und einem Block-Theme (z.B. Twenty Twenty-Five) wird die Danke-Seite über das **Order Confirmation Block-Template** gerendert. Klassische PHP-Hooks wie `woocommerce_thankyou` feuern dort nicht mehr direkt.
+
+`woocommerce_order_details_after_order_table` jedoch schon – er wird explizit in `src/Blocks/BlockTypes/OrderConfirmation/Totals.php` aufgerufen. Dieser Hook funktioniert sicher in klassischen und block-basierten Themes.

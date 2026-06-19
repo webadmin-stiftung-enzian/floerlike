@@ -8,7 +8,7 @@ import { useSelect, useDispatch } from '@wordpress/data';
 
 const { optInDefaultText } = getSetting( 'woo-order-ext_data', '' );
 
-const Block = ( { children, checkoutExtensionData } ) => {
+const Block = ( { attributes = {}, children, checkoutExtensionData } ) => {
 	const [ checked, setChecked ] = useState( false );
 	const { setExtensionData } = checkoutExtensionData;
 

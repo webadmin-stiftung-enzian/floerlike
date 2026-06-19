@@ -1,66 +1,23 @@
-/**
- * External dependencies
- */
-import { useEffect, useState } from '@wordpress/element';
+import { useState } from '@wordpress/element';
 import { CheckboxControl } from '@woocommerce/blocks-checkout';
-import { getSetting } from '@woocommerce/settings';
-import { useSelect, useDispatch } from '@wordpress/data';
 
-const { optInDefaultText } = getSetting( 'woo-order-ext_data', '' );
-
-const Block = ( { children, checkoutExtensionData } ) => {
-	const [ checked, setChecked ] = useState( false );
+const Block = ( { attributes = {}, checkoutExtensionData } ) => {
+	const { text = 'Subscribe to our newsletter', optInDefaultChecked = false } = attributes;
+	const [ checked, setChecked ] = useState( optInDefaultChecked );
 	const { setExtensionData } = checkoutExtensionData;
 
-	const { setValidationErrors, clearValidationError } = useDispatch(
-		'wc/store/validation'
-	);
-
-	useEffect( () => {
-		setExtensionData( 'woo-order-ext', 'optin', checked );
-		if ( ! checked ) {
-			setValidationErrors( {
-				'woo-order-ext': {
-					message: 'Please tick the box',
-					hidden: false,
-				},
-			} );
-			return;
-		}
-		clearValidationError( 'woo-order-ext' );
-	}, [
-		clearValidationError,
-		setValidationErrors,
-		checked,
-		setExtensionData,
-	] );
-
-	const { validationError } = useSelect( ( select ) => {
-		const store = select( 'wc/store/validation' );
-		return {
-			validationError: store.getValidationError( 'woo-order-ext' ),
-		};
-	} );
+	const handleChange = ( newValue ) => {
+		setChecked( newValue );
+		setExtensionData( 'woo-order-ext', 'newsletter_optin', newValue );
+	};
 
 	return (
-		<>
-			<CheckboxControl
-				id="subscribe-to-newsletter"
-				checked={ checked }
-				onChange={ setChecked }
-			>
-				{ children || optInDefaultText }
-			</CheckboxControl>
-
-			{ validationError?.hidden === false && (
-				<div>
-					<span role="img" aria-label="Warning emoji">
-						⚠️
-					</span>
-					{ validationError?.message }
-				</div>
-			) }
-		</>
+		<CheckboxControl
+			id="subscribe-to-newsletter"
+			checked={ checked }
+			label={ text || 'Subscribe to our newsletter' }
+			onChange={ handleChange }
+		/>
 	);
 };
 

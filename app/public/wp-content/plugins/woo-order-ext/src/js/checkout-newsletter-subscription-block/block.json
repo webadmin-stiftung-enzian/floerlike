@@ -19,21 +19,16 @@
 				"move": false
 			}
 		},
-		"text": {
-			"type": "string",
-			"source": "html",
-			"selector": ".wp-block-woo-order-ext-checkout-newsletter-subscription",
-			"default": ""
-		},
 		"optInDefaultChecked": {
 			"type": "boolean",
 			"default": false
 		},
-		"optInDefaultText": {
+		"text": {
 			"type": "string",
 			"default": "Subscribe to our newsletter"
 		}
 	},
+	"parent": [ "woocommerce/checkout-fields-block", "woocommerce/checkout-totals-block" ],
 	"textdomain": "woo-order-ext",
 	"editorStyle": "file:../../../build/style-woo-order-ext-checkout-newsletter-subscription-block.css"
 }

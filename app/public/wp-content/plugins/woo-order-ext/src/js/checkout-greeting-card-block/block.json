@@ -26,6 +26,7 @@
 			"default": ""
 		}
 	},
+	"parent": [ "woocommerce/checkout-fields-block", "woocommerce/checkout-totals-block" ],
 	"textdomain": "woo-order-ext",
 	"editorStyle": "file:../../../build/style-woo-order-ext-checkout-greeting-card-block.css"
 }

@@ -52,6 +52,26 @@ add_action(
 				$integration_registry->register(new WooOrderExt_Blocks_Integration());
 			}
 		);
+
+		// Schema-Registrierung: Ohne diese Registrierung filtert die Store API
+		// alle Extension-Daten aus dem Request, bevor der Hook sie sieht.
+		woocommerce_store_api_register_endpoint_data(
+			array(
+				'endpoint'        => \Automattic\WooCommerce\StoreApi\Schemas\V1\CheckoutSchema::IDENTIFIER,
+				'namespace'       => 'woo-order-ext',
+				'schema_callback' => function () {
+					return array(
+						'newsletter_optin' => array(
+							'description' => 'Newsletter opt-in',
+							'type'        => 'boolean',
+							'context'     => array( 'view', 'edit' ),
+							'readonly'    => false,
+						),
+					);
+				},
+				'schema_type'     => ARRAY_A,
+			)
+		);
 	}
 );
 
@@ -78,6 +98,22 @@ add_action('block_categories_all', 'register_WooOrderExt_block_category', 10, 2)
 
 // Hook 'woocommerce_init': Registriert alle benutzerdefinierten Checkout-Felder in WooCommerce.
 add_action('woocommerce_init', 'WooOrderExt_register_custom_checkout_fields');
+
+// Hook 'woocommerce_store_api_checkout_update_order_from_request': Speichert den Newsletter-Opt-in-Wert in Order-Metadaten.
+// Blocks-Checkout sendet Extension-Daten als JSON, nicht als $_POST – daher muss $request genutzt werden.
+add_action(
+	'woocommerce_store_api_checkout_update_order_from_request',
+	function ($order, $request) {
+		$extension_data = $request->get_param( 'extensions' );
+		if ( isset( $extension_data['woo-order-ext']['newsletter_optin'] ) ) {
+			$optin = $extension_data['woo-order-ext']['newsletter_optin'] ? '1' : '0';
+			$order->update_meta_data( 'woo_order_ext_newsletter_optin', $optin );
+			$order->save();
+		}
+	},
+	10,
+	2
+);
 
 /**
  * Registers custom checkout fields for the WooCommerce checkout form.
@@ -200,3 +236,17 @@ function WooOrderExt_register_custom_checkout_fields()
 		)
 	);
 }
+
+// Hook 'woocommerce_order_details_after_order_table': Zeigt Newsletter-Status auf Order received-Seite
+add_action(
+	'woocommerce_order_details_after_order_table',
+	function ($order) {
+		$newsletter_optin = $order->get_meta('woo_order_ext_newsletter_optin');
+		if ($newsletter_optin !== '') {
+			echo '<div style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">';
+			echo '<strong>' . esc_html__('Newsletter', 'woo-order-ext') . ':</strong> ';
+			echo $newsletter_optin ? esc_html__('Subscribed', 'woo-order-ext') : esc_html__('Not subscribed', 'woo-order-ext');
+			echo '</div>';
+		}
+	}
+);
