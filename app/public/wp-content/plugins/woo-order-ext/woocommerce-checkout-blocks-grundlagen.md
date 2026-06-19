@@ -420,3 +420,87 @@ WooCommerce-Blocks brauchen einen Build-Schritt (`@wordpress/scripts` + `@woocom
 ---
 
 *Hinweis zu API-Stabilität: Die WooCommerce-Blocks-APIs haben einige Methoden vom `__experimental`-Präfix in stabile Namen überführt (z.B. `registerCheckoutFilters`). Das offizielle Beispiel-Repo hinkt hier teils hinterher. Prüfe bei Problemen die aktuelle Version unter developer.woocommerce.com.*
+
+---
+
+## 12. Praxis-Erkenntnisse: Zwei eigene Blöcke parallel im Checkout (verifiziert)
+
+Dieser Abschnitt hält die konkreten Erkenntnisse aus dem `woo-order-ext`-Projekt fest, nachdem **beide** Blöcke (Newsletter-Subscription **und** Greeting-Card) erfolgreich im Checkout geladen wurden. Es sind die Punkte, an denen das Setup tatsächlich gehakt hat – nicht die Theorie.
+
+### 12.1 Die zwei getrennten Registrierungs-Welten – nicht vermischen
+
+Ein eigener Checkout-Block lädt nur dann zuverlässig, wenn **beide** Registrierungs-Wege sauber parallel laufen – sie machen unterschiedliche Dinge:
+
+| Weg | Datei / Hook | Aufgabe |
+|---|---|---|
+| **Block-Type-Registrierung** | `woo-order-ext.php`, Hook `init`, `register_block_type_from_metadata()` | Macht den Block dem Editor bekannt (liest die kopierte `block.json` unter `build/js/<ordner>/`) |
+| **Integration-Registrierung** | `woo-order-ext-blocks-integration.php` über die Blocks-Registry-Hooks | Lädt die **Frontend-** und **Editor-Scripts** in Cart/Checkout |
+
+Beide Blöcke müssen in **beiden** Welten auftauchen. Konkret heißt das im verifizierten Setup:
+
+- In `init` werden **beide** `register_block_type_from_metadata()`-Aufrufe ausgeführt (Newsletter **und** Greeting-Card).
+- In `initialize()` der Integration werden für **jeden** Block die drei `register_*`-Methoden aufgerufen (frontend / editor scripts / editor styles).
+- In `get_script_handles()` **und** `get_editor_script_handles()` stehen die Handles **beider** Blöcke plus das Integrations-Bundle.
+
+Fehlt ein Block in nur einer dieser Listen, lädt er entweder nur im Editor oder nur im Frontend – das war eine der Hauptursachen für „erscheint im Editor, rendert aber nicht beim Kunden".
+
+### 12.2 Der `.asset.php`-Pfad ist der häufigste Stolperstein (bestätigt)
+
+Bestätigt sich erneut: Wenn der Pfad in `wp_register_script` nicht **exakt** auf die gebaute `.asset.php` zeigt, fällt der Code in den Fallback mit leeren `dependencies`. Dann lädt das Frontend-Script **ohne** `wc-blocks-checkout`, und `registerCheckoutBlock` ist `undefined` → der Block rendert still nicht.
+
+Verifizierte Namenskonvention im `build/`-Ordner: **Die `.asset.php`-Datei heißt identisch zum jeweiligen JS-Bundle**, z.B.
+
+```
+woo-order-ext-checkout-greeting-card-block-frontend.js
+woo-order-ext-checkout-greeting-card-block-frontend.asset.php
+```
+
+Also nicht abgekürzt (`greeting-card-block-frontend.asset.php` war falsch). Bei zwei Blöcken vervielfacht sich diese Fehlerquelle – jeden der vier Frontend-/Editor-Pfade einzeln gegen den echten Build-Output prüfen.
+
+**Kleiner, schon bekannter Schönheitsfehler:** In einigen Fallback-Zweigen wird `$this->get_file_version($script_asset_path)` statt `$script_path` übergeben. Funktional unkritisch (greift nur, wenn die `.asset.php` fehlt), aber bei Gelegenheit auf `$script_path` korrigieren.
+
+### 12.3 Der richtige `parent` entscheidet über die Position – und über Existenz
+
+Bestätigt: `checkout-additional-delivery-block` existiert **nicht** als Einhängepunkt. Ein nicht existierender Parent lässt den Block im Editor gar nicht erst andockbar werden.
+
+Verifiziert funktioniert für beide Zusatz-Blöcke:
+
+```json
+"parent": [ "woocommerce/checkout-additional-information-block" ]
+```
+
+Damit landen Newsletter-Checkbox und Greeting-Card im Bereich „Additional information" (per Default der letzte Checkout-Schritt).
+
+### 12.4 `save` muss `null` zurückgeben (dynamischer Block)
+
+Für beide Blöcke gilt: Die Kunden-Ansicht kommt aus der via `registerCheckoutBlock` registrierten Komponente, **nicht** aus `save`. Deshalb:
+
+```javascript
+export const Save = () => null;
+```
+
+Gibt `save` stattdessen Markup zurück, riskiert man Block-Validierungsfehler im Editor.
+
+### 12.5 Block NICHT zusätzlich in der Wurzel-`src/index.js` importieren
+
+Beide Blöcke haben **eigene Webpack-Entry-Points** und werden über die PHP-Integration geladen. Ein zusätzlicher Import in der Wurzel-`src/index.js` würde sie **doppelt registrieren** (Konsolen-Warnung „Block ... is already registered"). Die Wurzel-`index.js` ist nur für Filter/Slot-Fill-Logik zuständig, nicht für die eigenen Blöcke.
+
+### 12.6 Die Einhäng-Punkte für die Inner-Block-Liste (`editor.js`)
+
+Damit die eigenen Blöcke im Editor als erlaubte Inner-Blocks im jeweiligen Bereich auftauchen, wird der Filter `additionalCartCheckoutInnerBlockTypes` genutzt. Im verifizierten Stand werden dort beide Block-Namen registriert (Greeting-Card gezielt im Additional-Information-Bereich, Newsletter generisch). Wichtig: Die hier verwendeten Block-Namen müssen **exakt** den `name`-Feldern der jeweiligen `block.json` entsprechen (`woo-order-ext/checkout-greeting-card`, `woo-order-ext/checkout-newsletter-subscription`).
+
+### 12.7 Reihenfolge-Checkliste für „beide Blöcke laden zuverlässig"
+
+Wenn ein zweiter eigener Block hinzugefügt wird, diese Punkte der Reihe nach abhaken:
+
+1. Eigener Ordner unter `src/js/<block>/` mit `block.json`, `index.js`, `edit.js`, `frontend.js`, `block.js`.
+2. `block.json`: korrekter `name`, korrekter existierender `parent`.
+3. Webpack-Entry-Point für `<block>` und `<block>-frontend` ergänzt.
+4. `npm run build` → prüfen, dass JS **und** gleichnamige `.asset.php` im `build/` liegen.
+5. `init`-Hook: `register_block_type_from_metadata()` für den neuen Block ergänzt.
+6. Integration `initialize()`: `register_*_frontend_scripts()` + `register_*_editor_scripts()` (+ Styles) ergänzt, mit **exakten** `.asset.php`-Pfaden.
+7. `get_script_handles()` **und** `get_editor_script_handles()`: Handle des neuen Blocks ergänzt.
+8. `editor.js`: Block-Name in die Inner-Block-Liste aufgenommen.
+9. Editor: Checkout aufklappen, Block im richtigen Bereich sichtbar? Frontend: Block rendert beim Kunden?
+
+Erst wenn alle neun Punkte stimmen, laden zwei (oder mehr) eigene Blöcke parallel zuverlässig.
