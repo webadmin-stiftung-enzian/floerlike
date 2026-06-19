@@ -24,6 +24,14 @@
 			"source": "html",
 			"selector": ".wp-block-woo-order-ext-checkout-newsletter-subscription",
 			"default": ""
+		},
+		"optInDefaultChecked": {
+			"type": "boolean",
+			"default": false
+		},
+		"optInDefaultText": {
+			"type": "string",
+			"default": "Subscribe to our newsletter"
 		}
 	},
 	"textdomain": "woo-order-ext",
