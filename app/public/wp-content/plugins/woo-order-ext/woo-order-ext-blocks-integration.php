@@ -31,11 +31,11 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 	{
 		$this->register_newsletter_block_frontend_scripts();
 		$this->register_newsletter_block_editor_scripts();
-		$this->register_newsletter_block_editor_styles();
+		// $this->register_newsletter_block_editor_styles();
 
 		$this->register_greeting_card_block_frontend_scripts();
 		$this->register_greeting_card_block_editor_scripts();
-		$this->register_greeting_card_block_editor_styles();
+		// $this->register_greeting_card_block_editor_styles();
 
 		$this->register_main_integration();
 		$this->register_editor_integration();
