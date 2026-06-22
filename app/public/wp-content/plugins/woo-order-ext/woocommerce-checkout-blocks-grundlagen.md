@@ -217,9 +217,41 @@ export default Block;
 WooCommerce injiziert dieses Prop automatisch in jeden Block, der per `registerCheckoutBlock` registriert wurde. Man muss es nicht selbst beschaffen – nur als Prop entgegennehmen und `setExtensionData` destrukturieren.
 
 **Die drei wichtigsten Patterns in `block.js`:**
-- **`checkoutExtensionData.setExtensionData(namespace, key, value)`** – schreibt Daten in den Checkout-State. Sie landen beim Absenden in der Bestellung.
+- **`checkoutExtensionData.setExtensionData(namespace, key, value)`** – schreibt Daten in den Checkout-State, die beim Absenden in der Bestellung landen. Nur in Blöcken verfügbar, die mit `registerCheckoutBlock` registriert sind.
 - **`wc/store/validation`** – Datastore für Validierung. Mit `setValidationErrors` kann man den „Bestellen"-Button sperren.
 - **`useSelect` / `useDispatch`** aus `@wordpress/data` – Lesen aus und Schreiben in WooCommerce-Datastores (Redux-artiges State-Management).
+
+**`setExtensionData` in Slot/Fill-Komponenten:**  
+Slot/Fill-Komponenten (via `registerPlugin`) bekommen `checkoutExtensionData` nicht als Prop injiziert. Man kann den Store-Action jedoch über `useDispatch('wc/store/checkout')` direkt aufrufen – `setExtensionData` ist ab WC 9.9.0 ein öffentlicher Store-Action (der frühere interne Name `__internalSetExtensionData` wurde depreciert).
+
+**Wichtig:** Die `useDispatch`-Version hat eine andere Signatur als `checkoutExtensionData.setExtensionData`. Das zweite Argument muss ein **Objekt** sein, kein String:
+
+```js
+import { useDispatch } from '@wordpress/data';
+import { useEffect, useState } from '@wordpress/element';
+
+const MeinSlotFillComponent = () => {
+    const [ value, setValue ] = useState( '' );
+    const { setExtensionData } = useDispatch( 'wc/store/checkout' );
+
+    useEffect( () => {
+        // useDispatch-Version: zweites Argument ist ein Objekt { key: value }
+        setExtensionData( 'mein-plugin', { 'mein-key': value } );
+    }, [ value, setExtensionData ] );
+    // ...
+};
+```
+
+**Signatur-Vergleich:**
+
+| Herkunft | Signatur | Kontext |
+|---|---|---|
+| `checkoutExtensionData.setExtensionData` | `(namespace, key, value)` | Nur in `registerCheckoutBlock`-Komponenten (via Prop) |
+| `useDispatch('wc/store/checkout').setExtensionData` | `(namespace, { key: value })` | Slot/Fill, `registerPlugin`, beliebige Komponenten |
+
+Der Unterschied ist subtil aber kritisch: Mit der falschen Signatur landet nicht der Datumswert im Store, sondern der Key-String – die Bestellung speichert dann nichts.
+
+> **Hinweis:** Die offizielle WooCommerce-Docs-Seite für den Checkout-Store listet `setExtensionData` aktuell nicht auf – die Aktion existiert aber im Source und ist der dokumentierte Ersatz für `__internalSetExtensionData` (seit WC 9.9.0). Zur Sicherheit immer gegen `typeof setExtensionData === 'function'` prüfen.
 
 ---
 
@@ -978,9 +1010,127 @@ Order-Meta gespeichert
 
 ---
 
-## 15. Best Practices
+## 15. Datenfluss-Architektur: Das grosse Bild
 
-### 15.1 Sicherheit: Eingabe und Ausgabe
+Dieser Abschnitt erklärt, wie Cart und Checkout-Blocks grundsätzlich mit dem Server kommunizieren – unabhängig davon, welchen Mechanismus man nutzt.
+
+### 15.1 Der Server ist die einzige Wahrheitsquelle
+
+WooCommerce teilt Daten in zwei Kategorien:
+
+**Persistente Daten** leben ausschliesslich auf dem Server:
+- Warenkorbinhalt, Preise, Gesamtsummen
+- Versandmethoden und -kosten
+- Lieferadressen, Gutscheine
+- Bestellungen und Metadaten
+
+Die React-App zeigt diese Daten an, **besitzt sie aber nicht**. Wenn der Nutzer eine Menge ändert, sendet der Client einen Request – erst die Serverantwort bestimmt den neuen State. Das verhindert Inkonsistenzen zwischen Tabs, Geräten und gleichzeitigen Sessions.
+
+**Ephemere UI-Daten** leben nur im Browser:
+- Welches Panel gerade offen ist
+- Validierungsfehler-Anzeige
+- Ladeanimationen
+- Extension-Daten vor dem Checkout-Submit
+
+Diese müssen nicht persistiert werden und dürfen im Client-State bleiben.
+
+### 15.2 Bidirektionaler Datenfluss: Überblick
+
+```
+SERVER                              CLIENT (@wordpress/data Stores)
+──────                              ──────────────────────────────
+
+Datenbank / Session
+      │
+      │  1. Seite laden:
+      │  AssetDataRegistry          getSetting('mein-plugin_data')
+      │  (get_script_data)  ──────► Statische Konfiguration verfügbar
+      │
+      │  2. Stores initialisieren:
+      │  Store API GET       ──────► Warenkorb, Preise, Adressen
+      │  (hydration)                 in useSelect() abrufbar
+      │
+      │                     ◄─────  3. Formularänderung:
+      │  Validieren,                 pushChanges (debounced PUT/POST)
+      │  neu berechnen      ──────► Stores aktualisiert (z.B. Versandkosten)
+      │
+      │                     ◄─────  4. Eigene Cart-Änderung:
+      │  Cart verändern              extensionCartUpdate
+      │  (Gebühr etc.)      ──────► Cart-Response neu gerendert
+      │
+      │                     ◄─────  5. Checkout-Submit:
+      │  Bestellung anlegen          setExtensionData → extensions
+      │  Order-Meta speichern        additional_fields, billing, shipping
+      │                     ──────► Order received / Fehler
+```
+
+### 15.3 Seite laden: Hydration
+
+Beim Laden der Checkout-Seite passieren zwei Dinge gleichzeitig:
+
+**Statische Daten** kommen via `AssetDataRegistry`. Das ist genau das, was `get_script_data()` in der PHP-Integrationsklasse zurückgibt. Diese Daten werden beim Server-Rendering in die Seite eingebettet (als JSON in einem `<script>`-Tag) und stehen sofort ohne API-Request zur Verfügung:
+
+```php
+// PHP: Daten beim Seitenaufbau mitgeben
+public function get_script_data() {
+    return array(
+        'blockedDates'  => mein_plugin_get_blocked_dates(),
+        'openingHours'  => get_option( 'mein_plugin_opening_hours' ),
+    );
+}
+```
+
+```js
+// JS: sofort verfügbar – kein fetch(), kein useEffect nötig
+import { getSetting } from '@woocommerce/settings';
+const { blockedDates, openingHours } = getSetting( 'mein-plugin_data' );
+```
+
+**Dynamische Daten** (aktueller Warenkorb, Preise) werden durch einen initialen GET-Request an die Store API geladen und in den `@wordpress/data`-Stores gespeichert. Sie sind über `useSelect( CART_STORE_KEY )` abrufbar.
+
+> **Faustregel:** Konfiguration die sich selten ändert (Öffnungszeiten, Feature-Flags, Texte) → `get_script_data`. Daten die sich pro User/Session unterscheiden → Store API.
+
+### 15.4 Formularänderungen: pushChanges
+
+Wenn der Kunde eine Lieferadresse eingibt:
+
+1. Der React-State wird sofort aktualisiert → UI reagiert ohne Verzögerung
+2. WooCommerce puffert die Änderung kurz (Debounce, ca. 300ms)
+3. `pushChanges` sendet ein PUT/POST an die Store API
+4. Der Server validiert die Adresse und berechnet Versandkosten neu
+5. Die Antwort aktualisiert die Stores → Versandkosten erscheinen live
+
+Dieses Pattern erklärt, warum Versandoptionen sich live neu berechnen während der Nutzer tippt, ohne explizites Bestätigen. Eigene Felder, die den Cart beeinflussen sollen (z.B. eine Expressgebühr), können via `extensionCartUpdate` in denselben Rhythmus eingehängt werden.
+
+### 15.5 Checkout-Submit: die drei Datenpfade
+
+Beim Klick auf „Bestellen" werden alle Daten in einem einzigen POST-Request zusammengeführt:
+
+| Datenart | Quelle im JS | Schlüssel im Request | PHP-Hook |
+|---|---|---|---|
+| Adress- und Kontaktdaten | WC-eigene Stores | `billing_address`, `shipping_address` | automatisch |
+| Additional Checkout Fields | WC-Stores (via Feldregistrierung) | `additional_fields` | automatisch |
+| Extension-Daten (eigene Blöcke) | `setExtensionData` | `extensions` | `woocommerce_store_api_checkout_update_order_from_request` |
+
+Alle drei landen im selben POST an `/wp-json/wc/store/v1/checkout`. Das Schema-Registration-System (`woocommerce_store_api_register_endpoint_data`) ist der Türsteher: Was kein Schema hat, kommt nie beim PHP-Hook an.
+
+### 15.6 Entscheidungstabelle: welcher Übertragungsweg wann?
+
+| Situation | Richtiger Mechanismus |
+|---|---|
+| PHP-Konfiguration → JS beim Seitenaufbau | `get_script_data()` → `getSetting()` |
+| Eigener Block-Wert → wird mit Bestellung gespeichert | `setExtensionData` → Schema → `update_order_from_request` |
+| Standard-Eingabefeld → wird automatisch gespeichert | `woocommerce_register_additional_checkout_field` (mit `location`) |
+| Kundeneingabe → soll Preis/Versand im Cart ändern | `extensionCartUpdate` |
+| Aktuellen Cart-State im JS lesen | `useSelect( 'wc/store/cart' )` |
+| Checkout-State lesen (z.B. isProcessing) | `useSelect( 'wc/store/checkout' )` |
+| Validierungsfehler im Browser anzeigen | `useDispatch( 'wc/store/validation' )` → `setValidationErrors` |
+
+---
+
+## 16. Best Practices
+
+### 16.1 Sicherheit: Eingabe und Ausgabe
 
 **Niemals rohe Kundeneingaben ausgeben.** In WooCommerce gibt es zwei Stellen, an denen man absichern muss:
 
@@ -1000,7 +1150,7 @@ echo esc_html( $order->get_meta( '_mein_plugin_text' ) );
 | URL | `esc_url_raw()` | `esc_url()` |
 | Datum (ISO) | `sanitize_text_field()` + `strtotime()` validieren | `esc_html()` |
 
-### 15.2 Datumsfelder richtig behandeln
+### 16.2 Datumsfelder richtig behandeln
 
 Datumsfelder immer intern als ISO-Format (`Y-m-d`) speichern und zur Anzeige mit `date_i18n()` formatieren. Das hält die Darstellung unabhängig vom Shop-Locale und lässt sich jederzeit umprogrammieren:
 
@@ -1018,7 +1168,7 @@ if ( $date ) {
 
 `date_i18n()` respektiert die WordPress-Spracheinstellung und das im Backend eingestellte Datumsformat. Niemals direkt `date()` für Shop-Ausgaben verwenden.
 
-### 15.3 Booleans in WordPress-Meta
+### 16.3 Booleans in WordPress-Meta
 
 PHP `false` in WP-Meta ist ununterscheidbar von „nicht gesetzt":
 
@@ -1039,7 +1189,7 @@ if ( $val === '1' ) { /* true */ }
 if ( $val === '0' ) { /* false */ }
 ```
 
-### 15.4 HPOS-Kompatibilität
+### 16.4 HPOS-Kompatibilität
 
 Immer beide Hook-Paare für die Admin-Bestellliste registrieren (HPOS + Legacy). Das Normalisierungs-Pattern im Callback:
 
@@ -1052,7 +1202,7 @@ function render_my_column( $column, $order_or_id ) {
 
 Niemals direkt `get_post_meta( $post_id, ... )` für Bestelldaten verwenden – das funktioniert nur bei Legacy-Installationen. Immer `$order->get_meta()` nutzen.
 
-### 15.5 Namespace-Konsistenz
+### 16.5 Namespace-Konsistenz
 
 Der Namespace in `setExtensionData`, `woocommerce_store_api_register_endpoint_data` und `get_name()` der Integrationsklasse muss identisch sein. Am besten einmal als Konstante oder Variable definieren:
 
@@ -1073,7 +1223,7 @@ setExtensionData( 'mein-plugin', 'newsletter_optin', value );
 //                ^^^^^^^^^^^^ muss == MEIN_PLUGIN_NAMESPACE
 ```
 
-### 15.6 Hook-Zeitpunkte
+### 16.6 Hook-Zeitpunkte
 
 | Was registrieren | Richtiger Hook |
 |---|---|
@@ -1084,11 +1234,11 @@ setExtensionData( 'mein-plugin', 'newsletter_optin', value );
 
 ---
 
-## 16. Debugging-Referenz: Extension-Daten (WC 10.8.1)
+## 17. Debugging-Referenz: Extension-Daten (WC 10.8.1)
 
 Dieser Abschnitt ist für den Fall, dass Daten nicht ankommen – als geordnete Checkliste zum Durchgehen.
 
-### 16.1 Schnell-Check: kommen die Daten an?
+### 17.1 Schnell-Check: kommen die Daten an?
 
 Debug-Logging temporär einfügen:
 
@@ -1108,38 +1258,38 @@ add_action(
 
 Das Log landet unter: `logs/php/error.log` (lokale Entwicklungsumgebung) oder im WordPress-Debug-Log.
 
-### 16.2 `$_POST` ist beim Blocks-Checkout immer leer
+### 17.2 `$_POST` ist beim Blocks-Checkout immer leer
 
 **Ursache:** Blocks-Checkout sendet als JSON-Body, nicht als HTML-Formular.
 
 **Fix:** Immer `$request->get_param('extensions')` verwenden, nie `$_POST['extensions']`.
 
-### 16.3 Ohne Schema-Registrierung werden Daten gefiltert
+### 17.3 Ohne Schema-Registrierung werden Daten gefiltert
 
 WooCommerce lässt keine unbekannten Extension-Daten durch. Ohne `woocommerce_store_api_register_endpoint_data` ist `extensions` im Hook immer leer, egal was das JS sendet.
 
 Die Registrierung muss innerhalb von `woocommerce_blocks_loaded` stattfinden (nicht auf Top-Level), weil die Store-API-Klassen sonst noch nicht geladen sind.
 
-### 16.4 `woocommerce_store_api_checkout_order_processed` hat kein `$request`
+### 17.4 `woocommerce_store_api_checkout_order_processed` hat kein `$request`
 
 | Hook | Parameter | Für was |
 |---|---|---|
 | `woocommerce_store_api_checkout_update_order_from_request` | `$order`, `$request` | Extension-Daten lesen und speichern ✓ |
 | `woocommerce_store_api_checkout_order_processed` | nur `$order` | Nachverarbeitung nach dem Speichern |
 
-### 16.5 Boolean `false` in WP-Meta wird zu `''`
+### 17.5 Boolean `false` in WP-Meta wird zu `''`
 
 `$order->update_meta_data('optin', false)` → `$order->get_meta('optin')` gibt `''` zurück.
 
 Das ist ununterscheidbar von „nicht gesetzt". Lösung: `'1'`/`'0'` als Strings speichern (siehe Best Practice 15.3).
 
-### 16.6 `woocommerce_order_details_after_order_table` feuert auch in Block-Templates
+### 17.6 `woocommerce_order_details_after_order_table` feuert auch in Block-Templates
 
 Mit WooCommerce 10.x und einem Block-Theme (z.B. Twenty Twenty-Five) wird die Danke-Seite über das **Order Confirmation Block-Template** gerendert. Klassische PHP-Hooks wie `woocommerce_thankyou` feuern dort nicht mehr direkt.
 
 `woocommerce_order_details_after_order_table` jedoch schon – er wird explizit in `src/Blocks/BlockTypes/OrderConfirmation/Totals.php` aufgerufen. Dieser Hook funktioniert sicher in klassischen und block-basierten Themes.
 
-### 16.7 Additional Field Meta-Key testen
+### 17.7 Additional Field Meta-Key testen
 
 Wenn unklar ist, unter welchem Key WooCommerce ein Additional Field speichert:
 

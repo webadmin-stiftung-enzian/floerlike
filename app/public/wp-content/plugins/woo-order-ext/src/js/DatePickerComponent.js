@@ -9,7 +9,7 @@ export const DatePickerComponent = () => {
     useEffect( () => {
         // Nur einen echten Datumswert senden – leerer String würde den Validierungs-
         // Hook auf PHP-Seite bei strtotime() korrekt durchlaufen (empty check dort).
-        setExtensionData( 'woo-order-ext', 'delivery-date', date );
+        setExtensionData( 'woo-order-ext', { 'delivery-date': date } );
     }, [ date, setExtensionData ] );
 
     return (
