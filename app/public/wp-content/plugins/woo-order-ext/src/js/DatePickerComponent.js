@@ -1,24 +1,21 @@
 import { useState, useEffect } from '@wordpress/element';
+import { useDispatch } from '@wordpress/data';
 import { __ } from '@wordpress/i18n';
-import { dispatch, select } from '@wordpress/data';
 
 export const DatePickerComponent = () => {
     const [ date, setDate ] = useState( '' );
+    const { setExtensionData } = useDispatch( 'wc/store/checkout' );
 
-    // Synchronisiere das Datum über die WordPress/WooCommerce Data-Registry
     useEffect( () => {
-        // Das WooCommerce-Blocks-Checkout-Store-Registry-Namespace lautet 'wc/store/checkout'
-        const checkoutStore = dispatch( 'wc/store/checkout' );
-        
-        if ( checkoutStore && typeof checkoutStore.setExtensionData === 'function' ) {
-            checkoutStore.setExtensionData( 'woo-order-ext', 'delivery-date', date );
-        }
-    }, [ date ] );
+        // Nur einen echten Datumswert senden – leerer String würde den Validierungs-
+        // Hook auf PHP-Seite bei strtotime() korrekt durchlaufen (empty check dort).
+        setExtensionData( 'woo-order-ext', 'delivery-date', date );
+    }, [ date, setExtensionData ] );
 
     return (
         <div className="woo-order-ext-datepicker-wrapper" style={{ margin: '20px 0' }}>
-            <label 
-                htmlFor="woo-order-ext-delivery-date" 
+            <label
+                htmlFor="woo-order-ext-delivery-date"
                 style={{ display: 'block', fontWeight: 'bold', marginBottom: '5px' }}
             >
                 { __( 'Wählen Sie Ihr Lieferdatum:', 'woo-order-ext' ) }
@@ -34,7 +31,7 @@ export const DatePickerComponent = () => {
                     border: '1px solid #ccc',
                     borderRadius: '4px'
                 }}
-                min={ new Date().toISOString().split('T')[0] }
+                min={ new Date().toISOString().split( 'T' )[ 0 ] }
             />
         </div>
     );

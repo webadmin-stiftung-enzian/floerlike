@@ -1,12 +1,12 @@
 # WordPress- & WooCommerce-Block-Entwicklung: Grundlagen
 
-Eine Anleitung für Einsteiger – vom ersten Block bis zur gespeicherten Bestelldaten.
+Eine Anleitung für Einsteiger – vom ersten Block bis zu gespeicherten und angezeigten Bestelldaten.
 
 ---
 
 ## Bevor du anfängst: Was wollen wir eigentlich bauen?
 
-Stell dir vor, du willst im WooCommerce-Checkout eine eigene Checkbox einbauen – z.B. „Ich möchte den Newsletter abonnieren". Der Kunde hakt sie an, klickt auf „Bestellen", und danach soll auf der Danke-Seite erscheinen, ob er sich angemeldet hat.
+Stell dir vor, du willst im WooCommerce-Checkout eine eigene Checkbox einbauen – z.B. „Ich möchte den Newsletter abonnieren". Der Kunde hakt sie an, klickt auf „Bestellen", und danach soll auf der Danke-Seite erscheinen, ob er sich angemeldet hat – und in der Bestellbestätigungsmail.
 
 Das klingt simpel. Aber WooCommerce Blocks sind kein klassisches PHP-Template mehr – sie sind eine React-App. Deswegen braucht man mehr als einen PHP-Hook. Dieses Dokument erklärt Schritt für Schritt, wie das zusammenhängt.
 
@@ -22,6 +22,7 @@ Bevor man in Details geht, hilft diese Übersicht, den Überblick zu behalten:
 | **WooCommerce-Block** | Cart/Checkout sind selbst Blöcke aus vielen inneren Blöcken | Dieselbe Block-API | Zum Verstehen, wo man andocken kann |
 | **Checkout-Erweiterung** | Eigener Block wird in Cart/Checkout eingefügt | `registerCheckoutBlock` + `parent` | Für eigene UI-Elemente im Checkout |
 | **Slot/Fill** | Inhalt an vordefinierte Plätze einschieben, ohne eigenen Block | `ExperimentalOrderMeta` + `registerPlugin` | Für Anzeige-Elemente ohne Editor-Platzierung |
+| **Additional Field** | Einfaches Feld (Text, Checkbox, Select) per PHP-API registriert | `woocommerce_register_additional_checkout_field` | Für Standard-Eingaben ohne eigenes UI |
 
 **Der wichtigste mentale Sprung:** Cart und Checkout sind keine PHP-Templates mehr. Sie sind React-Block-Bäume. Erweitern heißt: entweder einen eigenen Block in diesen Baum hängen oder einen vordefinierten Einschub (Slot) füllen.
 
@@ -212,6 +213,9 @@ const Block = ( { attributes, checkoutExtensionData } ) => {
 export default Block;
 ```
 
+**Wie kommt `checkoutExtensionData` in die Komponente?**  
+WooCommerce injiziert dieses Prop automatisch in jeden Block, der per `registerCheckoutBlock` registriert wurde. Man muss es nicht selbst beschaffen – nur als Prop entgegennehmen und `setExtensionData` destrukturieren.
+
 **Die drei wichtigsten Patterns in `block.js`:**
 - **`checkoutExtensionData.setExtensionData(namespace, key, value)`** – schreibt Daten in den Checkout-State. Sie landen beim Absenden in der Bestellung.
 - **`wc/store/validation`** – Datastore für Validierung. Mit `setValidationErrors` kann man den „Bestellen"-Button sperren.
@@ -222,6 +226,9 @@ export default Block;
 ## 6. Mechanismus B: Slot/Fill
 
 > **In einem Satz:** Man füllt einen vom WooCommerce-Team vordefinierten Platzhalter mit eigenem Inhalt – ohne dass der Betreiber etwas im Editor platzieren muss.
+
+**Konzept – was ist ein Slot?**  
+Ein Slot ist ein vordefinierter Einschubpunkt im WooCommerce-UI. WooCommerce stellt den Slot bereit (wie eine leere Steckdose); das Plugin steckt seinen Inhalt rein (Fill). Der Betreiber muss nichts im Editor platzieren – der Inhalt erscheint automatisch.
 
 **Wann nutzen?** Für Anzeige-Elemente, die automatisch erscheinen sollen (kein Nutzer-Input nötig). Für Eingabe-Elemente ist Mechanismus A (eigener Block) besser.
 
@@ -296,6 +303,8 @@ registerPaymentMethodExtensionCallbacks( 'mein-plugin', {
 
 > **In einem Satz:** Für einfache Standard-Felder (Checkbox, Text, Select) gibt es eine rein serverseitige PHP-API – kein React, kein Build-Schritt nötig.
 
+### 8.1 Felder registrieren
+
 ```php
 add_action( 'woocommerce_init', function () {
     if ( ! function_exists( 'woocommerce_register_additional_checkout_field' ) ) {
@@ -311,9 +320,44 @@ add_action( 'woocommerce_init', function () {
 } );
 ```
 
-Diese Felder erscheinen automatisch an der richtigen Stelle und werden automatisch in der Bestellung gespeichert.
+**`location`** bestimmt, wo das Feld im Checkout erscheint:
 
-**Sanitierung und Validierung per PHP:**
+| Wert | Position |
+|---|---|
+| `contact` | Kontaktdaten-Bereich |
+| `address` | Liefer- oder Rechnungsadresse |
+| `order` | Unterhalb der Bestellübersicht |
+
+**Sonderfall: `type => 'string'` ohne `location`**  
+Man kann ein Feld auch ohne `location` registrieren – WooCommerce rendert es dann nirgends automatisch. Das ist sinnvoll, wenn man die Eingabe selbst baut (z.B. ein Date-Picker-Block) und **serverseitige Validierung** über die PHP-API nutzen möchte. Das automatische Speichern greift jedoch nur, wenn der Wert über den `additional_fields`-Pfad kommt. Nutzt die eigene UI stattdessen `setExtensionData` (→ `extensions`-Pfad), muss das Speichern vollständig manuell erfolgen (Schema-Registrierung + eigener Save-Hook wie in Mechanismus A). Die Feldregistrierung dient dann nur noch der Validierung.
+
+### 8.2 Wie WooCommerce die Daten speichert
+
+WooCommerce speichert jeden Feldwert automatisch als Order-Meta-Daten, sobald der Checkout abgeschlossen wird. **Der Meta-Key ist immer exakt die Field-ID** – also der Wert aus `id`:
+
+```php
+// Feld-ID: 'mein-plugin/liefer-hinweis'
+// → Meta-Key ist automatisch: 'mein-plugin/liefer-hinweis'
+
+$hinweis = $order->get_meta( 'mein-plugin/liefer-hinweis' );
+```
+
+Das unterscheidet sich von Mechanismus A, bei dem man den Meta-Key selbst wählt und manuell speichert. Bei Additional Fields ist der Key immer die Field-ID – kein eigenes Speichern nötig.
+
+**Was `location` konkret bewirkt:**
+
+| Eigenschaft | Mit `location` | Ohne `location` (via `additional_fields`) | Ohne `location` (via `setExtensionData`) |
+|---|---|---|---|
+| Wird gerendert? | Ja, automatisch | Nein – eigene UI nötig | Nein – eigene UI nötig |
+| Wird gespeichert? | Ja, automatisch | Ja, automatisch | **Nein – manueller Save-Hook nötig** |
+| In E-Mails? | Ja, automatisch | Nein – manueller Hook | Nein – manueller Hook |
+| In Bestelldetails (Frontend)? | Ja, automatisch | Nein – manueller Hook | Nein – manueller Hook |
+| In Admin-Bestelldetails? | Ja, automatisch | Nein – manueller Hook | Nein – manueller Hook |
+| In Admin-Bestellliste? | Nein – immer manuell | Nein – immer manuell | Nein – immer manuell |
+
+> **Merksatz:** Der Datenpfad entscheidet alles. Kommt der Wert via `additional_fields` (Standard-Feld oder eigene UI, die direkt in den WC-Store schreibt), speichert WooCommerce automatisch. Kommt der Wert via `setExtensionData` → `extensions`, ist vollständig manuelles Speichern (Mechanismus A) nötig – die Feldregistrierung dient dann nur noch der Validierung. Die Admin-Bestellliste bekommt man in keinem Fall automatisch.
+
+### 8.3 Sanitierung und Validierung per PHP
 
 ```php
 // Wert bereinigen bevor er gespeichert wird
@@ -337,6 +381,123 @@ add_action( 'woocommerce_blocks_validate_location_order_fields',
 );
 ```
 
+**Validierungs-Hook nach Location:**
+
+| Location | Validierungs-Hook |
+|---|---|
+| `order` | `woocommerce_blocks_validate_location_order_fields` |
+| `address` | `woocommerce_blocks_validate_location_address_fields` |
+| `contact` | `woocommerce_blocks_validate_location_contact_fields` |
+
+### 8.4 Daten anzeigen
+
+Felder ohne `location` sowie die Admin-Bestellliste müssen manuell per Hooks eingebunden werden.
+
+**Admin-Bestellliste – Spalte hinzufügen**
+
+> **Was ist HPOS?**  
+> Ab WooCommerce 7.1 gibt es High-Performance Order Storage (HPOS): Bestellungen werden in eigenen Datenbank-Tabellen (`wc_orders`) statt in `wp_posts` gespeichert. Das wirkt sich auf die Hooks aus: `manage_edit-shop_order_columns` und `manage_shop_order_posts_custom_column` feuern nur bei Post-basierten Installationen. Für HPOS-Installationen gibt es eigene Hooks (`woocommerce_shop_order_list_table_columns` / `_custom_column`). Die sicherste Praxis: **immer beide Hook-Paare registrieren** – der jeweils aktive feuert, der andere wird ignoriert. Außerdem liefert der HPOS-Hook als zweites Argument ein `WC_Order`-Objekt, der Legacy-Hook eine Post-ID (int) – das muss im Callback normalisiert werden.
+
+```php
+// HPOS (WC 7.1+): zweites Argument ist ein WC_Order-Objekt
+add_filter( 'woocommerce_shop_order_list_table_columns', 'mein_plugin_add_column' );
+add_action( 'woocommerce_shop_order_list_table_custom_column', 'mein_plugin_render_column', 10, 2 );
+
+// Legacy (Post-basiert): zweites Argument ist eine Post-ID (int)
+add_filter( 'manage_edit-shop_order_columns', 'mein_plugin_add_column' );
+add_action( 'manage_shop_order_posts_custom_column', 'mein_plugin_render_column', 10, 2 );
+
+function mein_plugin_add_column( $columns ) {
+    $result = array();
+    foreach ( $columns as $key => $label ) {
+        $result[ $key ] = $label;
+        if ( 'order_status' === $key ) {
+            // Nach der Status-Spalte einfügen
+            $result['liefer_hinweis'] = __( 'Lieferhinweis', 'mein-plugin' );
+        }
+    }
+    return $result;
+}
+
+function mein_plugin_render_column( $column, $order_or_id ) {
+    if ( 'liefer_hinweis' !== $column ) return;
+
+    // Normalisieren: HPOS liefert Objekt, Legacy liefert ID
+    $order = is_object( $order_or_id ) ? $order_or_id : wc_get_order( $order_or_id );
+    if ( ! $order ) return;
+
+    $value = $order->get_meta( 'mein-plugin/liefer-hinweis' );
+    echo $value ? esc_html( $value ) : '<span aria-hidden="true">—</span>';
+}
+```
+
+**Admin-Bestelldetails – nach der Rechnungsadresse**
+
+```php
+add_action(
+    'woocommerce_admin_order_data_after_billing_address',
+    function ( $order ) {
+        $value = $order->get_meta( 'mein-plugin/liefer-hinweis' );
+        if ( ! $value ) return;
+        echo '<p><strong>' . esc_html__( 'Lieferhinweis', 'mein-plugin' ) . ':</strong><br>'
+            . esc_html( $value ) . '</p>';
+    }
+);
+```
+
+**Bestell-E-Mails**
+
+`woocommerce_email_order_meta` ist der semantisch richtige Hook für Meta-Felder in E-Mails – er erscheint im eingebetteten Meta-Bereich des WooCommerce-E-Mail-Templates:
+
+```php
+add_action(
+    'woocommerce_email_order_meta',
+    function ( $order, $sent_to_admin, $plain_text, $email ) {
+        $value = $order->get_meta( 'mein-plugin/liefer-hinweis' );
+        if ( ! $value ) return;
+
+        if ( $plain_text ) {
+            echo "\n" . __( 'Lieferhinweis', 'mein-plugin' ) . ': ' . $value . "\n";
+        } else {
+            echo '<p><strong>' . esc_html__( 'Lieferhinweis', 'mein-plugin' ) . ':</strong> '
+                . esc_html( $value ) . '</p>';
+        }
+    },
+    10, 4
+);
+```
+
+> **`woocommerce_email_order_meta` vs. `woocommerce_email_after_order_table`:**  
+> `email_order_meta` erscheint im eingebetteten Meta-Bereich – semantisch richtig für Felder, die zur Bestellung gehören (Lieferhinweis, Wunschdatum).  
+> `email_after_order_table` erscheint direkt nach der Artikelliste – sinnvoll, wenn die Information sehr prominent stehen soll (z.B. eine dringende Rückrufbitte). Beide Hooks haben identische Parameter: `($order, $sent_to_admin, $plain_text, $email)`.
+
+**Frontend – Danke-Seite und Bestelldetails im Kundenkonto**
+
+```php
+add_action(
+    'woocommerce_order_details_after_order_table',
+    function ( $order ) {
+        $value = $order->get_meta( 'mein-plugin/liefer-hinweis' );
+        if ( ! $value ) return;
+        echo '<p><strong>' . esc_html__( 'Lieferhinweis', 'mein-plugin' ) . ':</strong> '
+            . esc_html( $value ) . '</p>';
+    }
+);
+```
+
+> Dieser Hook funktioniert sowohl in klassischen PHP-Templates als auch in Block-Themes (z.B. Twenty Twenty-Five), da er explizit in `src/Blocks/BlockTypes/OrderConfirmation/Totals.php` aufgerufen wird.
+
+**Übersicht: alle Display-Hooks auf einen Blick**
+
+| Kontext | Hook | 2. Parameter |
+|---|---|---|
+| Admin-Bestellliste (HPOS) | `woocommerce_shop_order_list_table_custom_column` | `WC_Order`-Objekt |
+| Admin-Bestellliste (Legacy) | `manage_shop_order_posts_custom_column` | Post-ID (int) |
+| Admin-Bestelldetails | `woocommerce_admin_order_data_after_billing_address` | – |
+| E-Mail (Meta-Bereich) | `woocommerce_email_order_meta` | `$sent_to_admin, $plain_text, $email` |
+| E-Mail (nach Artikelliste) | `woocommerce_email_after_order_table` | `$sent_to_admin, $plain_text, $email` |
+| Danke-Seite + Kundenkonto | `woocommerce_order_details_after_order_table` | – |
+
 > **Entscheidungshilfe:** Für einfache Felder → PHP-API. Für komplexes UI mit Vorschau, Abhängigkeiten, eigener Logik → eigener Block (Mechanismus A).
 
 ---
@@ -345,6 +506,9 @@ add_action( 'woocommerce_blocks_validate_location_order_fields',
 
 Die Integrationsklasse ist der Klebstoff zwischen PHP und dem JavaScript-Frontend. Sie teilt WooCommerce mit, welche Scripts geladen werden sollen und welche Daten vom Server ins JS übertragen werden.
 
+**Warum braucht man sie überhaupt?**  
+In WordPress werden Scripts über `wp_enqueue_script` registriert. Bei WooCommerce-Blöcken ist der Zeitpunkt entscheidend: Scripts müssen geladen sein, bevor der Block rendert – und sie brauchen die richtigen Abhängigkeiten (`wc-blocks-checkout` usw.), damit `registerCheckoutBlock` zur Verfügung steht. Die Integrationsklasse übernimmt genau das: Sie registriert die Scripts mit den richtigen Abhängigkeiten und teilt WooCommerce mit, welche Handles für Cart und Checkout geladen werden sollen.
+
 ```php
 // mein-plugin-blocks-integration.php
 use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
@@ -352,11 +516,10 @@ use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
 class MeinPlugin_Blocks_Integration implements IntegrationInterface {
 
     public function get_name() {
-        return 'mein-plugin'; // muss eindeutig und konsistent sein
+        return 'mein-plugin'; // muss eindeutig sein – wird auch als Namespace für get_script_data() genutzt
     }
 
     public function initialize() {
-        // Scripts registrieren (siehe unten)
         $this->register_frontend_script();
         $this->register_editor_script();
     }
@@ -451,7 +614,12 @@ Das `@woocommerce/dependency-extraction-webpack-plugin` sorgt dafür, dass `@wor
 | Texte/Preise/Labels anpassen | Checkout-Filter (`registerCheckoutFilters`) |
 | Zahlungsarten ein-/ausblenden | `registerPaymentMethodExtensionCallbacks` |
 | PHP-Daten ins JS | `get_script_data()` (PHP) ↔ `getSetting()` (JS) |
-| Kundeneingabe in die Bestellung | `setExtensionData()` (JS) ↔ `woocommerce_store_api_checkout_update_order_from_request` (PHP) |
+| Kundeneingabe in die Bestellung (eigener Block) | `setExtensionData()` (JS) ↔ `woocommerce_store_api_checkout_update_order_from_request` (PHP) |
+| Kundeneingabe in die Bestellung (Additional Field) | Automatisch – Meta-Key = Field-ID |
+| Wert in Admin-Bestellliste anzeigen | `woocommerce_shop_order_list_table_columns` + `_custom_column` (HPOS) **und** `manage_edit-shop_order_columns` + `manage_shop_order_posts_custom_column` (Legacy) |
+| Wert in Bestell-E-Mail anzeigen | `woocommerce_email_order_meta` |
+| Wert auf Danke-Seite / Kundenkonto anzeigen | `woocommerce_order_details_after_order_table` |
+| Wert in Admin-Bestelldetails anzeigen | `woocommerce_admin_order_data_after_billing_address` |
 
 **Wichtige Imports:**
 
@@ -624,9 +792,9 @@ const Block = ( { attributes } ) => {
 
 ---
 
-## 14. Kundeneingaben in der Bestellung speichern
+## 14. Kundeneingaben in der Bestellung speichern (Mechanismus A)
 
-Dieser Abschnitt erklärt den kompletten Weg von `setExtensionData` im Browser bis zum gespeicherten Order-Meta-Wert auf dem Server.
+Dieser Abschnitt beschreibt den Weg von `setExtensionData` (eigener Block) bis zum gespeicherten Order-Meta-Wert. Für Additional Checkout Fields (Mechanismus D) übernimmt WooCommerce das Speichern automatisch – dort beginnt man direkt mit der Anzeige (Abschnitt 8.4).
 
 ### 14.1 Was `setExtensionData` auslöst
 
@@ -647,6 +815,8 @@ Auf JS-Seite ist nichts weiter nötig als dieser Aufruf.
 ### 14.2 Schritt 1 – Schema registrieren (Pflicht)
 
 Ohne diesen Schritt filtert WooCommerce die Extension-Daten aus dem Request, bevor der PHP-Hook sie sehen kann. `$request->get_param('extensions')` wäre dann leer, egal was das JS sendet.
+
+**Warum?** Die Store API lässt grundsätzlich keine unbekannten Daten durch – sie validiert alle eingehenden Felder gegen ein Schema. Extension-Daten, die kein Schema haben, werden still verworfen. Das Schema-Registrierung teilt der Store API mit: „Diese Felder aus diesem Namespace sind erwartet und erlaubt."
 
 ```php
 add_action( 'woocommerce_blocks_loaded', function () {
@@ -695,6 +865,8 @@ add_action(
 
 ### 14.4 Schritt 3 – Wert anzeigen
 
+Die Hooks sind dieselben wie in Abschnitt 8.4, der Meta-Key ist hier aber selbst gewählt (nicht die Field-ID).
+
 **Auf der Danke-Seite und in Bestelldetails:**
 
 ```php
@@ -723,20 +895,16 @@ add_action(
         if ( $val === '' ) return;
 
         $label = $val === '1' ? 'Newsletter: Ja' : 'Newsletter: Nein';
-        echo $plain_text ? "\n$label\n" : "<p><strong>$label</strong></p>";
+        echo $plain_text
+            ? "\n$label\n"
+            : '<p><strong>' . esc_html( $label ) . '</strong></p>';
     },
     10,
     4
 );
 ```
 
-**Analoge Hooks für weitere Ansichten:**
-
-| Hook | Ansicht |
-|---|---|
-| `woocommerce_order_details_after_order_table` | Danke-Seite + Konto-Bestelldetails |
-| `woocommerce_email_order_meta` | Bestell-E-Mails (Kunde + Admin) |
-| `woocommerce_admin_order_data_after_billing_address` | Admin-Bestelldetails |
+Die vollständige Übersicht aller Display-Hooks und wann welcher passt findet sich in Abschnitt 8.4.
 
 ### 14.5 Serverseitige Validierung
 
@@ -796,6 +964,7 @@ Server – Speichern (woocommerce_store_api_checkout_update_order_from_request)
    └─ $order->update_meta_data('...', '1')   ← String statt bool
         ↓
 Order-Meta gespeichert
+   └─ woocommerce_email_order_meta           → Anzeige in E-Mails
    └─ woocommerce_order_details_after_order_table → Anzeige auf Danke-Seite
 ```
 
@@ -809,11 +978,117 @@ Order-Meta gespeichert
 
 ---
 
-## 15. Debugging-Referenz: Extension-Daten (WC 10.8.1)
+## 15. Best Practices
+
+### 15.1 Sicherheit: Eingabe und Ausgabe
+
+**Niemals rohe Kundeneingaben ausgeben.** In WooCommerce gibt es zwei Stellen, an denen man absichern muss:
+
+```php
+// Beim Speichern: sanitize
+$order->update_meta_data( '_mein_plugin_text', sanitize_text_field( $input ) );
+
+// Beim Ausgeben: escape
+echo esc_html( $order->get_meta( '_mein_plugin_text' ) );
+```
+
+| Kontext | Sanitize-Funktion | Escape-Funktion |
+|---|---|---|
+| Einzeiliger Text | `sanitize_text_field()` | `esc_html()` |
+| Mehrzeiliger Text | `sanitize_textarea_field()` | `esc_html()` oder `nl2br( esc_html() )` |
+| E-Mail | `sanitize_email()` | `esc_html()` |
+| URL | `esc_url_raw()` | `esc_url()` |
+| Datum (ISO) | `sanitize_text_field()` + `strtotime()` validieren | `esc_html()` |
+
+### 15.2 Datumsfelder richtig behandeln
+
+Datumsfelder immer intern als ISO-Format (`Y-m-d`) speichern und zur Anzeige mit `date_i18n()` formatieren. Das hält die Darstellung unabhängig vom Shop-Locale und lässt sich jederzeit umprogrammieren:
+
+```php
+// Speichern (aus Date-Picker kommt 'YYYY-MM-DD'):
+$order->update_meta_data( '_mein_plugin_date', sanitize_text_field( $input ) ); // '2025-03-15'
+
+// Anzeigen (konvertiert nach WordPress-Datumsformat, z.B. '15. März 2025'):
+$date = $order->get_meta( '_mein_plugin_date' );
+if ( $date ) {
+    $formatted = date_i18n( get_option( 'date_format' ), strtotime( $date ) );
+    echo esc_html( $formatted );
+}
+```
+
+`date_i18n()` respektiert die WordPress-Spracheinstellung und das im Backend eingestellte Datumsformat. Niemals direkt `date()` für Shop-Ausgaben verwenden.
+
+### 15.3 Booleans in WordPress-Meta
+
+PHP `false` in WP-Meta ist ununterscheidbar von „nicht gesetzt":
+
+```php
+$order->update_meta_data( 'optin', false );
+$order->get_meta( 'optin' ); // gibt '' zurück, nicht false
+```
+
+Immer `'1'` und `'0'` als Strings speichern:
+
+```php
+$order->update_meta_data( 'optin', $value ? '1' : '0' );
+
+// Lesen:
+$val = $order->get_meta( 'optin' );
+if ( $val === '' ) { /* nicht gesetzt */ }
+if ( $val === '1' ) { /* true */ }
+if ( $val === '0' ) { /* false */ }
+```
+
+### 15.4 HPOS-Kompatibilität
+
+Immer beide Hook-Paare für die Admin-Bestellliste registrieren (HPOS + Legacy). Das Normalisierungs-Pattern im Callback:
+
+```php
+function render_my_column( $column, $order_or_id ) {
+    $order = is_object( $order_or_id ) ? $order_or_id : wc_get_order( $order_or_id );
+    // ab hier immer mit $order arbeiten
+}
+```
+
+Niemals direkt `get_post_meta( $post_id, ... )` für Bestelldaten verwenden – das funktioniert nur bei Legacy-Installationen. Immer `$order->get_meta()` nutzen.
+
+### 15.5 Namespace-Konsistenz
+
+Der Namespace in `setExtensionData`, `woocommerce_store_api_register_endpoint_data` und `get_name()` der Integrationsklasse muss identisch sein. Am besten einmal als Konstante oder Variable definieren:
+
+```php
+// In der Haupt-PHP-Datei
+define( 'MEIN_PLUGIN_NAMESPACE', 'mein-plugin' );
+
+// Dann überall verwenden:
+woocommerce_store_api_register_endpoint_data( array(
+    'namespace' => MEIN_PLUGIN_NAMESPACE,
+    ...
+) );
+```
+
+In JS muss der String exakt übereinstimmen:
+```js
+setExtensionData( 'mein-plugin', 'newsletter_optin', value );
+//                ^^^^^^^^^^^^ muss == MEIN_PLUGIN_NAMESPACE
+```
+
+### 15.6 Hook-Zeitpunkte
+
+| Was registrieren | Richtiger Hook |
+|---|---|
+| Additional Checkout Fields | `woocommerce_init` |
+| Store-API-Schema + Integrationsklasse | `woocommerce_blocks_loaded` |
+| Block-Types (PHP-Seite) | `init` |
+| Display-Hooks (E-Mail, Admin, Frontend) | Top-Level oder `plugins_loaded` |
+
+---
+
+## 16. Debugging-Referenz: Extension-Daten (WC 10.8.1)
 
 Dieser Abschnitt ist für den Fall, dass Daten nicht ankommen – als geordnete Checkliste zum Durchgehen.
 
-### 15.1 Schnell-Check: kommen die Daten an?
+### 16.1 Schnell-Check: kommen die Daten an?
 
 Debug-Logging temporär einfügen:
 
@@ -827,39 +1102,51 @@ add_action(
 );
 ```
 
-- **Leer / `null`** → Schema nicht registriert (→ 15.3)
+- **Leer / `null`** → Schema nicht registriert (→ 16.3)
 - **Namespace fehlt** → Namespace in PHP und JS stimmt nicht überein
 - **Feld fehlt** → Key in PHP und JS stimmt nicht überein
 
 Das Log landet unter: `logs/php/error.log` (lokale Entwicklungsumgebung) oder im WordPress-Debug-Log.
 
-### 15.2 `$_POST` ist beim Blocks-Checkout immer leer
+### 16.2 `$_POST` ist beim Blocks-Checkout immer leer
 
 **Ursache:** Blocks-Checkout sendet als JSON-Body, nicht als HTML-Formular.
 
 **Fix:** Immer `$request->get_param('extensions')` verwenden, nie `$_POST['extensions']`.
 
-### 15.3 Ohne Schema-Registrierung werden Daten gefiltert
+### 16.3 Ohne Schema-Registrierung werden Daten gefiltert
 
 WooCommerce lässt keine unbekannten Extension-Daten durch. Ohne `woocommerce_store_api_register_endpoint_data` ist `extensions` im Hook immer leer, egal was das JS sendet.
 
 Die Registrierung muss innerhalb von `woocommerce_blocks_loaded` stattfinden (nicht auf Top-Level), weil die Store-API-Klassen sonst noch nicht geladen sind.
 
-### 15.4 `woocommerce_store_api_checkout_order_processed` hat kein `$request`
+### 16.4 `woocommerce_store_api_checkout_order_processed` hat kein `$request`
 
 | Hook | Parameter | Für was |
 |---|---|---|
 | `woocommerce_store_api_checkout_update_order_from_request` | `$order`, `$request` | Extension-Daten lesen und speichern ✓ |
 | `woocommerce_store_api_checkout_order_processed` | nur `$order` | Nachverarbeitung nach dem Speichern |
 
-### 15.5 Boolean `false` in WP-Meta wird zu `''`
+### 16.5 Boolean `false` in WP-Meta wird zu `''`
 
 `$order->update_meta_data('optin', false)` → `$order->get_meta('optin')` gibt `''` zurück.
 
-Das ist ununterscheidbar von „nicht gesetzt". Lösung: `'1'`/`'0'` als Strings speichern.
+Das ist ununterscheidbar von „nicht gesetzt". Lösung: `'1'`/`'0'` als Strings speichern (siehe Best Practice 15.3).
 
-### 15.6 `woocommerce_order_details_after_order_table` feuert auch in Block-Templates
+### 16.6 `woocommerce_order_details_after_order_table` feuert auch in Block-Templates
 
 Mit WooCommerce 10.x und einem Block-Theme (z.B. Twenty Twenty-Five) wird die Danke-Seite über das **Order Confirmation Block-Template** gerendert. Klassische PHP-Hooks wie `woocommerce_thankyou` feuern dort nicht mehr direkt.
 
 `woocommerce_order_details_after_order_table` jedoch schon – er wird explizit in `src/Blocks/BlockTypes/OrderConfirmation/Totals.php` aufgerufen. Dieser Hook funktioniert sicher in klassischen und block-basierten Themes.
+
+### 16.7 Additional Field Meta-Key testen
+
+Wenn unklar ist, unter welchem Key WooCommerce ein Additional Field speichert:
+
+```php
+add_action( 'woocommerce_store_api_checkout_update_order_from_request', function( $order ) {
+    error_log( print_r( $order->get_meta_data(), true ) );
+}, 20 );
+```
+
+Alle Meta-Einträge der Bestellung erscheinen im Log – den eigenen Feldnamen suchen.

@@ -64,7 +64,14 @@ add_action(
 						'newsletter_optin' => array(
 							'description' => 'Newsletter opt-in',
 							'type'        => 'boolean',
-							'context'     => array( 'view', 'edit' ),
+							'context'     => array('view', 'edit'),
+							'readonly'    => false,
+						),
+						'delivery-date' => array(
+							'description' => 'Gewünschtes Lieferdatum (ISO: YYYY-MM-DD)',
+							'type'        => array('string', 'null'),
+							'default'     => '',
+							'context'     => array('view', 'edit'),
 							'readonly'    => false,
 						),
 					);
@@ -99,21 +106,118 @@ add_action('block_categories_all', 'register_WooOrderExt_block_category', 10, 2)
 // Hook 'woocommerce_init': Registriert alle benutzerdefinierten Checkout-Felder in WooCommerce.
 add_action('woocommerce_init', 'WooOrderExt_register_custom_checkout_fields');
 
-// Hook 'woocommerce_store_api_checkout_update_order_from_request': Speichert den Newsletter-Opt-in-Wert in Order-Metadaten.
-// Blocks-Checkout sendet Extension-Daten als JSON, nicht als $_POST – daher muss $request genutzt werden.
+// Speichert Newsletter-Opt-in aus Extension-Daten in Order-Metadaten.
 add_action(
 	'woocommerce_store_api_checkout_update_order_from_request',
 	function ($order, $request) {
-		$extension_data = $request->get_param( 'extensions' );
-		if ( isset( $extension_data['woo-order-ext']['newsletter_optin'] ) ) {
+		$extension_data = $request->get_param('extensions');
+		if (isset($extension_data['woo-order-ext']['newsletter_optin'])) {
 			$optin = $extension_data['woo-order-ext']['newsletter_optin'] ? '1' : '0';
-			$order->update_meta_data( 'woo_order_ext_newsletter_optin', $optin );
+			$order->update_meta_data('woo_order_ext_newsletter_optin', $optin);
 			$order->save();
 		}
 	},
 	10,
 	2
 );
+
+// Validiert und speichert das Lieferdatum aus Extension-Daten.
+add_action(
+	'woocommerce_store_api_checkout_update_order_from_request',
+	function ($order, $request) {
+		$extension_data = $request->get_param('extensions');
+		$date           = $extension_data['woo-order-ext']['delivery-date'] ?? '';
+
+		if (empty($date)) {
+			return;
+		}
+
+		$date      = sanitize_text_field($date);
+		$timestamp = strtotime($date);
+
+		if ($timestamp === false) {
+			return;
+		}
+
+		if (date('N', $timestamp) === '7') {
+			throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+				'no_sunday_delivery',
+				__('Sonntags ist leider keine Lieferung möglich.', 'woo-order-ext'),
+				400
+			);
+		}
+
+		$order->update_meta_data('woo-order-ext/delivery-date', $date);
+		$order->save();
+	},
+	10,
+	2
+);
+
+// =========================================================================
+// Admin Order List: Lieferdatum-Spalte (HPOS + Legacy)
+// =========================================================================
+
+add_filter('woocommerce_shop_order_list_table_columns', 'WooOrderExt_add_delivery_date_column');
+add_filter('manage_edit-shop_order_columns', 'WooOrderExt_add_delivery_date_column');
+
+function WooOrderExt_add_delivery_date_column($columns)
+{
+	$reordered = array();
+	foreach ($columns as $key => $value) {
+		$reordered[$key] = $value;
+		if ('order_status' === $key) {
+			$reordered['delivery_date'] = __('Lieferdatum', 'woo-order-ext');
+		}
+	}
+	return $reordered;
+}
+
+// HPOS: zweites Argument ist ein WC_Order-Objekt
+add_action('woocommerce_shop_order_list_table_custom_column', 'WooOrderExt_render_delivery_date_column', 10, 2);
+// Legacy: zweites Argument ist eine Post-ID (int)
+add_action('manage_shop_order_posts_custom_column', 'WooOrderExt_render_delivery_date_column', 10, 2);
+
+function WooOrderExt_render_delivery_date_column($column, $order_or_post_id)
+{
+	if ('delivery_date' !== $column) {
+		return;
+	}
+	$order = is_object($order_or_post_id) ? $order_or_post_id : wc_get_order($order_or_post_id);
+	if (! $order) {
+		return;
+	}
+	$date = $order->get_meta('woo-order-ext/delivery-date');
+	if ($date) {
+		echo esc_html(date_i18n(get_option('date_format'), strtotime($date)));
+	} else {
+		echo '<span aria-hidden="true">—</span>';
+	}
+}
+
+// =========================================================================
+// E-Mail-Bestätigung: Lieferdatum im Meta-Bereich der E-Mail einfügen
+// =========================================================================
+
+add_action(
+	'woocommerce_email_order_meta',
+	function ($order, $sent_to_admin, $plain_text, $email) {
+		$date = $order->get_meta('woo-order-ext/delivery-date');
+		if (! $date) {
+			return;
+		}
+		$formatted = date_i18n(get_option('date_format'), strtotime($date));
+		if ($plain_text) {
+			echo "\n" . __('Gewünschtes Lieferdatum', 'woo-order-ext') . ': ' . $formatted . "\n";
+		} else {
+			echo '<p><strong>' . esc_html__('Gewünschtes Lieferdatum', 'woo-order-ext') . ':</strong> ' . esc_html($formatted) . '</p>';
+		}
+	},
+	10,
+	4
+);
+
+// =========================================================================
 
 /**
  * Registers custom checkout fields for the WooCommerce checkout form.
@@ -182,71 +286,54 @@ function WooOrderExt_register_custom_checkout_fields()
 		2
 	);
 
-	// 3. Ein weiteres Textfeld im Adresszeilen-Bereich, aber mit einem speziellen Typ "string", damit es automatisch im Blocks-Checkout gerendert wird.
+	// Lieferdatum: kein woocommerce_register_additional_checkout_field nötig –
+	// der Wert kommt via setExtensionData (extensions-Pfad) und wird im
+	// woocommerce_store_api_checkout_update_order_from_request-Hook verarbeitet.
+
 	// woocommerce_register_additional_checkout_field(
 	// 	array(
-	// 		'id'       => 'woo-order-ext/subscribe-newsletter',
-	// 		'label'    => "Möchten Sie unseren Newsletter abonnieren?",
+	// 		'id'       => 'test/custom-select-input',
+	// 		'label'    => "Test's example select input",
 	// 		'location' => 'order',
-	// 		'type'     => 'string', // Nur als Datentyp registrieren, ohne Location (kein automatisches Rendering)
+	// 		'type'     => 'select',
+	// 		'options'  => [
+	// 			[
+	// 				'label' => 'Option 1',
+	// 				'value' => 'option1',
+	// 			],
+	// 			[
+	// 				'label' => 'Option 2',
+	// 				'value' => 'option2',
+	// 			],
+	// 		],
 	// 	)
 	// );
-
-	woocommerce_register_additional_checkout_field(
-		array(
-			'id'       => 'woo-order-ext/delivery-date',
-			'label'    => 'Gewünschtes Lieferdatum',
-			'type'     => 'string', // Nur als Datentyp registrieren, ohne Location (kein automatisches Rendering)
-		)
-	);
-
-	add_action(
-		'woocommerce_blocks_validate_location_address_fields', // Oder ein anderer Checkout-Validierungs-Hook
-		function (\WP_Error $errors, $fields) {
-			if (isset($fields['woo-order-ext/delivery-date'])) {
-				$chosen_date = $fields['woo-order-ext/delivery-date'];
-				$day_of_week = date('N', strtotime($chosen_date));
-
-				// Wenn der gewählte Tag ein Sonntag (7) ist, Fehlermeldung ausgeben
-				if ('7' === $day_of_week) {
-					$errors->add('no_sunday_delivery', 'Sonntags ist leider keine Lieferung möglich.');
-				}
-			}
-		},
-		10,
-		2
-	);
-
-	woocommerce_register_additional_checkout_field(
-		array(
-			'id'       => 'test/custom-select-input',
-			'label'    => "Test's example select input",
-			'location' => 'order',
-			'type'     => 'select',
-			'options'  => [
-				[
-					'label' => 'Option 1',
-					'value' => 'option1',
-				],
-				[
-					'label' => 'Option 2',
-					'value' => 'option2',
-				],
-			],
-		)
-	);
 }
 
-// Hook 'woocommerce_order_details_after_order_table': Zeigt Newsletter-Status auf Order received-Seite
+// Hook 'woocommerce_order_details_after_order_table': Zeigt Lieferdatum und Newsletter-Status auf Order received-Seite
 add_action(
 	'woocommerce_order_details_after_order_table',
 	function ($order) {
+		$delivery_date    = $order->get_meta('woo-order-ext/delivery-date');
 		$newsletter_optin = $order->get_meta('woo_order_ext_newsletter_optin');
-		if ($newsletter_optin !== '') {
-			echo '<div style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">';
-			echo '<strong>' . esc_html__('Newsletter', 'woo-order-ext') . ':</strong> ';
-			echo $newsletter_optin ? esc_html__('Subscribed', 'woo-order-ext') : esc_html__('Not subscribed', 'woo-order-ext');
-			echo '</div>';
+
+		if (! $delivery_date && $newsletter_optin === '') {
+			return;
 		}
+
+		echo '<div style="margin-top: 20px; padding: 10px; background: #f5f5f5; border-radius: 4px;">';
+
+		if ($delivery_date) {
+			$formatted = date_i18n(get_option('date_format'), strtotime($delivery_date));
+			echo '<p style="margin: 4px 0;"><strong>' . esc_html__('Gewünschtes Lieferdatum', 'woo-order-ext') . ':</strong> ' . esc_html($formatted) . '</p>';
+		}
+
+		if ($newsletter_optin !== '') {
+			echo '<p style="margin: 4px 0;"><strong>' . esc_html__('Newsletter', 'woo-order-ext') . ':</strong> ';
+			echo $newsletter_optin ? esc_html__('Subscribed', 'woo-order-ext') : esc_html__('Not subscribed', 'woo-order-ext');
+			echo '</p>';
+		}
+
+		echo '</div>';
 	}
 );
