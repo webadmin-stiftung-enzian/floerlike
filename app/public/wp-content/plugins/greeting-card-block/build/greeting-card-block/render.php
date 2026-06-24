@@ -20,6 +20,8 @@ $cards = wc_get_products([
 	'order'  => $attributes['order'] ?? 'ASC',
 ]);
 
+$product_id = absint($block->context['postId'] ?? get_the_ID());
+
 // Initialer Server-State für die Interactivity API.
 wp_interactivity_state('greeting-card-block', [
 	'wantsCard'      => true,
@@ -32,7 +34,8 @@ wp_interactivity_state('greeting-card-block', [
 <div
 	<?php echo get_block_wrapper_attributes(); ?>
 	data-wp-interactive="greeting-card-block"
-	data-wp-init="callbacks.debugInit">
+	data-wp-init="callbacks.debugInit"
+	data-product-id="<?php echo esc_attr($product_id); ?>">
 	<div class="greeting-card-block__checkbox">
 		<input
 			type="checkbox"

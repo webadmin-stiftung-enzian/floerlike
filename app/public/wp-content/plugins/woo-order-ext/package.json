@@ -26,5 +26,8 @@
 		"*.php",
 		"build",
 		"block.json"
-	]
+	],
+	"dependencies": {
+		"@wordpress/icons": "^14.0.1"
+	}
 }

@@ -64,6 +64,7 @@ add_action(
 						'newsletter_optin' => array(
 							'description' => 'Newsletter opt-in',
 							'type'        => 'boolean',
+							'default'     => false,
 							'context'     => array('view', 'edit'),
 							'readonly'    => false,
 						),

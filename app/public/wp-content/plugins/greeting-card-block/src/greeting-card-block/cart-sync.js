@@ -39,12 +39,18 @@ document.body.addEventListener( 'wc-blocks_added_to_cart', () => {
 		return;
 	}
 
+	const block = document.querySelector(
+		'[data-wp-interactive="greeting-card-block"]'
+	);
+	const bouquetProductId = block ? block.dataset.productId : '';
+
 	extensionCartUpdate( {
 		namespace: 'greeting-card-block',
 		data: {
 			action: 'add',
 			card_id: selectedCardId,
 			text,
+			bouquet_product_id: bouquetProductId,
 		},
 	} ).catch( ( error ) => processErrorResponse( error ) );
 } );

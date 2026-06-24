@@ -18,6 +18,7 @@
 			"default": ""
 		}
 	},
+	"usesContext": ["postId"],
 	"textdomain": "greeting-card-block",
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",

@@ -35,8 +35,9 @@ add_action('woocommerce_blocks_loaded', function () {
                 return;
             }
 
-            $card_id = absint($data['card_id'] ?? 0);
-            $text    = sanitize_textarea_field($data['text'] ?? '');
+            $card_id            = absint($data['card_id'] ?? 0);
+            $text               = sanitize_textarea_field($data['text'] ?? '');
+            $bouquet_product_id = absint($data['bouquet_product_id'] ?? 0);
 
             // Vollständigkeit der Eingaben prüfen.
             if (! $card_id || '' === $text) {
@@ -56,10 +57,12 @@ add_action('woocommerce_blocks_loaded', function () {
                 );
             }
 
-            // Sicherstellen, dass nur EINE Grußkarte im Warenkorb liegt:
-            // vorhandene Grußkarten-Position(en) vor dem Hinzufügen entfernen.
+            // Bestehende Grußkarte für diesen Strauß ersetzen (eine Karte pro Strauß-Produkt).
             foreach (WC()->cart->get_cart() as $cart_item_key => $cart_item) {
-                if (! empty($cart_item['_is_greeting_card'])) {
+                if (
+                    ! empty($cart_item['_is_greeting_card']) &&
+                    (int)($cart_item['_linked_bouquet_product_id'] ?? 0) === $bouquet_product_id
+                ) {
                     WC()->cart->remove_cart_item($cart_item_key);
                 }
             }
@@ -70,8 +73,9 @@ add_action('woocommerce_blocks_loaded', function () {
                 0,
                 [],
                 [
-                    '_is_greeting_card'  => true,
-                    'greeting_card_text' => $text,
+                    '_is_greeting_card'          => true,
+                    'greeting_card_text'         => $text,
+                    '_linked_bouquet_product_id' => $bouquet_product_id,
                 ]
             );
         },
@@ -79,7 +83,31 @@ add_action('woocommerce_blocks_loaded', function () {
 });
 
 /**
- * 2. Grußtext im Warenkorb anzeigen.
+ * 2. Grußkarte automatisch entfernen wenn der verknüpfte Strauß entfernt wird.
+ */
+add_action('woocommerce_cart_item_removed', function ($removed_key, $cart) {
+    $removed = $cart->removed_cart_contents[$removed_key] ?? null;
+    if (! $removed || ! empty($removed['_is_greeting_card'])) {
+        return;
+    }
+
+    $removed_product_id = (int)($removed['product_id'] ?? 0);
+    if (! $removed_product_id) {
+        return;
+    }
+
+    foreach ($cart->get_cart() as $key => $item) {
+        if (
+            ! empty($item['_is_greeting_card']) &&
+            (int)($item['_linked_bouquet_product_id'] ?? 0) === $removed_product_id
+        ) {
+            $cart->remove_cart_item($key);
+        }
+    }
+}, 10, 2);
+
+/**
+ * 4. Grußtext im Warenkorb anzeigen.
  *
  * WooCommerce rendert das zurückgegebene `item_data` nativ unter dem Artikel –
  * genau so wie Variations-Attribute. Kein eigener Anzeige-Block nötig.
@@ -96,7 +124,7 @@ add_filter('woocommerce_get_item_data', function ($item_data, $cart_item) {
 }, 10, 2);
 
 /**
- * 3. Grußkarte und Grußtext dauerhaft in der Bestellung speichern.
+ * 5. Grußkarte und Grußtext dauerhaft in der Bestellung speichern.
  *
  * Erscheint automatisch im Admin, in der Bestellbestätigungs-E-Mail und im
  * Kundenbereich.

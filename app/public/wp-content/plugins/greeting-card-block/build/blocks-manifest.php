@@ -23,6 +23,9 @@ return array(
 				'default' => ''
 			)
 		),
+		'usesContext' => array(
+			'postId'
+		),
 		'textdomain' => 'greeting-card-block',
 		'editorScript' => 'file:./index.js',
 		'editorStyle' => 'file:./index.css',
