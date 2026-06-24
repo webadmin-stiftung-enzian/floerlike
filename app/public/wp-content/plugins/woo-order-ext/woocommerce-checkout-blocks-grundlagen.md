@@ -1300,3 +1300,183 @@ add_action( 'woocommerce_store_api_checkout_update_order_from_request', function
 ```
 
 Alle Meta-Einträge der Bestellung erscheinen im Log – den eigenen Feldnamen suchen.
+
+---
+
+## 18. Einwilligungsnachweis und externe Webhook-Anbindung
+
+Dieser Abschnitt beschreibt zwei zusammenhängende Patterns: wie Einwilligungen DSG-konform dokumentiert werden, und wie beim Checkout ein externer Dienst (Newsletter-Tool, CRM, ERP) direkt aus PHP angebunden wird – ohne Middleware wie Zapier.
+
+### 18.1 Das Consent-Pattern: was gespeichert werden muss
+
+Für Newsletter-Opt-ins verlangt das Schweizer DSG eine **nachweisbare, informierte Einwilligung**. Das bedeutet drei Dinge müssen dokumentiert sein:
+
+| Was | Warum | Wo gespeichert |
+|---|---|---|
+| Opt-in-Status (`'1'`/`'0'`) | Ob der Kunde zugestimmt hat | Order-Meta |
+| Einwilligungstext | Exakter Wortlaut + Link den der Kunde sah | Order-Meta |
+| Zeitstempel | Wann die Einwilligung erfolgte | Order-Meta (server-generiert) |
+
+**Wichtig:** Der Zeitstempel muss **server-generiert** sein (`gmdate('c')` in PHP), nicht vom Client gesendet. Der Client kann Zeitstempel fälschen. Der Einwilligungstext kommt zwar vom Client (Best-Effort), ist aber server-seitig sanitiert.
+
+### 18.2 Implementierung im Block (JS)
+
+```jsx
+// Plain-text für Consent-Dokumentation (URL als Nachweis enthalten)
+const consentText = useMemo(() => {
+    if (privacyPolicyUrl) {
+        return `${text} Es gelten die Datenschutzbestimmungen (${privacyPolicyUrl}).`;
+    }
+    return text;
+}, [text, privacyPolicyUrl]);
+
+useEffect(() => {
+    setExtensionData('woo-order-ext', 'newsletter_optin', checked);
+    // Leerer String wenn unchecked – Server speichert consent_text nur bei Opt-in
+    setExtensionData('woo-order-ext', 'consent_text', checked ? consentText : '');
+}, [checked, setExtensionData, consentText]);
+
+// JSX-Label mit Link für den Kunden (separat vom Plain-text consentText)
+const label = privacyPolicyUrl ? (
+    <>
+        {text}{' '}
+        Es gelten die{' '}
+        <a href={privacyPolicyUrl} target="_blank" rel="noopener noreferrer nofollow">
+            Datenschutzbestimmungen
+        </a>.
+    </>
+) : text;
+```
+
+**Zwei Versionen desselben Inhalts:**
+- `label` (JSX mit Link) → Anzeige im Checkout für den Kunden
+- `consentText` (Plain-text mit URL in Klammern) → Dokumentation in der Bestellung
+
+### 18.3 Implementierung im Save-Hook (PHP)
+
+```php
+add_action(
+    'woocommerce_store_api_checkout_update_order_from_request',
+    function ($order, $request) {
+        $data  = $request->get_param('extensions')['woo-order-ext'] ?? [];
+        $optin = (bool)($data['newsletter_optin'] ?? false);
+
+        // Einwilligungstext: vom Client gesendet, server-seitig sanitiert und gekürzt
+        $consent_text = mb_substr(sanitize_text_field($data['consent_text'] ?? ''), 0, 500);
+
+        $order->update_meta_data('woo_order_ext_newsletter_optin', $optin ? '1' : '0');
+
+        if ($optin) {
+            $order->update_meta_data('woo_order_ext_consent_text', $consent_text);
+            // Zeitstempel server-generiert – nicht vom Client übernehmen
+            $order->update_meta_data('woo_order_ext_consent_timestamp', gmdate('c'));
+        }
+
+        $order->save();
+    },
+    10, 2
+);
+```
+
+**Warum `(bool)` statt direktem String-Vergleich?** Die Store API übergibt Boolean-Felder aus dem Schema als PHP `true`/`false`. Der Cast verhindert, dass ein Angreifer den Wert als String `"1"` oder `"true"` schickt und die Konvertierung zu `'1'`/`'0'` schiefgeht.
+
+### 18.4 Schema-Registrierung für consent_text
+
+```php
+woocommerce_store_api_register_endpoint_data([
+    'endpoint'        => \Automattic\WooCommerce\StoreApi\Schemas\V1\CheckoutSchema::IDENTIFIER,
+    'namespace'       => 'woo-order-ext',
+    'schema_callback' => function () {
+        return [
+            'newsletter_optin' => [
+                'type'    => 'boolean',
+                'default' => false,
+                'context' => ['view', 'edit'],
+                'readonly' => false,
+            ],
+            'consent_text' => [
+                'type'    => ['string', 'null'],
+                'default' => '',
+                'context' => ['view', 'edit'],
+                'readonly' => false,
+            ],
+        ];
+    },
+    'schema_type' => ARRAY_A,
+]);
+```
+
+Ohne `consent_text` im Schema filtert die Store API das Feld aus dem Request — `$data['consent_text']` wäre immer `null`.
+
+### 18.5 Externe Webhook-Anbindung ohne Middleware
+
+Statt eines Middleware-Tools (Zapier, Make) kann der PHP-Hook externe Dienste direkt ansprechen. Das spart laufende Kosten und eliminiert eine Fehlerquelle.
+
+```php
+// Konstante am Anfang der Plugin-Datei definieren
+if (!defined('WOO_ORDER_EXT_ZAPIER_URL')) {
+    define('WOO_ORDER_EXT_ZAPIER_URL', ''); // URL hier eintragen
+}
+
+// Im Save-Hook, nach $order->save():
+if ($optin && WOO_ORDER_EXT_ZAPIER_URL !== '') {
+    wp_remote_post(WOO_ORDER_EXT_ZAPIER_URL, [
+        'body'     => wp_json_encode([
+            'email'             => $order->get_billing_email(),
+            'first_name'        => $order->get_billing_first_name(),
+            'last_name'         => $order->get_billing_last_name(),
+            'order_id'          => $order->get_id(),
+            'newsletter_optin'  => true,
+            'consent_text'      => $consent_text,
+            'consent_timestamp' => $order->get_meta('woo_order_ext_consent_timestamp'),
+        ]),
+        'headers'  => ['Content-Type' => 'application/json'],
+        'timeout'  => 10,
+        'blocking' => false, // Checkout nicht verzögern
+    ]);
+}
+```
+
+**`'blocking' => false`** ist entscheidend: WooCommerce wartet nicht auf die Antwort des externen Dienstes. Ohne das könnte ein langsamer oder nicht erreichbarer Webhook den Checkout für den Kunden verzögern oder blockieren.
+
+**Dasselbe Pattern für direkte API-Anbindung** (z.B. Bexio, SwissNewsletter) — nur URL und Body anpassen:
+
+```php
+// Beispiel: SwissNewsletter direkt
+wp_remote_post('https://api.swissnewsletter.ch/v1/subscribers', [
+    'body'     => wp_json_encode([
+        'email'      => $order->get_billing_email(),
+        'first_name' => $order->get_billing_first_name(),
+        'last_name'  => $order->get_billing_last_name(),
+        'consent'    => $consent_text,
+        'consented_at' => $order->get_meta('woo_order_ext_consent_timestamp'),
+    ]),
+    'headers'  => [
+        'Content-Type'  => 'application/json',
+        'Authorization' => 'Bearer ' . SWISS_NEWSLETTER_API_KEY,
+    ],
+    'blocking' => false,
+]);
+```
+
+### 18.6 Sicherheitsaspekte
+
+| Punkt | Bewertung | Begründung |
+|---|---|---|
+| `consent_text` client-gesendet | Akzeptabel | Server sanitiert mit `sanitize_text_field()` + `mb_substr(..., 500)` |
+| `consent_timestamp` | Sicher | Server-generiert via `gmdate('c')`, nicht vom Client |
+| `privacyPolicyUrl` in `href` | Niedrig | Nur Admins können Attribut setzen; React 16.9+ blockiert `javascript:` in href |
+| Zapier-URL als Konstante | Sicher | Kein User-Input, nur via Deployment änderbar |
+| Webhook-Payload | Sicher | `wp_json_encode()` + ausschliesslich Serverdaten |
+| `blocking => false` | Empfohlen | Verhindert Checkout-Blockierung bei externem Fehler |
+
+**Bekannte Einschränkung:** `consent_text` wird vom Client gesendet und könnte von einem technisch versierten Angreifer im Browser modifiziert werden. Der Server prüft nicht ob der Text mit dem tatsächlich angezeigten Block-Inhalt übereinstimmt. Für einen KMU-Shop ist das ausreichend — der zuverlässige Teil des Nachweises ist der server-generierte `consent_timestamp`.
+
+### 18.7 Entscheidung: Middleware vs. direkte API
+
+| Szenario | Empfehlung |
+|---|---|
+| Zieldienst hat REST-API (Bexio, SwissNewsletter, etc.) | Direkt aus PHP ansprechen – kein Middleware-Tool nötig |
+| Komplexer Workflow mit mehreren Schritten / Bedingungen | Make.com (kostenlose Webhooks) oder n8n (selbst-hostbar) |
+| Zapier bereits im Einsatz für andere Workflows | Zapier Professional (Webhooks kostenpflichtig) |
+| Maximale Kontrolle ohne laufende Kosten | n8n selbst gehostet |

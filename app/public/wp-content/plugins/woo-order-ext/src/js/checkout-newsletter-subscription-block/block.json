@@ -26,6 +26,10 @@
 		"text": {
 			"type": "string",
 			"default": "Subscribe to our newsletter"
+		},
+		"privacyPolicyUrl": {
+			"type": "string",
+			"default": ""
 		}
 	},
 	"parent": [ "woocommerce/checkout-fields-block", "woocommerce/checkout-totals-block" ],

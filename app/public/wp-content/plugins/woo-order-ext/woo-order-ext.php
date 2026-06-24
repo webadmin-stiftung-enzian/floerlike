@@ -17,6 +17,12 @@
 
 defined('ABSPATH') || exit;
 
+// Zapier-Webhook-URL hier eintragen (leer lassen um den Hook zu deaktivieren).
+// Beispiel: 'https://hooks.zapier.com/hooks/catch/XXXXXX/YYYYYY/'
+if ( ! defined( 'WOO_ORDER_EXT_ZAPIER_URL' ) ) {
+	define( 'WOO_ORDER_EXT_ZAPIER_URL', '' );
+}
+
 add_action(
 	'init',
 	function () {
@@ -75,6 +81,13 @@ add_action(
 							'context'     => array('view', 'edit'),
 							'readonly'    => false,
 						),
+						'consent_text' => array(
+							'description' => 'Einwilligungstext zum Zeitpunkt der Bestellung',
+							'type'        => array('string', 'null'),
+							'default'     => '',
+							'context'     => array('view', 'edit'),
+							'readonly'    => false,
+						),
 					);
 				},
 				'schema_type'     => ARRAY_A,
@@ -113,9 +126,35 @@ add_action(
 	function ($order, $request) {
 		$extension_data = $request->get_param('extensions');
 		if (isset($extension_data['woo-order-ext']['newsletter_optin'])) {
-			$optin = $extension_data['woo-order-ext']['newsletter_optin'] ? '1' : '0';
-			$order->update_meta_data('woo_order_ext_newsletter_optin', $optin);
+			$optin        = (bool) $extension_data['woo-order-ext']['newsletter_optin'];
+			$consent_text = mb_substr(sanitize_text_field($extension_data['woo-order-ext']['consent_text'] ?? ''), 0, 500);
+
+			$order->update_meta_data('woo_order_ext_newsletter_optin', $optin ? '1' : '0');
+
+			if ($optin) {
+				$order->update_meta_data('woo_order_ext_consent_text', $consent_text);
+				$order->update_meta_data('woo_order_ext_consent_timestamp', gmdate('c')); // ISO 8601 UTC
+			}
+
 			$order->save();
+
+			// Zapier-Webhook: URL via WOO_ORDER_EXT_ZAPIER_URL-Konstante konfigurieren.
+			if ($optin && WOO_ORDER_EXT_ZAPIER_URL !== '') {
+				wp_remote_post(WOO_ORDER_EXT_ZAPIER_URL, [
+					'body'     => wp_json_encode([
+						'email'             => $order->get_billing_email(),
+						'first_name'        => $order->get_billing_first_name(),
+						'last_name'         => $order->get_billing_last_name(),
+						'order_id'          => $order->get_id(),
+						'newsletter_optin'  => true,
+						'consent_text'      => $consent_text,
+						'consent_timestamp' => $order->get_meta('woo_order_ext_consent_timestamp'),
+					]),
+					'headers'  => ['Content-Type' => 'application/json'],
+					'timeout'  => 10,
+					'blocking' => false, // Checkout nicht verzögern
+				]);
+			}
 		}
 	},
 	10,
