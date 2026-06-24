@@ -36,7 +36,7 @@ add_action('woocommerce_blocks_loaded', function () {
             }
 
             $card_id            = absint($data['card_id'] ?? 0);
-            $text               = sanitize_textarea_field($data['text'] ?? '');
+            $text               = mb_substr(sanitize_textarea_field($data['text'] ?? ''), 0, 300);
             $bouquet_product_id = absint($data['bouquet_product_id'] ?? 0);
 
             // Vollständigkeit der Eingaben prüfen.
@@ -116,7 +116,7 @@ add_filter('woocommerce_get_item_data', function ($item_data, $cart_item) {
     if (! empty($cart_item['_is_greeting_card']) && ! empty($cart_item['greeting_card_text'])) {
         $item_data[] = [
             'key'   => __('Grußtext', 'greeting-card-block'),
-            'value' => wp_kses_post($cart_item['greeting_card_text']),
+            'value' => esc_html($cart_item['greeting_card_text']),
         ];
     }
 

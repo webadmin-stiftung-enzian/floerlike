@@ -1,5 +1,7 @@
 <?php
 
+defined('ABSPATH') || exit;
+
 use Automattic\WooCommerce\Blocks\Integrations\IntegrationInterface;
 
 define('WooOrderExt_VERSION', '0.1.0');

@@ -133,11 +133,26 @@ add_action(
 			return;
 		}
 
-		$date      = sanitize_text_field($date);
+		$date = sanitize_text_field($date);
+
+		// Nur ISO-Format YYYY-MM-DD akzeptieren – verhindert relative Strings wie
+		// "next wednesday" die beim späteren strtotime()-Aufruf ein falsches Datum ergeben.
+		if (! preg_match('/^\d{4}-\d{2}-\d{2}$/', $date)) {
+			throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+				'invalid_delivery_date_format',
+				__('Das Lieferdatum hat ein ungültiges Format.', 'woo-order-ext'),
+				400
+			);
+		}
+
 		$timestamp = strtotime($date);
 
-		if ($timestamp === false) {
-			return;
+		if ($timestamp === false || $timestamp < strtotime('today')) {
+			throw new \Automattic\WooCommerce\StoreApi\Exceptions\RouteException(
+				'invalid_delivery_date',
+				__('Bitte wählen Sie ein gültiges Lieferdatum in der Zukunft.', 'woo-order-ext'),
+				400
+			);
 		}
 
 		if (date('N', $timestamp) === '7') {
@@ -197,21 +212,37 @@ function WooOrderExt_render_delivery_date_column($column, $order_or_post_id)
 }
 
 // =========================================================================
-// E-Mail-Bestätigung: Lieferdatum im Meta-Bereich der E-Mail einfügen
+// E-Mail-Bestätigung: Lieferdatum + Newsletter-Opt-in im Meta-Bereich
 // =========================================================================
 
 add_action(
 	'woocommerce_email_order_meta',
 	function ($order, $sent_to_admin, $plain_text, $email) {
-		$date = $order->get_meta('woo-order-ext/delivery-date');
-		if (! $date) {
-			return;
+		$date             = $order->get_meta('woo-order-ext/delivery-date');
+		$newsletter_optin = $order->get_meta('woo_order_ext_newsletter_optin');
+
+		if ($date) {
+			$formatted = date_i18n(get_option('date_format'), strtotime($date));
+			if ($plain_text) {
+				echo "\n" . __('Gewünschtes Lieferdatum', 'woo-order-ext') . ': ' . $formatted . "\n";
+			} else {
+				echo '<p><strong>' . esc_html__('Gewünschtes Lieferdatum', 'woo-order-ext') . ':</strong> ' . esc_html($formatted) . '</p>';
+			}
 		}
-		$formatted = date_i18n(get_option('date_format'), strtotime($date));
-		if ($plain_text) {
-			echo "\n" . __('Gewünschtes Lieferdatum', 'woo-order-ext') . ': ' . $formatted . "\n";
-		} else {
-			echo '<p><strong>' . esc_html__('Gewünschtes Lieferdatum', 'woo-order-ext') . ':</strong> ' . esc_html($formatted) . '</p>';
+
+		if ($newsletter_optin !== '') {
+			$label = $newsletter_optin === '1'
+				? __('Newsletter: Ja', 'woo-order-ext')
+				: __('Newsletter: Nein', 'woo-order-ext');
+			if ($plain_text) {
+				echo "\n" . $label . "\n";
+			} else {
+				echo '<p><strong>' . esc_html__('Newsletter', 'woo-order-ext') . ':</strong> ';
+				echo $newsletter_optin === '1'
+					? esc_html__('Ja', 'woo-order-ext')
+					: esc_html__('Nein', 'woo-order-ext');
+				echo '</p>';
+			}
 		}
 	},
 	10,
