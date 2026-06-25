@@ -35,9 +35,9 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		$this->register_newsletter_block_editor_scripts();
 		// $this->register_newsletter_block_editor_styles();
 
-		$this->register_greeting_card_block_frontend_scripts();
-		$this->register_greeting_card_block_editor_scripts();
-		// $this->register_greeting_card_block_editor_styles();
+		$this->register_placeholder_block_frontend_scripts();
+		$this->register_placeholder_block_editor_scripts();
+		// $this->register_placeholder_block_editor_styles();
 
 		$this->register_main_integration();
 		$this->register_editor_integration();
@@ -116,7 +116,7 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		return array(
 			'woo-order-ext-blocks-integration',
 			'woo-order-ext-checkout-newsletter-subscription-block-frontend',
-			'woo-order-ext-checkout-greeting-card-block-frontend',
+			'woo-order-ext-placeholder-block-frontend',
 		);
 	}
 
@@ -132,7 +132,7 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		return array(
 			'woo-order-ext-editor-integration',
 			'woo-order-ext-checkout-newsletter-subscription-block-editor',
-			'woo-order-ext-checkout-greeting-card-block-editor',
+			'woo-order-ext-placeholder-block-editor',
 		);
 	}
 
@@ -171,13 +171,13 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		);
 	}
 
-	public function register_greeting_card_block_editor_styles()
+	public function register_placeholder_block_editor_styles()
 	{
-		$style_path = '/build/style-woo-order-ext-checkout-greeting-card-block.css';
+		$style_path = '/build/style-woo-order-ext-placeholder-block.css';
 		$style_url  = plugins_url($style_path, __FILE__);
 
 		wp_enqueue_style(
-			'woo-order-ext-checkout-greeting-card-block',
+			'woo-order-ext-placeholder-block',
 			$style_url,
 			[],
 			$this->get_file_version($style_path)
@@ -215,11 +215,11 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		);
 	}
 
-	public function register_greeting_card_block_editor_scripts()
+	public function register_placeholder_block_editor_scripts()
 	{
-		$script_path       = '/build/woo-order-ext-checkout-greeting-card-block.js';
+		$script_path       = '/build/woo-order-ext-placeholder-block.js';
 		$script_url        = plugins_url($script_path, __FILE__);
-		$script_asset_path = dirname(__FILE__) . '/build/woo-order-ext-checkout-greeting-card-block.asset.php';
+		$script_asset_path = dirname(__FILE__) . '/build/woo-order-ext-placeholder-block.asset.php';
 		$script_asset      = file_exists($script_asset_path)
 			? require $script_asset_path
 			: array(
@@ -228,7 +228,7 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 			);
 
 		wp_register_script(
-			'woo-order-ext-checkout-greeting-card-block-editor',
+			'woo-order-ext-placeholder-block-editor',
 			$script_url,
 			$script_asset['dependencies'],
 			$script_asset['version'],
@@ -236,7 +236,7 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		);
 
 		wp_set_script_translations(
-			'woo-order-ext-checkout-greeting-card-block-editor',
+			'woo-order-ext-placeholder-block-editor',
 			'woo-order-ext',
 			dirname(__FILE__) . '/languages'
 		);
@@ -272,11 +272,11 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		);
 	}
 
-	public function register_greeting_card_block_frontend_scripts()
+	public function register_placeholder_block_frontend_scripts()
 	{
-		$script_path       = '/build/woo-order-ext-checkout-greeting-card-block-frontend.js';
+		$script_path       = '/build/woo-order-ext-placeholder-block-frontend.js';
 		$script_url        = plugins_url($script_path, __FILE__);
-		$script_asset_path = dirname(__FILE__) . '/build/woo-order-ext-checkout-greeting-card-block-frontend.asset.php';
+		$script_asset_path = dirname(__FILE__) . '/build/woo-order-ext-placeholder-block-frontend.asset.php';
 		$script_asset      = file_exists($script_asset_path)
 			? require $script_asset_path
 			: array(
@@ -285,7 +285,7 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 			);
 
 		wp_register_script(
-			'woo-order-ext-checkout-greeting-card-block-frontend',
+			'woo-order-ext-placeholder-block-frontend',
 			$script_url,
 			$script_asset['dependencies'],
 			$script_asset['version'],
@@ -293,7 +293,7 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		);
 
 		wp_set_script_translations(
-			'woo-order-ext-checkout-greeting-card-block-frontend',
+			'woo-order-ext-placeholder-block-frontend',
 			'woo-order-ext',
 			dirname(__FILE__) . '/languages'
 		);

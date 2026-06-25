@@ -1,0 +1,25 @@
+{
+	"apiVersion": 3,
+	"name": "woo-order-ext/placeholder-block",
+	"version": "2.0.0",
+	"title": "Placeholder Block",
+	"category": "woocommerce",
+	"description": "Placeholder for future checkout functionality.",
+	"supports": {
+		"html": false,
+		"align": false,
+		"multiple": false,
+		"reusable": false
+	},
+	"attributes": {
+		"lock": {
+			"type": "object",
+			"default": {
+				"remove": false,
+				"move": false
+			}
+		}
+	},
+	"parent": [ "woocommerce/checkout-fields-block", "woocommerce/checkout-totals-block" ],
+	"textdomain": "woo-order-ext"
+}

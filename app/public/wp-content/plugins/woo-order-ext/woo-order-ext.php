@@ -28,7 +28,7 @@ add_action(
 	function () {
 		register_block_type_from_metadata(__DIR__ . '/src/js/checkout-newsletter-subscription-block');
 		register_block_type_from_metadata(
-			__DIR__ . '/src/js/checkout-greeting-card-block'
+			__DIR__ . '/src/js/placeholder-block'
 		);
 	}
 );
@@ -256,7 +256,7 @@ function WooOrderExt_render_delivery_date_column($column, $order_or_post_id)
 
 add_action(
 	'woocommerce_email_order_meta',
-	function ($order, $sent_to_admin, $plain_text, $email) {
+	function ($order, $_sent_to_admin, $plain_text) {
 		$date             = $order->get_meta('woo-order-ext/delivery-date');
 		$newsletter_optin = $order->get_meta('woo_order_ext_newsletter_optin');
 
