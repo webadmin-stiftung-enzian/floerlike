@@ -14,15 +14,6 @@
 import { extensionCartUpdate } from '@woocommerce/blocks-checkout';
 import { processErrorResponse } from '@woocommerce/block-data';
 
-// [DEBUG] Bestätigt, dass das klassische viewScript geladen wurde und die
-// WooCommerce-Globals verfügbar sind.
-/* eslint-disable no-console */
-console.log(
-	'[greeting-card][DEBUG] cart-sync.js geladen. extensionCartUpdate=',
-	typeof extensionCartUpdate
-);
-/* eslint-enable no-console */
-
 document.body.addEventListener( 'wc-blocks_added_to_cart', () => {
 	const checkbox = document.getElementById( 'isGreetingCardChecked' );
 	const wantsCard = checkbox ? checkbox.checked : false;

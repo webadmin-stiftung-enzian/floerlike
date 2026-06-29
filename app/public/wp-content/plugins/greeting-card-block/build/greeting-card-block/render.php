@@ -17,16 +17,32 @@ $cards = wc_get_products([
 	'category' => ['grusskarte'],
 	'limit'    => -1,
 	'status'   => 'publish',
-	'order'  => $attributes['order'] ?? 'ASC',
+	'order'    => $attributes['order'] ?? 'ASC',
 ]);
 
 $product_id = absint($block->context['postId'] ?? get_the_ID());
 
+// Prüfen ob dieses Produkt bereits mit Grußkarte im Warenkorb liegt (Pre-Fill beim Bearbeiten).
+$current_card_id = 0;
+$current_text    = '';
+if (function_exists('WC') && WC()->cart) {
+	foreach (WC()->cart->get_cart() as $cart_item) {
+		if (
+			(int)($cart_item['product_id'] ?? 0) === $product_id &&
+			! empty($cart_item['_greeting_card_id'])
+		) {
+			$current_card_id = (int)$cart_item['_greeting_card_id'];
+			$current_text    = $cart_item['_greeting_card_text'] ?? '';
+			break;
+		}
+	}
+}
+
 // Initialer Server-State für die Interactivity API.
 wp_interactivity_state('greeting-card-block', [
-	'wantsCard'      => true,
-	'selectedCardId' => '',
-	'text'           => '',
+	'wantsCard'      => $current_card_id > 0,
+	'selectedCardId' => $current_card_id ? (string)$current_card_id : '',
+	'text'           => $current_text,
 	'validated'      => false,
 ]);
 
@@ -34,7 +50,6 @@ wp_interactivity_state('greeting-card-block', [
 <div
 	<?php echo get_block_wrapper_attributes(); ?>
 	data-wp-interactive="greeting-card-block"
-	data-wp-init="callbacks.debugInit"
 	data-product-id="<?php echo esc_attr($product_id); ?>">
 	<div class="greeting-card-block__checkbox">
 		<input
@@ -42,9 +57,8 @@ wp_interactivity_state('greeting-card-block', [
 			id="isGreetingCardChecked"
 			name="isGreetingCardChecked"
 			data-wp-bind--checked="state.wantsCard"
-			data-wp-on--change="actions.toggleWantsCard"
-			checked />
-		<label for="isGreetingCardChecked">Möchten Sie eine Grußkarte hinzufügen?</label>
+			data-wp-on--change="actions.toggleWantsCard" />
+		<label for="isGreetingCardChecked"><?php esc_html_e('Möchten Sie eine Grußkarte hinzufügen?', 'greeting-card-block'); ?></label>
 	</div>
 	<div class="greeting-card-block__content" data-wp-bind--hidden="!state.wantsCard">
 		<div class="greeting-card-block__cards" data-wp-class--has-error="state.showCardError">
@@ -60,8 +74,8 @@ wp_interactivity_state('greeting-card-block', [
 								data-wp-bind--aria-pressed="state.isCardPressed"
 								aria-pressed="false">
 								<!-- <?php echo esc_html($card->get_name()); ?> -->
-								<img src="<?php echo esc_url(wp_get_attachment_image_url($card->get_image_id(), 'woocommerce_thumbnail')); ?>" alt="<?php echo esc_attr($card->get_name()); ?>" />
-								<p>CHF <?php echo esc_html($card->get_price()); ?></p>
+							<img src="<?php echo esc_url(wp_get_attachment_image_url($card->get_image_id(), 'woocommerce_thumbnail') ?: wc_placeholder_img_src()); ?>" alt="<?php echo esc_attr($card->get_name()); ?>" />
+							<p><?php echo wp_kses_post(wc_price($card->get_price())); ?></p>
 							</button>
 						</div>
 					<?php endforeach; ?>
@@ -75,11 +89,11 @@ wp_interactivity_state('greeting-card-block', [
 				role="alert"
 				data-wp-bind--hidden="!state.showCardError"
 				hidden>
-				<div class="wc-block-components-notice-banner__content">Bitte wählen Sie eine Grußkarte aus.</div>
+				<div class="wc-block-components-notice-banner__content"><?php esc_html_e('Bitte wählen Sie eine Grußkarte aus.', 'greeting-card-block'); ?></div>
 			</div>
 		</div>
 		<div class="greeting-card-block__message">
-			<label for="greetingCardMessage">Nachricht auf der Grußkarte:</label>
+			<label for="greetingCardMessage"><?php esc_html_e('Nachricht auf der Grußkarte:', 'greeting-card-block'); ?></label>
 			<div class="greeting-card-block__message-wrapper">
 				<textarea
 					id="greetingCardMessage"
@@ -88,15 +102,15 @@ wp_interactivity_state('greeting-card-block', [
 					cols="50"
 					maxlength="300"
 					data-wp-on--input="actions.updateText"
-					data-wp-class--has-error="state.showTextError"></textarea>
-				<span class="greeting-card-block__char-counter" data-wp-text="state.charCounter">Zeichen verbleibend: 300</span>
+					data-wp-class--has-error="state.showTextError"><?php echo esc_textarea($current_text); ?></textarea>
+				<span class="greeting-card-block__char-counter" data-wp-text="state.charCounter"><?php esc_html_e('Zeichen verbleibend: 300', 'greeting-card-block'); ?></span>
 			</div>
 			<div
 				class="wc-block-components-notice-banner is-error"
 				role="alert"
 				data-wp-bind--hidden="!state.showTextError"
 				hidden>
-				<div class="wc-block-components-notice-banner__content">Bitte geben Sie einen Grußtext ein.</div>
+				<div class="wc-block-components-notice-banner__content"><?php esc_html_e('Bitte geben Sie einen Grußtext ein.', 'greeting-card-block'); ?></div>
 			</div>
 		</div>
 	</div>
