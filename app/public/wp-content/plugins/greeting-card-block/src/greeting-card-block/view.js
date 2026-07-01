@@ -51,7 +51,7 @@ const { state } = store('greeting-card-block', {
 	callbacks: {
 		initSwiper() {
 			const { ref } = getElement();
-			const swiper = new Swiper( ref, {
+			new Swiper( ref, {
 				modules: [ Navigation, Pagination ],
 				loop: false,
 				navigation: {
@@ -63,16 +63,6 @@ const { state } = store('greeting-card-block', {
 					clickable: true,
 				},
 			} );
-
-			// Bei vorausgewählter Karte (Edit-Modus) zum richtigen Slide scrollen.
-			if ( state.selectedCardId ) {
-				const slides = ref.querySelectorAll( '.swiper-slide' );
-				slides.forEach( ( slide, index ) => {
-					if ( slide.querySelector( `[data-card-id="${ state.selectedCardId }"]` ) ) {
-						swiper.slideTo( index, 0 );
-					}
-				} );
-			}
 		},
 	},
 } );

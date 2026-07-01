@@ -22,27 +22,10 @@ $cards = wc_get_products([
 
 $product_id = absint($block->context['postId'] ?? get_the_ID());
 
-// Prüfen ob dieses Produkt bereits mit Grußkarte im Warenkorb liegt (Pre-Fill beim Bearbeiten).
-$current_card_id = 0;
-$current_text    = '';
-if (function_exists('WC') && WC()->cart) {
-	foreach (WC()->cart->get_cart() as $cart_item) {
-		if (
-			(int)($cart_item['product_id'] ?? 0) === $product_id &&
-			! empty($cart_item['_greeting_card_id'])
-		) {
-			$current_card_id = (int)$cart_item['_greeting_card_id'];
-			$current_text    = $cart_item['_greeting_card_text'] ?? '';
-			break;
-		}
-	}
-}
-
-// Initialer Server-State für die Interactivity API.
 wp_interactivity_state('greeting-card-block', [
-	'wantsCard'      => $current_card_id > 0,
-	'selectedCardId' => $current_card_id ? (string)$current_card_id : '',
-	'text'           => $current_text,
+	'wantsCard'      => false,
+	'selectedCardId' => '',
+	'text'           => '',
 	'validated'      => false,
 ]);
 
@@ -102,7 +85,7 @@ wp_interactivity_state('greeting-card-block', [
 					cols="50"
 					maxlength="300"
 					data-wp-on--input="actions.updateText"
-					data-wp-class--has-error="state.showTextError"><?php echo esc_textarea($current_text); ?></textarea>
+					data-wp-class--has-error="state.showTextError"></textarea>
 				<span class="greeting-card-block__char-counter" data-wp-text="state.charCounter"><?php esc_html_e('Zeichen verbleibend: 300', 'greeting-card-block'); ?></span>
 			</div>
 			<div
