@@ -33,13 +33,13 @@ wp_interactivity_state('greeting-card-block', [
 <div
 	<?php echo get_block_wrapper_attributes(); ?>
 	data-wp-interactive="greeting-card-block"
-	data-product-id="<?php echo esc_attr($product_id); ?>">
+	data-product-id="<?php echo esc_attr($product_id); ?>"
+	data-wp-bind--class="state.wantsCard ? 'greeting-card-block--active' : ''">
 	<div class="greeting-card-block__checkbox">
 		<input
 			type="checkbox"
 			id="isGreetingCardChecked"
 			name="isGreetingCardChecked"
-			data-wp-bind--checked="state.wantsCard"
 			data-wp-on--change="actions.toggleWantsCard" />
 		<label for="isGreetingCardChecked"><?php esc_html_e('Möchten Sie eine Grußkarte hinzufügen?', 'greeting-card-block'); ?></label>
 	</div>

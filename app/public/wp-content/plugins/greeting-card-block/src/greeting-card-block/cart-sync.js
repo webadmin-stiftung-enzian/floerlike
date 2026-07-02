@@ -14,7 +14,11 @@
 import { extensionCartUpdate } from '@woocommerce/blocks-checkout';
 import { processErrorResponse } from '@woocommerce/block-data';
 
+console.log( '[gcb] greeting-card-block/cart-sync.js loaded' );
+
 document.body.addEventListener( 'wc-blocks_added_to_cart', () => {
+	console.log( '[gcb] wc-blocks_added_to_cart fired' );
+
 	const checkbox = document.getElementById( 'isGreetingCardChecked' );
 	const wantsCard = checkbox ? checkbox.checked : false;
 
@@ -26,6 +30,8 @@ document.body.addEventListener( 'wc-blocks_added_to_cart', () => {
 	const messageElement = document.getElementById( 'greetingCardMessage' );
 	const text = messageElement ? messageElement.value.trim() : '';
 
+	console.log( '[gcb] wantsCard=', wantsCard, 'selectedCardId=', selectedCardId, 'text=', text );
+
 	if ( ! wantsCard || ! selectedCardId || ! text ) {
 		return;
 	}
@@ -35,6 +41,14 @@ document.body.addEventListener( 'wc-blocks_added_to_cart', () => {
 	);
 	const bouquetProductId = block ? block.dataset.productId : '';
 
+	console.log( '[gcb] sending extensionCartUpdate', {
+		action: 'add',
+		card_id: selectedCardId,
+		text,
+		bouquet_product_id: bouquetProductId,
+		wants_card: wantsCard,
+	} );
+
 	extensionCartUpdate( {
 		namespace: 'greeting-card-block',
 		data: {
@@ -42,6 +56,7 @@ document.body.addEventListener( 'wc-blocks_added_to_cart', () => {
 			card_id: selectedCardId,
 			text,
 			bouquet_product_id: bouquetProductId,
+			wants_card: wantsCard,
 		},
 	} ).catch( ( error ) => processErrorResponse( error ) );
 } );

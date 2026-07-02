@@ -94,6 +94,7 @@ add_action('woocommerce_blocks_loaded', function () {
                     continue;
                 }
 
+                $wants_card = ! empty($data['wants_card']);
                 $card_price = (float)$card->get_price();
 
                 // _bouquet_base_price verwenden wenn vorhanden (Wiederauswahl nach Session-Load),
@@ -114,6 +115,7 @@ add_action('woocommerce_blocks_loaded', function () {
                 WC()->session->set('gcb_meta', $gcb_meta);
 
                 // In-Memory für die aktuelle Response aktualisieren.
+                WC()->cart->cart_contents[$key]['_greeting_card_selected'] = $wants_card;
                 WC()->cart->cart_contents[$key]['_greeting_card_id']    = $card->get_id();
                 WC()->cart->cart_contents[$key]['_greeting_card_text']  = $text;
                 WC()->cart->cart_contents[$key]['_greeting_card_price'] = $card_price;
@@ -128,6 +130,15 @@ add_action('woocommerce_blocks_loaded', function () {
         },
     ]);
 });
+
+add_filter('woocommerce_cart_id', function ($cart_id, $product_id, $variation_id, $variation, $cart_item_data) {
+    if (! empty($cart_item_data['_greeting_card_selected'])) {
+        $cart_id = md5($product_id . ':' . $cart_item_data['_greeting_card_id'] . ':' . $cart_item_data['_greeting_card_text']);
+    }
+    error_log('gcb cart_id: ' . $cart_id . ' | product_id=' . $product_id . ' | data=' . wp_json_encode($cart_item_data));
+
+    return $cart_id;
+}, 10, 5);
 
 /**
  * 2. Verwaiste Meta-Einträge aufräumen wenn ein Strauß entfernt wird.

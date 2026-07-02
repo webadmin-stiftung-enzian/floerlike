@@ -19,20 +19,17 @@ const { state } = store('greeting-card-block', {
 			const { ref } = getElement();
 			return state.selectedCardId === ref.dataset.cardId;
 		},
-		get isCardSelected() {
-			return state.selectedCardId !== '';
-		},
-		get hasText() {
-			return state.text.trim() !== '';
-		},
 		get isValid() {
-			return ! state.wantsCard || ( state.isCardSelected && state.hasText );
+			return (
+				! state.wantsCard ||
+				( state.selectedCardId !== '' && state.text.trim() !== '' )
+			);
 		},
 		get showCardError() {
-			return state.wantsCard && state.validated && ! state.isCardSelected;
+			return state.wantsCard && state.validated && state.selectedCardId === '';
 		},
 		get showTextError() {
-			return state.wantsCard && state.validated && ! state.hasText;
+			return state.wantsCard && state.validated && state.text.trim() === '';
 		},
 	},
 	actions: {

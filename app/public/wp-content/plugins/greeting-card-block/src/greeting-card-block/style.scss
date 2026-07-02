@@ -60,8 +60,15 @@
 
 /* WooCommerce setzt .wc-block-components-notice-banner auf display:flex – das
  * überschreibt aufgrund höherer Spezifität das [hidden]-Attribut (UA display:none).
- * Daher das Ausblenden per !important erzwingen, damit data-wp-bind--hidden greift. */
-.wp-block-greeting-card-block-greeting-card-block [hidden] {
+ * Daher das Ausblenden per !important erzwingen, damit data-wp-bind--hidden greift.
+ *
+ * WICHTIG: Als Anker das data-wp-interactive-Attribut verwenden, NICHT die
+ * Block-Wrapper-Klasse (.wp-block-greeting-card-block-greeting-card-block).
+ * Wird der Block innerhalb des "Add to Cart with Options"-Blocks gerendert,
+ * liefert get_block_wrapper_attributes() KEINE Klasse (class=""), sodass eine
+ * klassenbasierte Regel nie greift und die Fehlerbanner trotz [hidden]-Attribut
+ * sichtbar bleiben. Das data-wp-interactive-Attribut ist dagegen immer vorhanden. */
+[data-wp-interactive="greeting-card-block"] [hidden] {
 	display: none !important;
 }
 
