@@ -1,4 +1,4 @@
-# Spezifikation: Grußkarten-Selektor (WooCommerce Block)
+# Spezifikation: Grußkarten-Block (WooCommerce)
 
 ## Kontext
 
@@ -12,21 +12,33 @@ optional eine Grußkarte auszuwählen und einen persönlichen Grußtext zu verfa
 
 ### Funktional
 
-1. Auf der Produktseite erscheint eine Checkbox „Grußkarte gewünscht?"
-2. Bei Aktivierung wird ein Slider mit auswählbaren Grußkarten eingeblendet
+1. Auf der Produktseite erscheint eine Checkbox „Möchten Sie eine Grußkarte hinzufügen?"
+2. Bei Aktivierung wird ein Slider (Swiper.js) mit auswählbaren Grußkarten eingeblendet
 3. Genau eine Grußkarte kann selektiert werden
 4. Ein Textfeld erlaubt die Eingabe eines persönlichen Grußtexts (max. 300 Zeichen)
-5. Grußkarte und Grußtext werden im Warenkorb angezeigt
-6. Die Grußkarte erscheint im Warenkorb und Checkout als **eigene Zeile** (separate Position, nicht als Meta der Hauptposition)
+5. **Client-seitige Pflichtfeld-Validierung:** Ist die Checkbox aktiv, müssen sowohl
+   Karte als auch Text ausgefüllt sein. Die Validierung greift beim Absende-Versuch
+   (Klick auf „Add to cart"/„In den Warenkorb"), nicht bereits beim Ankreuzen der
+   Checkbox. Bei fehlender Auswahl/Text wird der Submit clientseitig blockiert und
+   je ein Fehlerbanner unter Karten-Slider bzw. Textfeld angezeigt.
+6. Grußkarte und Grußtext werden im Warenkorb **als Zusatzinformation an der
+   Strauß-Position** angezeigt (nicht als eigene Warenkorb-Zeile — siehe
+   [Architektur-Entscheidung](#warum-keine-eigene-warenkorb-position))
 7. Beide Informationen sind in der Bestellung dauerhaft gespeichert
 8. Sie erscheinen in der Bestellbestätigungs-E-Mail und im WooCommerce-Admin
-9. Der Preis der Grußkarte wird dem Gesamtpreis hinzuaddiert
+9. Der Preis der Grußkarte wird dem Strauß-Preis serverseitig hinzuaddiert
+   (kombinierter Line-Total; der Stückpreis des Straußes bleibt für die Anzeige
+   unverändert, siehe [Preislogik](#4-preislogik))
+10. Der Lagerbestand der Grußkarte wird beim Bezahlvorgang reduziert bzw. bei
+    Stornierung/Rückerstattung wiederhergestellt
 
 ### Nicht-funktional
 
-- Grußkarten sind redaktionell über den WooCommerce-Shop pflegbar (kein eigener CPT)
-- Das Feature ist als eigenständiges Plugin entwickelt (kein Child-Theme)
+- Grußkarten sind redaktionell über den WooCommerce-Shop pflegbar (kein eigener CPT),
+  Produktkategorie-Slug: `grusskarte`
+- Das Feature ist als eigenständiges Plugin entwickelt (`greeting-card-block`, kein Child-Theme)
 - Setzt auf **WooCommerce Cart/Checkout Blocks** (kein klassischer Shortcode-Cart) — zukunftssichere Ausrichtung gemäß WordPress FSE-Strategie
+- Frontend-Interaktivität über die **WordPress Interactivity API** (kein React/Redux im Frontend)
 
 ---
 
@@ -34,18 +46,33 @@ optional eine Grußkarte auszuwählen und einen persönlichen Grußtext zu verfa
 
 ### Grußkarten (WooCommerce Produkte)
 
-- Produktkategorie: `grußkarten`
+- Produktkategorie-Slug: `grusskarte`
 - Produkttyp: Simple Product
 - Preis: optional (0 = kostenlos, oder mit Preis)
 - Produktbild: das Kartenmotiv
-- Zugriff über Query Loop mit Kategorie-Filter
+- Zugriff über `wc_get_products(['category' => ['grusskarte'], 'limit' => -1, 'status' => 'publish'])` in `render.php`
 
-### Bestellposition Meta (`wc_order_itemmeta`)
+### Cart-Item-Daten (Session, nicht `cart_contents` direkt)
 
-| meta_key  | Beschreibung                       |
-|-----------|------------------------------------|
-| Grußkarte | Name des gewählten Karten-Produkts |
-| Grußtext  | Vom Kunden verfasster Freitext     |
+Werden über den Session-Key `gcb_meta` (Array, indiziert nach Cart-Item-Key)
+gehalten und über den Filter `woocommerce_get_cart_item_from_session` in das
+Cart-Item des **Straußes** injiziert:
+
+| Cart-Item-Key            | Beschreibung                                          |
+|---------------------------|--------------------------------------------------------|
+| `_greeting_card_id`        | Produkt-ID der gewählten Grußkarte                      |
+| `_greeting_card_text`      | Vom Kunden verfasster Grußtext (max. 300 Zeichen)       |
+| `_greeting_card_price`     | Preis der Grußkarte zum Auswahlzeitpunkt                |
+| `_bouquet_base_price`      | Ursprünglicher Straußpreis ohne Kartenaufschlag (verhindert kumuliertes Addieren bei mehrfacher Totals-Neuberechnung) |
+| `_greeting_card_selected`  | Bool, nur In-Memory für die aktuelle Response relevant  |
+
+### Bestellposition Meta (`wc_order_itemmeta`), am Strauß-Line-Item
+
+| meta_key            | Beschreibung                                                  |
+|---------------------|----------------------------------------------------------------|
+| `Grußkarte`          | Name des gewählten Karten-Produkts (lesbarer Key, erscheint automatisch in Admin/E-Mail) |
+| `Grußtext`           | Vom Kunden verfasster Freitext (lesbarer Key)                  |
+| `_greeting_card_id`  | Interne Produkt-ID, für Stock-Management (Lead-Underscore blendet es aus der Kundenansicht aus) |
 
 ---
 
@@ -54,150 +81,224 @@ optional eine Grußkarte auszuwählen und einen persönlichen Grußtext zu verfa
 ### Komponenten
 
 ```
-myplugin/
-├── greeting-card-selector/       ← Custom Gutenberg Block
-│   ├── block.json
-│   ├── render.php                ← Serverseitiges Rendering
-│   ├── view.js                   ← Slider-Logik + Checkbox-Toggle
-│   └── style.css
-└── includes/
-    └── woocommerce-hooks.php     ← Cart/Order-Integration
+greeting-card-block/
+├── src/
+│   └── greeting-card-block/
+│       ├── block.json            ← Blockname: greeting-card-block/greeting-card-block
+│       ├── render.php            ← Serverseitiges Rendering (Karten-Query, Interactivity-State-Init)
+│       ├── view.js               ← viewScriptModule: Interactivity-API-Store (Checkbox/Slider/Validierung)
+│       ├── cart-sync.js          ← viewScript (klassisch): liest DOM-Auswahl, ruft extensionCartUpdate
+│       ├── edit.js / index.js    ← Editor-Ansicht (Platzhalter, kein funktionaler Vorschau-Slider)
+│       ├── style.scss            ← Front- und Editor-Styles
+│       └── editor.scss
+├── build/                        ← Kompiliertes Ergebnis (npm run build), wird ausgeliefert
+├── includes/
+│   └── woocommerce-hooks.php     ← Cart/Order-Integration (Session-Meta, Preislogik, Anzeige, Stock)
+├── greeting-card-block.php       ← Plugin-Bootstrap, registriert Block + lädt woocommerce-hooks.php
+└── webpack.config.js             ← Custom Webpack-Konfig (Dual-Build: Script + Modul, siehe unten)
 ```
 
-### Block: `myplugin/greeting-card-selector`
+### Block: `greeting-card-block/greeting-card-block`
 
-- **Typ:** Standalone Block (kein InnerBlocks-Wrapper)
-- **Rendering:** Serverseitig via `render_callback` / `render.php`
-- **Platzierung:** Im Single Product Template via Site Editor (vor Add-to-Cart-Button)
-- **Slider:** Swiper.js (via npm, in `view.js` gebundelt mit `@wordpress/scripts`)
+- **Typ:** Standalone Block (kein InnerBlocks-Wrapper), `apiVersion: 3`
+- **Rendering:** Serverseitig via `render.php`, initialisiert den Interactivity-State via `wp_interactivity_state()`
+- **Platzierung:** Im Single Product Template via Site Editor (vor Add-to-Cart-Block)
+- **Slider:** Swiper.js (via npm, in `view.js` gebündelt), `loop: false` zwingend (siehe Hinweis unten)
+- **Kontext:** nutzt `usesContext: ["postId"]` zur Ermittlung der Bouquet-Produkt-ID
 
 #### render.php – Ausgabe
 
 ```php
 $cards = wc_get_products([
-    'category' => ['grußkarten'],
+    'category' => ['grusskarte'],
     'limit'    => -1,
     'status'   => 'publish',
+    'order'    => $attributes['order'] ?? 'ASC',
+]);
+
+wp_interactivity_state('greeting-card-block', [
+    'wantsCard'      => false,
+    'selectedCardId' => '',
+    'text'           => '',
+    'validated'      => false,
 ]);
 ```
 
 Erzeugt:
-- Checkbox `#greeting-card-toggle`
-- Slider-Container (initial `display: none`)
-- Karten als `<button type="button" aria-pressed="false" data-card-id="...">` (kein Radio-Input)
-- Textarea für den Grußtext (max. 300 Zeichen)
+- Checkbox `#isGreetingCardChecked` (`data-wp-on--change="actions.toggleWantsCard"`)
+- Swiper-Slider-Container mit Karten als `<button type="button" data-wp-on--click="actions.selectCard" data-wp-bind--aria-pressed="state.isCardPressed" data-card-id="...">`
+- Fehlerbanner für Karten-Auswahl (`data-wp-bind--hidden="!state.showCardError"`)
+- Textarea `#greetingCardMessage` (max. 300 Zeichen) mit Zeichenzähler und eigenem Fehlerbanner
+- `data-product-id` am Block-Wrapper (Bouquet-Produkt-ID, aus `postId`-Context)
 
-> Auswahl (`card_id`) und Grußtext werden **nicht** über Formularfelder übertragen, sondern im JS-State gehalten und via `extensionCartUpdate` an den Server gesendet (siehe WooCommerce-Integration). Ein Hidden Input ist daher nicht erforderlich.
+> Auswahl (`card_id`) und Grußtext werden **nicht** über native Formularfelder übertragen,
+> sondern im Interactivity-State gehalten und beim Add-to-Cart-Klick via
+> `extensionCartUpdate` an den Server gesendet.
 
-#### view.js – Verhalten
+#### view.js – Interactivity-API-Store (viewScriptModule)
 
-- Checkbox → Slider ein-/ausblenden
-- Swiper-Instanz initialisieren
-- Kartenauswahl über `aria-pressed`-State auf `<button>`-Elementen
-- Bei Klick: aktive Karte markieren + Auswahl (`card_id`) im JS-State halten
-- Zeichenzähler für Textarea (Limit: 300)
-- **Übergabe an den Server** erfolgt nicht über ein Formularfeld, sondern aktiv via `extensionCartUpdate` (siehe unten). Der Hidden Input ist daher nicht funktional relevant.
+State: `wantsCard`, `selectedCardId`, `text`, `validated` + abgeleitete Getter:
+`charCounter`, `isCardPressed`, `isValid`, `showCardError`, `showTextError`.
+
+> **Wichtig:** Die Getter `isValid`/`showCardError`/`showTextError` lesen die
+> Roh-State-Werte (`selectedCardId`, `text`, `wantsCard`) **direkt**, nicht über
+> Zwischen-Getter. Grund: eine sauberere/robustere Abhängigkeitskette innerhalb
+> der Interactivity-API-Reaktivität.
+
+Actions: `toggleWantsCard`, `selectCard`, `updateText`.
+
+Zusätzlich registriert `view.js` einen **Capture-Phase `submit`-Listener** auf
+`document`, der bei Klick auf „Add to cart" (`form.wp-block-woocommerce-add-to-cart-with-options`
+bzw. `form.cart`) `state.validated = true` setzt und den Submit per
+`preventDefault()`/`stopImmediatePropagation()` blockiert, falls `!state.isValid`.
+Die Fehlerbanner werden dadurch erst **nach** einem Submit-Versuch sichtbar,
+nicht bereits beim Ankreuzen der Checkbox.
+
+`callbacks.initSwiper()` initialisiert Swiper mit `loop: false` — Swiper-Klone
+im Loop-Modus werden von der Interactivity API nicht hydratisiert, Klicks auf
+Klone würden `actions.selectCard` nicht auslösen.
+
+#### cart-sync.js – klassisches viewScript
+
+Grund für die Trennung von `view.js`: WooCommerce registriert
+`wc-blocks-checkout`/`wc-blocks-data-store` nur als klassische Script-Globals
+(`window.wc.*`), nicht als Script-Module. Ein Interactivity-Modul kann sie nicht
+importieren.
+
+`cart-sync.js` hört auf das Event `wc-blocks_added_to_cart`, liest die Auswahl
+**aus dem DOM** (nicht aus dem Interactivity-State, da unterschiedliche
+Modul-Kontexte) — `aria-pressed`-Karte, `#greetingCardMessage`, `#isGreetingCardChecked` —
+und ruft:
+
+```js
+extensionCartUpdate({
+    namespace: 'greeting-card-block',
+    data: {
+        action:              'add',
+        card_id:              selectedCardId,
+        text,
+        bouquet_product_id:   bouquetProductId,
+        wants_card:           wantsCard,
+    },
+});
+```
 
 ---
 
 ## WooCommerce-Integration
 
-> **Grundlegende Erkenntnis:** Der `woocommerce/add-to-cart-with-options`-Block ist **kein** klassisches POST-Formular. Seine `addToCart`-Action ruft `event.preventDefault()` auf und legt das Produkt über die **Store API** (`addCartItem`) an. Es werden ausschließlich `id`, `quantity`, `variation` und `type` übertragen — **eigene Formularfelder wie `greeting_card_id` oder die Textarea erreichen den Server nie über `$_POST`**. Der gesamte klassische `$_POST`-basierte Ansatz entfällt damit.
+> **Grundlegende Erkenntnis:** Der `woocommerce/add-to-cart-with-options`-Block ist **kein** klassisches POST-Formular. Seine `addToCart`-Action ruft `event.preventDefault()` auf und legt das Produkt über die **Store API** (`addCartItem`) an. Es werden ausschließlich `id`, `quantity`, `variation` und `type` übertragen — **eigene Formularfelder erreichen den Server nie über `$_POST`**.
 >
-> Der einzige von WooCommerce unterstützte Weg, vom Client aus den Server-Cart zu verändern, ist die Funktion `extensionCartUpdate` in Kombination mit einem serverseitig registrierten `register_update_callback`. Extensions dürfen den Client-Cart-State **nicht** direkt manipulieren.
+> Der einzige von WooCommerce unterstützte Weg, vom Client aus den Server-Cart zu verändern, ist `extensionCartUpdate` in Kombination mit einem serverseitig registrierten `register_update_callback`.
 >
 > **Quelle:** [Updating the cart on-demand](https://github.com/woocommerce/woocommerce/blob/trunk/docs/apis/store-api/extending-store-api/extend-store-api-update-cart.md)
 
+### Warum keine eigene Warenkorb-Position
+
+Ursprünglich war geplant, die Grußkarte als **eigene Cart-Position** via
+`WC()->cart->add_to_cart()` anzulegen. Das wurde verworfen:
+
+- Direktes Schreiben in `cart_contents` + `set_session()` **destabilisiert die
+  WooCommerce Blocks Store API** und führt zu „Cart item does not exist"-Fehlern,
+  weil die Blocks-interne Darstellung des Warenkorbs inkonsistent wird.
+- Stattdessen: Die Auswahl wird in einem **separaten Session-Key** (`gcb_meta`,
+  indiziert nach Cart-Item-Key) gespeichert und über den Filter
+  `woocommerce_get_cart_item_from_session` bei jeder Warenkorb-Initialisierung
+  in das Cart-Item des **Straußes** injiziert (nicht in `cart_contents` persistiert).
+- Die Grußkarte erscheint dadurch als `item_data`-Meta **innerhalb** der
+  Strauß-Zeile (siehe unten), **nicht** als separate Position/Zeile.
+
 ### 1. Auswahl vom Client an den Server übergeben
 
-Clientseitig (`view.js`), **nach** erfolgreichem Hinzufügen des Hauptprodukts:
+Clientseitig (`cart-sync.js`), **nach** erfolgreichem Hinzufügen des Hauptprodukts
+(Event `wc-blocks_added_to_cart`):
 
 ```js
-const { extensionCartUpdate } = window.wc.blocksCheckout;
-
 extensionCartUpdate({
     namespace: 'greeting-card-block',
-    data: {
-        action:  'add',
-        card_id: selectedCardId,
-        text:    greetingText,
-    },
+    data: { action: 'add', card_id, text, bouquet_product_id, wants_card },
 });
 ```
 
-Die Daten landen im `data`-Argument des registrierten Callbacks (siehe Schritt 2).
+> Pro `namespace` darf **nur ein** Callback registriert werden. Unterschiedliche
+> Aktionen werden über den `action`-Key im `data` unterschieden.
 
-> **Hinweis (Docs):** Pro `namespace` darf **nur ein** Callback registriert werden. Unterschiedliche Aktionen (z. B. Karte hinzufügen / entfernen / ändern) werden über einen `action`-Key im `data` unterschieden.
+### 2. Serverseitige Validierung + Speicherung als Session-Meta
 
-### 2. Grußkarte als separate Warenkorb-Position anlegen
+Registriert über `woocommerce_blocks_loaded` → `woocommerce_store_api_register_update_callback`
+(Namespace `greeting-card-block`). Ablauf im Callback (`includes/woocommerce-hooks.php`):
 
-Serverseitig via `register_update_callback`. Der Callback validiert die Eingabe und legt die Karte als **eigene Cart-Position** mit dem Grußtext als Cart-Item-Data an:
+1. `card_id`/`text` fehlen → `RouteException` (400, `greeting_card_block_incomplete`)
+2. Karte existiert nicht oder gehört nicht zur Kategorie `grusskarte` →
+   `RouteException` (400, `greeting_card_block_invalid_product`)
+3. Passendes Strauß-Cart-Item über `bouquet_product_id` finden
+4. `_bouquet_base_price` ermitteln (aus vorhandenem Cart-Item-Wert, sonst
+   `get_price()` bei Erstauswahl)
+5. Auswahl in `gcb_meta[$key]` in der Session persistieren
+6. In-Memory-Cart (`WC()->cart->cart_contents`) für die aktuelle Response sofort aktualisieren
+   (Preis/Anzeige ohne Wartezeit auf `calculate_totals()`)
 
-```php
-add_action('woocommerce_blocks_loaded', function () {
-    woocommerce_store_api_register_update_callback([
-        'namespace' => 'greeting-card-block',
-        'callback'  => function ($data) {
-            if (($data['action'] ?? '') !== 'add' || empty($data['card_id'])) {
-                return;
-            }
-            $card = wc_get_product(absint($data['card_id']));
-            if (!$card || !has_term('grusskarte', 'product_cat', $card->get_id())) {
-                return; // ungültige Eingabe still ignorieren
-            }
-            WC()->cart->add_to_cart(
-                $card->get_id(), 1, 0, [],
-                [
-                    '_is_greeting_card'  => true,
-                    'greeting_card_text' => sanitize_textarea_field($data['text'] ?? ''),
-                ]
-            );
-        },
-    ]);
-});
-```
-
-WooCommerce berechnet Preis, Steuer und Gesamtsumme automatisch und gibt den
-aktualisierten Cart-State an den Block zurück. Die Karte erscheint als eigene
-Position in Warenkorb und Bestellung.
-
-### 3. Anzeige im Warenkorb (wie eine Variation)
+### 3. Anzeige im Warenkorb (als Item-Data an der Strauß-Position)
 
 Hook: `woocommerce_get_item_data`
 
 Was hier an das `item_data`-Feld eines Cart-Items angehängt wird, rendert der
-WooCommerce **Cart-Block nativ** unter dem Artikel — exakt so, wie auch
-Variations-Attribute angezeigt werden. Es ist **kein** eigener Anzeige-Block und
-**kein** `register_endpoint_data` nötig.
+WooCommerce **Cart-Block nativ** unter dem Artikel. Aktuelle Implementierung
+rendert reiches HTML (`display`-Feld: Bild, Label, Kartenname, Preis) sowie einen
+Plaintext-Fallback (`value`-Feld, für E-Mail-Templates ohne HTML-Rendering).
+
+> **15-Token-Truncation-Falle:** Der Cart-/Mini-Cart-Block kürzt jeden
+> `item_data`-Wert clientseitig auf die ersten 15 durch Whitespace getrennten
+> Tokens (`mini-cart.js`). Gegenmaßnahme: `alt=""` am Bild, `&nbsp;` statt Space
+> im Preis, um unter dem Token-Limit zu bleiben (siehe Code-Kommentare in
+> `woocommerce-hooks.php`).
 
 ```php
 add_filter('woocommerce_get_item_data', function ($item_data, $cart_item) {
-    if (!empty($cart_item['_is_greeting_card']) && !empty($cart_item['greeting_card_text'])) {
-        $item_data[] = [
-            'key'   => 'Grußtext',
-            'value' => wp_kses_post($cart_item['greeting_card_text']),
-        ];
+    if (empty($cart_item['_greeting_card_id'])) {
+        return $item_data;
     }
-    return $item_data;
-}, 10, 2);
+    // ... Bild, Preis, Name als HTML (`display`) + Plaintext (`value`)
+    // 'key' => '' (leer), damit kein doppeltes Label gerendert wird —
+    // das Label ist bereits Teil des `display`-HTML.
+});
 ```
 
-> `register_endpoint_data` (`CartItemSchema::IDENTIFIER`) ist laut Docs ausschließlich **lesend/readonly** (Anzeige) und dient nur als Fallback, falls der native `item_data`-Pfad für freie Custom-Meta nicht ausreicht. Es ist **kein** Schreibweg.
+Begleitendes CSS wird über `wp_head` inline ausgegeben (Klassen `gcb-card-meta*`,
+Unterdrückung des del/ins-Preisvergleichs, siehe Code-Kommentare).
 
-### 4. Dauerhaft in Bestellung speichern
+### 4. Preislogik
 
-Hook: `woocommerce_checkout_create_order_line_item`
+Da die Karte kein eigenes Line-Item ist, wird ihr Preis manuell zum Strauß-Preis
+addiert und nach der Totals-Berechnung wieder zurückgesetzt:
 
-Da der Grußtext bereits als Cart-Item-Data am Karten-Item hängt, wird er beim
-Checkout pro Line-Item in die Bestellung übernommen:
+- `woocommerce_get_cart_item_from_session`: setzt beim Laden aus der Session
+  sofort `base_price + card_price` als Produktpreis (zuverlässiger als
+  `before_calculate_totals`, da garantiert vor `calculate_totals()` läuft)
+- `woocommerce_before_calculate_totals`: addiert `_greeting_card_price` auf
+  `_bouquet_base_price`, damit `line_total`/Subtotal korrekt berechnet werden
+- `woocommerce_after_calculate_totals`: setzt den Produktpreis wieder auf
+  `_bouquet_base_price` zurück, damit die Store API `prices.price` (Stückpreis-Anzeige)
+  **ohne** Kartenaufschlag zeigt, während `totals.line_total` (Zeilensumme) den
+  kombinierten Preis enthält
+- Nur `set_price()`, nie `set_regular_price()` — Letzteres kann die
+  Preisberechnung in WooCommerce Blocks stören (führt zu ungewolltem
+  del/ins-Preisvergleich, der separat per CSS unterdrückt wird)
+
+### 5. Dauerhaft in Bestellung speichern
+
+Hook: `woocommerce_checkout_create_order_line_item`, am Strauß-Line-Item (nicht
+an einer eigenen Position):
 
 ```php
 add_action('woocommerce_checkout_create_order_line_item',
     function ($item, $cart_item_key, $values, $order) {
-        if (!empty($values['_is_greeting_card'])) {
-            $item->add_meta_data('Grußkarte', $item->get_name());
-            $item->add_meta_data('Grußtext',  $values['greeting_card_text'] ?? '');
+        if (empty($values['_greeting_card_id'])) {
+            return;
         }
+        $item->add_meta_data('Grußkarte', wc_get_product($values['_greeting_card_id'])->get_name(), true);
+        $item->add_meta_data('Grußtext',  $values['_greeting_card_text'] ?? '', true);
+        $item->add_meta_data('_greeting_card_id', (int)$values['_greeting_card_id'], true);
     }, 10, 4
 );
 ```
@@ -207,55 +308,72 @@ Erscheint automatisch in:
 - Bestellbestätigungs-E-Mail
 - Kundenbereich → Bestellhistorie
 
+### 6. Lagerbestand
+
+- `woocommerce_payment_complete` / `woocommerce_order_status_processing` →
+  `_gcb_reduce_card_stock()`: reduziert den Bestand der Grußkarte manuell
+  (WooCommerce verwaltet nur den Stock von echten Order-Line-Items automatisch;
+  die Karte ist keins). Flag `_gcb_stock_reduced` an der Order verhindert
+  Doppelreduzierung.
+- `woocommerce_order_status_cancelled` / `_refunded` → `_gcb_restore_card_stock()`:
+  stellt den Bestand wieder her.
+
 ---
 
 ## WooCommerce Cart/Checkout Blocks Kompatibilität
 
-Die React-basierten WooCommerce Blocks übertragen beim Add-to-Cart **keine**
-eigenen Formularfelder. Die folgende Tabelle zeigt den korrekten Mechanismus pro
-Aufgabe:
-
-| Aufgabe | Klassisch (Shortcode) | WooCommerce Blocks (verifiziert) |
+| Aufgabe | Klassisch (Shortcode) | WooCommerce Blocks (verifiziert, aktuelle Implementierung) |
 |---|---|---|
-| Auswahl/Text vom Client an den Server | `$_POST` im Add-to-Cart-Formular | `extensionCartUpdate` → `register_update_callback` |
-| Grußkarte als eigene Cart-Zeile anlegen | `woocommerce_add_to_cart` (PHP) | `WC()->cart->add_to_cart()` **im** `register_update_callback` |
-| Grußtext im Warenkorb anzeigen | `woocommerce_get_item_data` | `woocommerce_get_item_data` — identisch, rendert nativ wie Variations-Meta |
-| Daten in Bestellung speichern | `woocommerce_checkout_create_order_line_item` | `woocommerce_checkout_create_order_line_item` — identisch (Cart-Item-Data → Order-Item-Meta) |
+| Auswahl/Text vom Client an den Server | `$_POST` im Add-to-Cart-Formular | `extensionCartUpdate` (in `cart-sync.js`) → `register_update_callback` |
+| Speicherung der Auswahl | Cart-Item-Data direkt am Cart-Item | Separater Session-Key `gcb_meta`, injiziert via `woocommerce_get_cart_item_from_session` (siehe [Architektur-Entscheidung](#warum-keine-eigene-warenkorb-position)) |
+| Grußtext im Warenkorb anzeigen | `woocommerce_get_item_data` | `woocommerce_get_item_data` — identisch, rendert nativ wie Variations-Meta, plus reiches `display`-HTML |
+| Daten in Bestellung speichern | `woocommerce_checkout_create_order_line_item` | `woocommerce_checkout_create_order_line_item` — identisch (Session-Meta → Order-Item-Meta am Strauß-Item) |
+| Preisaufschlag | Eigenes Line-Item mit eigenem Preis | Manuell via `before/after_calculate_totals` auf den Strauß-Preis addiert/zurückgesetzt |
 
 ### Warum nicht `register_endpoint_data` zum Schreiben?
 
 `woocommerce_store_api_register_endpoint_data` (mit `CartItemSchema::IDENTIFIER`)
-ist laut Docs **ausschließlich lesend** (`readonly`): Der `data_callback` bekommt
-`$cart_item` und liefert Daten **zur Anzeige** zurück — er nimmt **keine**
-Client-Daten entgegen. Damit ist es **kein** Transport-/Schreibweg, sondern nur
-ein optionaler Fallback für die Anzeige, falls der native `item_data`-Pfad
-(Schritt 3) für freie Custom-Meta einmal nicht genügt.
+ist laut Docs **ausschließlich lesend** (`readonly`). Kein Transport-/Schreibweg.
 
 ### Warum nicht der Checkout-Weg (`setExtensionData`)?
 
-Der `setExtensionData` → `woocommerce_store_api_checkout_update_order_from_request`-
-Pfad transportiert Daten **erst beim Checkout**. Die Anforderung verlangt jedoch,
-dass Grußkarte **und** Grußtext bereits **im Warenkorb** an der Karten-Position
-sichtbar sind (analog zur Variations-Description). Deshalb wird der Cart-Update-
-Weg (`extensionCartUpdate`) verwendet, nicht der Checkout-Weg.
+Transportiert Daten erst beim Checkout. Die Anforderung verlangt jedoch, dass
+Grußkarte **und** Grußtext bereits **im Warenkorb** sichtbar sind. Deshalb
+`extensionCartUpdate` (Cart-Update-Weg), nicht der Checkout-Weg.
 
 > **Quellen:** [Updating the cart on-demand](https://github.com/woocommerce/woocommerce/blob/trunk/docs/apis/store-api/extending-store-api/extend-store-api-update-cart.md) · [Exposing your data](https://github.com/woocommerce/woocommerce/blob/trunk/docs/apis/store-api/extending-store-api/extend-store-api-add-data.md) · [Available extensible endpoints](https://github.com/woocommerce/woocommerce/blob/trunk/docs/apis/store-api/extending-store-api/available-endpoints-to-extend.md)
+
+---
+
+## Build-System
+
+- `npm run build` / `npm run start` benötigen `--experimental-modules` (für die
+  Interactivity API `viewScriptModule`). Damit liefert
+  `@wordpress/scripts/config/webpack.config` ein Array `[scriptConfig, moduleConfig]`;
+  `webpack.config.js` mappt über beide.
+- Beide Configs müssen `output.clean: false` haben (Race-Condition zwischen den
+  beiden parallelen Webpack-Läufen sonst löscht der eine Build die Assets des
+  anderen). Stattdessen räumt das npm-Script `clean` (`rimraf build`) vorab auf.
+- `@woocommerce/dependency-extraction-webpack-plugin` erfordert eine explizite
+  `requestToExternal`/`requestToHandle`-Konfiguration für `react/jsx-runtime`,
+  sonst wird die JSX-Runtime doppelt gebündelt (React-Fehler #31 im Editor).
 
 ---
 
 ## Optionaler Edit-Flow (Warenkorb → Produkt)
 
 Standardmäßig ist der Produktlink im Warenkorb ein generischer Permalink ohne
-Warenkorb-Kontext. Für einen Edit-Flow müssen folgende Schritte implementiert werden:
+Warenkorb-Kontext. Für einen Edit-Flow müssten folgende Schritte implementiert werden:
 
 1. **Link überschreiben** via `woocommerce_cart_item_name`:
    ```
    /produkt/rosen/?edit_cart_item=abc123
    ```
 
-2. **Produktseite vorbelegen:** `$_GET['edit_cart_item']` → Cart-Item aus Session lesen → Felder vorbelegen
+2. **Produktseite vorbelegen:** `$_GET['edit_cart_item']` → `gcb_meta` aus Session lesen → Felder vorbelegen
 
-3. **Beim Absenden:** altes Cart-Item entfernen, neues mit aktualisierten Daten hinzufügen
+3. **Beim Absenden:** bestehenden `gcb_meta`-Eintrag überschreiben (passiert
+   bereits automatisch, wenn dieselbe `bouquet_product_id` erneut gesendet wird)
 
-> Dieses Feature ist **nicht im MVP** enthalten. Standard-Flow: Artikel entfernen und neu hinzufügen.
+> Dieses Feature ist **nicht implementiert**. Standard-Flow: Artikel entfernen und neu hinzufügen.
 

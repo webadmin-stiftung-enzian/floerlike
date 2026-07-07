@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(curl -s \"http://floerlike.local/?p=157\" -o /tmp/bundle_page.html -w \"HTTP %{http_code}\\\\n\")",
+      "Read(//tmp/**)",
+      "Bash(curl -sL \"http://floerlike.local/?p=157\" -o /tmp/bundle_page.html -w \"HTTP %{http_code} -> final url via -w\\\\n\")",
+      "Bash(curl -sIL \"http://floerlike.local/?p=157\")",
+      "Read(//private/tmp/**)",
+      "Bash(php -r ' *)",
+      "Bash(curl -sL \"http://floerlike.local/product/bundle/\" -o /tmp/bundle_page2.html)",
+      "Bash(php -l includes/class-integration.php)",
+      "Bash(curl -sL \"http://floerlike.local/?p=43\" -o /tmp/simple_product.html -w \"HTTP %{http_code}\\\\n\")",
+      "Bash(grep -o *)"
+    ]
+  }
+}

@@ -1,27 +1,21 @@
 <?php
 // This file is generated. Do not modify it manually.
 return array(
-	'greeting-card-block' => array(
+	'greeting-card-bundle' => array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
-		'name' => 'greeting-card-block/greeting-card-block',
-		'version' => '0.1.0',
-		'title' => 'greeting-card-block',
+		'name' => 'greeting-card-block/greeting-card-bundle',
+		'version' => '0.2.0',
+		'title' => 'Grusskarte + Bundle in den Warenkorb',
 		'category' => 'widgets',
 		'icon' => 'smiley',
-		'description' => 'Hinzufügen von Grusskarten als Option im Woocommerce Produkt Block',
+		'description' => 'Auswahl-UI für die optionale Grusskarte (WooCommerce Product Bundle) und Add-to-Cart über die Store API.',
 		'example' => array(
 			
 		),
 		'supports' => array(
 			'html' => false,
 			'interactivity' => true
-		),
-		'attributes' => array(
-			'order' => array(
-				'type' => 'string',
-				'default' => ''
-			)
 		),
 		'usesContext' => array(
 			'postId'
@@ -31,7 +25,6 @@ return array(
 		'editorStyle' => 'file:./index.css',
 		'style' => 'file:./style-index.css',
 		'render' => 'file:./render.php',
-		'viewScriptModule' => 'file:./view.js',
-		'viewScript' => 'file:./cart-sync.js'
+		'viewScriptModule' => 'file:./view.js'
 	)
 );

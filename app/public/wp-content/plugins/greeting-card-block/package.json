@@ -1,7 +1,7 @@
 {
 	"name": "greeting-card-block",
-	"version": "0.1.0",
-	"description": "Hinzufügen von Grusskarten als Option im Woocommerce Produkt Block",
+	"version": "0.2.0",
+	"description": "Grusskarte als optionales Bundled Item (WooCommerce Product Bundles) mit eigener Auswahl-UI",
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
 	"main": "build/index.js",
@@ -22,7 +22,6 @@
 		"swiper": "^12.2.0"
 	},
 	"devDependencies": {
-		"@woocommerce/dependency-extraction-webpack-plugin": "^2.2.0",
 		"@wordpress/scripts": "^32.3.0"
 	}
 }

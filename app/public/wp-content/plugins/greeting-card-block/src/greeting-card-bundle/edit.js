@@ -22,10 +22,10 @@ import { useBlockProps } from '@wordpress/block-editor';
 import './editor.scss';
 
 /**
- * The edit function describes the structure of your block in the context of the
- * editor. This represents what the editor will render when the block is used.
- *
- * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
+ * The block's markup depends on the bundled items of the current product
+ * (§6 der Spec) und wird komplett von render.php erzeugt. Im Editor gibt es
+ * keine Live-Vorschau, nur einen Platzhalter — Bearbeitung findet auf der
+ * Produktseite selbst statt.
  *
  * @return {Element} Element to render.
  */
@@ -33,7 +33,7 @@ export default function Edit() {
 	return (
 		<p { ...useBlockProps() }>
 			{ __(
-				'greeting-card-block – hello from the editor!',
+				'Grusskarte + Bundle in den Warenkorb – Vorschau nur auf der Produktseite sichtbar.',
 				'greeting-card-block'
 			) }
 		</p>
