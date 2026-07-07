@@ -53,6 +53,68 @@ function gcb_is_greeting_card_bundle($product)
 }
 
 /**
+ * 0b. Findet das "Hauptprodukt" innerhalb eines Grusskarten-Bundles — den
+ * Pflicht-Bundled-Item, der KEINE Grusskarte ist (z. B. ein variabler
+ * Strauss, der als Bundled Item eingehüllt wurde, siehe SETUP.md "Weg 2").
+ *
+ * Nur relevant, wenn dieses Pflicht-Item ein VARIABLES Produkt ist — dann
+ * muss unser Block zusätzlich zur Kartenauswahl eine Variantenauswahl
+ * (Grösse/Farbe) anbieten und deren `variation_id`/`attributes` mit in die
+ * Store-API-`bundle_configuration` aufnehmen. Ein einfaches (simple) Pflicht-
+ * Item braucht dagegen keine Auswahl-UI — Product Bundles fügt es ohnehin
+ * automatisch mit seinen Standardwerten hinzu.
+ *
+ * Bewusst OHNE eigenes Admin-Feld ("Hauptprodukt markieren") ermittelt: Ein
+ * Pflicht-Item, das keine Grusskarte ist, kann in diesem Bundle nur das
+ * eingehüllte Hauptprodukt sein. Erwartet wird genau eines pro Bundle; sind
+ * es mehrere, wird das erste zurückgegeben (Konfigurationsfehler in
+ * "Bundled Products" andernfalls).
+ *
+ * @param WC_Product_Bundle $product
+ * @return WC_Bundled_Item|null
+ */
+function gcb_get_variable_main_item($product)
+{
+    if (! $product || ! $product->is_type('bundle')) {
+        return null;
+    }
+
+    foreach ($product->get_bundled_items() as $bundled_item) {
+        if ($bundled_item->is_optional()) {
+            continue;
+        }
+
+        $cp = $bundled_item->get_product();
+        if (! $cp || has_term('grusskarte', 'product_cat', $cp->get_id())) {
+            continue;
+        }
+
+        if ($cp->is_type('variable')) {
+            return $bundled_item;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * 0c. (Verworfen) Ein zusätzlicher "Item Grouping"-Modus auf Basis von
+ * Product Bundles' "faked_parent_item"-Feature sollte das Bundle-Container-
+ * Item im Cart komplett verstecken und das Hauptprodukt (Strauss) an dessen
+ * Stelle als Parent-Zeile zeigen. In der Praxis blendet der Cart-Block das
+ * Container-Item damit aber nicht zuverlässig aus (getestet: Container bleibt
+ * als eigene, sichtbare Zeile bestehen) — das Feature war laut Plugin-Code nie
+ * als reguläre, first-class Option vorgesehen.
+ *
+ * Stattdessen wird das Bundle jetzt nur noch verwendet, wenn tatsächlich eine
+ * Karte gewählt wird (siehe view.js addToCart()) — dann ist eine sichtbare
+ * Eltern-Kind-Beziehung im Warenkorb inhaltlich korrekt, mit ganz normalem
+ * "Grouped"-Modus. Wird keine Karte gewählt, umgeht der Block das Bundle
+ * komplett und kauft die Strauss-Variante direkt — dann taucht das
+ * Bundle-Produkt im Warenkorb gar nicht erst auf. Siehe SETUP.md "Weg 2".
+ */
+
+/**
  * 1. Grusstext aus dem add-item-Request einsammeln und am Bundle-Container
  * (dem Strauss-Cart-Item selbst) ablegen.
  *
@@ -82,13 +144,39 @@ add_filter('woocommerce_store_api_add_to_cart_data', function ($data, $request) 
 }, 10, 2);
 
 /**
- * 2. Grusstext im Warenkorb anzeigen.
+ * 1b. Grusstext vom Bundle-Container auf die tatsächliche Grusskarten-Position
+ * kopieren, sobald Product Bundles das Kind-Cart-Item für die gewählte Karte
+ * anlegt. Der Container bleibt technisch weiterhin Träger des Werts (er ist
+ * beim Einsammeln in Punkt 1 die einzige greifbare Stelle), Anzeige (Punkt 2)
+ * und Bestell-Persistenz (Punkt 3) berücksichtigen aber nur noch die Karten-
+ * Position, damit der Grusstext für Kund:innen dort steht, wo er hingehört.
  *
- * Läuft automatisch auf der richtigen (Bundle-Container-)Position, weil die
- * Meta-Daten genau dort abgelegt wurden (Punkt 1).
+ * `woocommerce_bundled_item_cart_data` feuert einmal pro tatsächlich zum
+ * Warenkorb hinzugefügtem Bundled Item (siehe WC_PB_Cart::bundle_add_to_cart())
+ * und liefert `$cart_item_data` des Containers als zweites Argument mit.
+ */
+add_filter('woocommerce_bundled_item_cart_data', function ($bundled_item_cart_data, $cart_item_data) {
+    if (empty($cart_item_data['_greeting_card_text']) || empty($bundled_item_cart_data['bundled_item_id'])) {
+        return $bundled_item_cart_data;
+    }
+
+    $bundled_item = wc_pb_get_bundled_item($bundled_item_cart_data['bundled_item_id']);
+    $cp           = $bundled_item ? $bundled_item->get_product() : null;
+
+    if ($cp && has_term('grusskarte', 'product_cat', $cp->get_id())) {
+        $bundled_item_cart_data['_greeting_card_text'] = $cart_item_data['_greeting_card_text'];
+    }
+
+    return $bundled_item_cart_data;
+}, 10, 2);
+
+/**
+ * 2. Grusstext im Warenkorb anzeigen — nur an der Grusskarten-Position, nicht
+ * am Bundle-Container (dort liegt der Wert zwar auch noch, siehe 1b, soll aber
+ * nicht doppelt angezeigt werden).
  */
 add_filter('woocommerce_get_item_data', function ($item_data, $cart_item) {
-    if (empty($cart_item['_greeting_card_text'])) {
+    if (empty($cart_item['_greeting_card_text']) || wc_pb_is_bundle_container_cart_item($cart_item)) {
         return $item_data;
     }
 
@@ -101,13 +189,14 @@ add_filter('woocommerce_get_item_data', function ($item_data, $cart_item) {
 }, 10, 2);
 
 /**
- * 3. Grusstext dauerhaft in der Bestellung speichern (am Container-Line-Item).
+ * 3. Grusstext dauerhaft in der Bestellung speichern — ebenfalls nur an der
+ * Grusskarten-Position (siehe Punkt 2).
  *
  * Die Parent-Child-Verknüpfung selbst schreibt Product Bundles automatisch
  * (WC_PB_Order); hier geht es nur um den Grusstext.
  */
 add_action('woocommerce_checkout_create_order_line_item', function ($item, $cart_item_key, $values) {
-    if (! empty($values['_greeting_card_text'])) {
+    if (! empty($values['_greeting_card_text']) && ! wc_pb_is_bundle_container_cart_item($values)) {
         $item->add_meta_data(__('Grusstext', 'greeting-card-block'), $values['_greeting_card_text'], true);
     }
 }, 10, 3);

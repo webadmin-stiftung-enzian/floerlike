@@ -31,6 +31,36 @@
 >    Koexistenz-Matrix (§10.4).
 > 6. §11/§12: Neue Testfälle (Server-Validierung Max Bundle Size,
 >    Koexistenz-Matrix) und aktualisierte Verifikationspunkte.
+>
+> **Änderungen nach v3.1.1 (Praxis-Anpassungen, siehe `SETUP.md` für die
+> vollständige, aktuell gültige Setup-Anleitung):**
+> 1. **Neu: „Weg 2"** für Sträusse mit eigenen Grössen-/Farbvarianten. Da ein
+>    Produkt nicht gleichzeitig „Variable" und „Bundle" sein kann, hüllt in
+>    diesem Fall ein zusätzlicher Bundle-Container den variablen Strauss als
+>    Pflicht-Bundled-Item ein. Der Block ermittelt dieses Pflicht-Item
+>    automatisch (`gcb_get_variable_main_item()`, kein Admin-Feld nötig) und
+>    ergänzt eine Attribut-/Variantenauswahl samt eigener, reaktiver
+>    Preisanzeige (der native Preis-Block reagiert nicht auf unsere Auswahl).
+> 2. **Bundle wird nur bei gewählter Karte verwendet.** Ein Zwischenstand hatte
+>    versucht, das Bundle-Container-Item über Product Bundles' internes
+>    „Faked Parent Item"-Feature komplett unsichtbar zu machen — das blendet
+>    der Cart-Block in der Praxis aber nicht zuverlässig aus (verworfen).
+>    Stattdessen kauft der Block ohne gewählte Karte die Strauss-Variante
+>    **direkt**, ganz ohne Bundle-Beteiligung (kein Container im Cart
+>    sichtbar). Nur bei gewählter Karte läuft der Request über das Bundle,
+>    inklusive der dann fachlich korrekten Eltern-Kind-Anzeige.
+> 3. **Grusstext erscheint an der Grusskarten-Position**, nicht am
+>    Bundle-Container: ein zusätzlicher `woocommerce_bundled_item_cart_data`-
+>    Filter kopiert den Wert vom Container auf das tatsächliche
+>    Grusskarten-Cart-Item; Anzeige und Bestell-Persistenz berücksichtigen nur
+>    noch diese Position.
+> 4. **§3 Punkt 6 (Min/Max Bundle Size) für „Weg 1" korrigiert:** Min leer/0,
+>    Max = 1 (nicht Min 1/Max 2 wie ursprünglich in dieser Spec) — geprüft
+>    gegen den Quellcode der installierten Product-Bundles-Version
+>    (`WC_PB_MMI_Cart`): die Grösse zählt nur die Summe der Bundled-Item-
+>    Mengen, ein „Min = 1" würde die Karte fälschlich verpflichtend machen.
+>    Für „Weg 2" gilt weiterhin Min = 1/Max = 2, weil dort ein Pflicht-Item
+>    existiert, das selbst zur Summe zählt.
 
 ---
 

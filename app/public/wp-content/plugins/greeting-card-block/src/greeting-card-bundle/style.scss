@@ -37,6 +37,20 @@
 	}
 }
 
+/* "Weg 2": Varianten-/Grössenauswahl für das eingehüllte Hauptprodukt. */
+.greeting-card-bundle__variations {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 1rem;
+	margin-bottom: 1rem;
+}
+
+.greeting-card-bundle__variation-attribute {
+	display: flex;
+	flex-direction: column;
+	gap: 0.25rem;
+}
+
 .greeting-card-bundle__message-wrapper {
 	position: relative;
 	display: inline-block;

@@ -53,24 +53,135 @@ foreach ($bundle->get_bundled_items() as $bundled_item) {
 	];
 }
 
+// "Weg 2" (siehe SETUP.md): der Strauss selbst ist ein variables Produkt und
+// steckt als Pflicht-Bundled-Item in diesem Container. Dann brauchen wir
+// zusätzlich zur Kartenauswahl eine Varianten-/Attributauswahl für dieses
+// Pflicht-Item, deren variation_id/attributes ebenfalls in die
+// bundle_configuration einfliessen (siehe view.js). Bei "Weg 1" (Strauss ist
+// selbst das Bundle, keine Variationen) liefert die Helper-Funktion null und
+// dieser ganze Block bleibt einfach aus.
+//
+// WICHTIG zur Preisanzeige: Der separate native "Preis"-Block auf der
+// Produktseite (woocommerce/product-price) reagiert NICHT auf unsere eigene
+// Attributauswahl -- er ist an WooCommerce's natives Variationsformular
+// gekoppelt, das wir hier bewusst nicht verwenden. Deshalb liefern wir pro
+// Variante einen eigenen `priceText` mit, den view.js reaktiv anzeigt
+// (state.matchedVariationPriceText).
+$main_item = gcb_get_variable_main_item($bundle);
+$variation_selector = null;
+
+if ($main_item) {
+	$main_product = $main_item->get_product();
+
+	$variation_attributes = [];
+	foreach ($main_product->get_variation_attributes() as $raw_name => $raw_options) {
+		$taxonomy    = wc_variation_attribute_name($raw_name);
+		$is_taxonomy = taxonomy_exists($taxonomy);
+		$options     = [];
+
+		foreach ($raw_options as $option) {
+			if ($is_taxonomy) {
+				$term  = get_term_by('slug', $option, $taxonomy);
+				$label = $term ? $term->name : $option;
+			} else {
+				$label = $option;
+			}
+			$options[] = ['value' => $option, 'label' => $label];
+		}
+
+		$variation_attributes[] = [
+			'name'    => $raw_name, // Schlüssel für data-wp-context / attributes-Payload
+			'label'   => wc_attribute_label($raw_name, $main_product),
+			'options' => $options,
+		];
+	}
+
+	$variations = [];
+	foreach ($main_product->get_available_variations() as $variation_data) {
+		// WC liefert Attribut-Keys als "attribute_{name}" -- Präfix entfernen,
+		// damit sie zu den Keys in $variation_attributes/selectedAttributes passen.
+		$variation_attrs = [];
+		foreach ($variation_data['attributes'] as $key => $value) {
+			$variation_attrs[substr($key, strlen('attribute_'))] = $value;
+		}
+
+		$variations[] = [
+			'variationId' => $variation_data['variation_id'],
+			'attributes'  => $variation_attrs,
+			// Reiner Text (keine Preis-HTML-Spans) fürs Interactivity-API-
+			// data-wp-text -- siehe Hintergrund zur Preisanzeige weiter unten.
+			// html_entity_decode ist nötig, weil wc_price() Währungssymbole/
+			// -leerzeichen als HTML-Entities ausgibt (z. B. "&#67;&#72;&#70;"
+			// für "CHF", "&nbsp;"); data-wp-text setzt textContent und würde
+			// diese Entities sonst wörtlich anzeigen statt sie darzustellen.
+			'priceText'   => html_entity_decode(
+				wp_strip_all_tags($variation_data['price_html']),
+				ENT_QUOTES,
+				'UTF-8'
+			),
+			'inStock'     => (bool) $variation_data['is_in_stock'],
+		];
+	}
+
+	$variation_selector = [
+		'bundleItemId' => $main_item->get_id(),
+		'name'         => $main_product->get_name(),
+		'attributes'   => $variation_attributes,
+		'variations'   => $variations,
+	];
+}
+
 wp_interactivity_state('greeting-card-bundle', [
-	'bundleId'        => $product_id,
-	'cards'           => $cards,
-	'nonce'           => wp_create_nonce('wc_store_api'),
+	'bundleId'           => $product_id,
+	'cards'              => $cards,
+	'nonce'              => wp_create_nonce('wc_store_api'),
 	// rest_url() statt hartkodiertem Pfad: funktioniert auch bei Unterverzeichnis-
 	// Installationen oder abweichender REST-API-Basis.
-	'addItemUrl'      => rest_url('wc/store/v1/cart/add-item'),
-	'wantsCard'       => false,
-	'selectedItemId'  => 0,
-	'text'            => '',
-	'quantity'        => 1,
-	'submitAttempted' => false,
-	'isAdding'        => false,
-	'errorMessage'    => '',
+	'addItemUrl'         => rest_url('wc/store/v1/cart/add-item'),
+	'wantsCard'          => false,
+	'selectedItemId'     => 0,
+	'text'               => '',
+	'quantity'           => 1,
+	'submitAttempted'    => false,
+	'isAdding'           => false,
+	'errorMessage'       => '',
+	'mainItem'           => $variation_selector,
+	'selectedAttributes' => $variation_selector
+		? array_fill_keys(array_column($variation_selector['attributes'], 'name'), '')
+		: [],
 ]);
 
 ?>
 <div <?php echo get_block_wrapper_attributes(); ?> data-wp-interactive="greeting-card-bundle">
+	<?php if ($variation_selector) : ?>
+		<div class="greeting-card-bundle__variations">
+			<?php foreach ($variation_selector['attributes'] as $attribute) : ?>
+				<div class="greeting-card-bundle__variation-attribute">
+					<label for="gcb-attribute-<?php echo esc_attr($attribute['name']); ?>"><?php echo esc_html($attribute['label']); ?></label>
+					<select
+						id="gcb-attribute-<?php echo esc_attr($attribute['name']); ?>"
+						data-wp-context='<?php echo wp_json_encode(['attributeName' => $attribute['name']]); ?>'
+						data-wp-on--change="actions.selectAttribute">
+						<option value=""><?php esc_html_e('Bitte wählen …', 'greeting-card-block'); ?></option>
+						<?php foreach ($attribute['options'] as $option) : ?>
+							<option value="<?php echo esc_attr($option['value']); ?>"><?php echo esc_html($option['label']); ?></option>
+						<?php endforeach; ?>
+					</select>
+				</div>
+			<?php endforeach; ?>
+			<p
+				class="greeting-card-bundle__variation-price"
+				data-wp-text="state.matchedVariationPriceText"></p>
+			<div
+				class="wc-block-components-notice-banner is-error"
+				role="alert"
+				data-wp-bind--hidden="!state.showVariationError"
+				hidden>
+				<div class="wc-block-components-notice-banner__content"><?php esc_html_e('Bitte wählen Sie eine Option.', 'greeting-card-block'); ?></div>
+			</div>
+		</div>
+	<?php endif; ?>
+
 	<div class="greeting-card-bundle__checkbox">
 		<input
 			type="checkbox"
