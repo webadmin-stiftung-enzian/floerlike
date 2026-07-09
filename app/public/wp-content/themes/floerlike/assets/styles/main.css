@@ -1,0 +1,14 @@
+.is-style-swiper .wc-block-product-template {
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    gap: 0 !important;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.is-style-swiper .wc-block-product {
+    flex-shrink: 0;
+    width: auto; /* Breite setzt Swiper inline */
+}
