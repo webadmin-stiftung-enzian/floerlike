@@ -1,3 +1,83 @@
+header.wp-block-template-part {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 999;
+    max-width: 100vw;
+}
+
+.navbar {
+    padding: 0.75rem 1.5rem;
+    border-radius: 3rem;
+}
+
+.wp-block-navigation__responsive-container.is-menu-open {
+    overflow: unset !important;
+}
+
+.wp-block-navigation-item__content {
+    position: relative;
+    display: flex;
+    align-items: center;
+    padding: 0.6rem 1.25rem 0.4rem 1.25rem;
+    border-radius: 3rem;
+    overflow: hidden;
+}
+
+.wp-block-navigation__responsive-container-open,
+.wp-block-woocommerce-customer-account,
+.wc-block-mini-cart  {
+    z-index: 1;
+}
+
+.wp-block-navigation__responsive-container-open svg,
+.wc-block-mini-cart__icon {
+    fill: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+.wc-block-customer-account__link,
+.wp-block-navigation__responsive-container-open,
+.wc-block-mini-cart__quantity-badge {
+    position: relative;
+    padding:0.25rem;
+    border-radius: 3rem;
+    overflow: hidden;
+}
+
+.wc-block-customer-account__link::after,
+.wp-block-navigation__responsive-container-open::after,
+.wc-block-mini-cart__button .wc-block-mini-cart__quantity-badge::after,
+.wp-block-navigation-item__content::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--wp--preset--color--main-1-pistachio-lightdark);
+    transform: translateX(-100%);
+    opacity: 0;
+    transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+.wp-block-navigation__responsive-container-open:hover svg,
+.wc-block-mini-cart__button:hover .wc-block-mini-cart__icon,
+.wp-block-woocommerce-customer-account:hover .wc-block-customer-account__account-icon path {
+    fill: var(--wp--preset--color--main-1-pistachio-ultralight);
+}
+
+.wp-block-woocommerce-customer-account:hover .wc-block-customer-account__account-icon circle{
+    stroke: var(--wp--preset--color--main-1-pistachio-ultralight);
+}
+
+.wp-block-navigation__responsive-container-open:hover::after,
+.wp-block-woocommerce-customer-account:hover .wc-block-customer-account__link::after,
+.wc-block-mini-cart__button:hover .wc-block-mini-cart__quantity-badge::after,
+.wp-block-navigation-item__content:hover::after {
+    transform: translateX(0);
+    opacity: 1;
+}
+
 .is-style-swiper .wc-block-product-template {
     display: flex !important;
     flex-direction: row !important;
@@ -10,5 +90,6 @@
 
 .is-style-swiper .wc-block-product {
     flex-shrink: 0;
-    width: auto; /* Breite setzt Swiper inline */
+    width: auto;
+    /* Breite setzt Swiper inline */
 }
