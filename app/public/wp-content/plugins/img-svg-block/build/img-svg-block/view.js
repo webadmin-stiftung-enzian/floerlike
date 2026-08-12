@@ -1,0 +1,1 @@
+console.log("Hello World! (from stiftung-enzian-img-svg-block block)");

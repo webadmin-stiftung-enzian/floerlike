@@ -1,0 +1,62 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "stiftung-enzian/img-svg-block",
+	"version": "0.1.0",
+	"title": "Bild mit SVG-Hintergrund",
+	"category": "media",
+	"icon": "smiley",
+	"description": "Bild-Block mit optionalem SVG-Formhintergrund.",
+	"example": {},
+	"attributes": {
+		"img-url": {
+			"type": "string"
+		},
+		"img-alt": {
+			"type": "string"
+		},
+		"img-id": {
+			"type": "string"
+		},
+		"svg-url": {
+			"type": "string"
+		},
+		"svg-alt": {
+			"type": "string"
+		},
+		"svg-id": {
+			"type": "string"
+		},
+		"svg-fill-color": {
+			"type": "string"
+		},
+		"svg-enable": {
+			"type": "boolean",
+			"default": false
+		},
+		"img-mask-enable": {
+			"type": "boolean",
+			"default": false
+		},
+		"img-width": {
+			"type": "number"
+		},
+		"img-height": {
+			"type": "number"
+		},
+		"svg-scale": {
+			"type": "number",
+			"default": 0
+		}
+	},
+	"supports": {
+		"align": ["wide", "full"],
+		"anchor": true
+	},
+	"textdomain": "img-svg-block",
+	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
+	"render": "file:./render.php",
+	"viewScript": "file:./view.js"
+}

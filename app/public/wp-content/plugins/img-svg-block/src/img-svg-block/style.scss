@@ -1,0 +1,43 @@
+/**
+ * The following styles get applied both on the front of your site
+ * and in the editor.
+ */
+
+.wp-block-stiftung-enzian-img-svg-block {
+	position: relative;
+	display: block;
+	max-width: 100%;
+	margin: 0;
+	aspect-ratio: 4 / 3; // fallback until the real image dimensions are known
+
+	.img-svg-block__shape {
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		-webkit-mask-repeat: no-repeat;
+		mask-repeat: no-repeat;
+		-webkit-mask-position: center;
+		mask-position: center;
+		-webkit-mask-size: auto 100%;
+		mask-size: auto 100%;
+	}
+
+	.img-svg-block__image {
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+		position: relative;
+		z-index: 1;
+
+		&--masked {
+			object-fit: cover;
+			-webkit-mask-repeat: no-repeat;
+			mask-repeat: no-repeat;
+			-webkit-mask-position: center;
+			mask-position: center;
+			-webkit-mask-size: auto 100%;
+			mask-size: auto 100%;
+		}
+	}
+}

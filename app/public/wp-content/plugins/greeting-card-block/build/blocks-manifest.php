@@ -8,7 +8,6 @@ return array(
 		'version' => '0.2.0',
 		'title' => 'Grusskarte + Bundle in den Warenkorb',
 		'category' => 'widgets',
-		'icon' => 'smiley',
 		'description' => 'Auswahl-UI für die optionale Grusskarte (WooCommerce Product Bundle) und Add-to-Cart über die Store API.',
 		'example' => array(
 			
