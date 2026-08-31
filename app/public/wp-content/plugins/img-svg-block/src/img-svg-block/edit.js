@@ -43,13 +43,51 @@ const focalPointToPosition = ( focalPoint ) =>
 const scaleToFactor = ( scale ) => Math.max( 0, 1 + ( Number( scale ) || 0 ) / 100 );
 
 /**
+ * Inverse of a scale factor, for cancelling out a parent's `transform: scale()`
+ * on a child element (e.g. so a photo doesn't visually zoom while the mask
+ * "window" revealing it grows/shrinks). Guards against dividing by zero when
+ * the parent is fully scaled down to invisible.
+ *
+ * @param {number} factor Scale factor (as returned by `scaleToFactor`).
+ * @return {number} Counter-scale factor.
+ */
+const counterScaleFactor = ( factor ) => ( factor > 0 ? 1 / factor : 1 );
+
+/**
+ * Builds the style for a mask "box" element sized to fill its container
+ * exactly. `mask-size: contain` fits the SVG entirely within it at 0 %
+ * scale, whichever axis is the limiting one — unlike forcing the height to
+ * 100 % (which clips the sides of an SVG whose aspect ratio is wider than
+ * the container's), this never crops anything, regardless of the SVG's
+ * proportions. The whole box is then grown/shrunk via `transform: scale()`
+ * anchored at the focal point, so it stays proportionally consistent across
+ * screen sizes while still being able to bleed past the container's edges.
+ *
+ * @param {Object}                  props
+ * @param {string}                  props.url        Mask image URL.
+ * @param {{x: number, y: number}}  props.focalPoint Focal point value.
+ * @param {number}                  props.scale      Scale attribute value.
+ * @return {Object} React style object.
+ */
+const buildMaskBoxStyle = ( { url, focalPoint, scale } ) => ( {
+	position: 'absolute',
+	inset: 0,
+	zIndex: 1,
+	WebkitMaskImage: `url(${ url })`,
+	maskImage: `url(${ url })`,
+	WebkitMaskRepeat: 'no-repeat',
+	maskRepeat: 'no-repeat',
+	WebkitMaskSize: 'contain',
+	maskSize: 'contain',
+	WebkitMaskPosition: focalPointToPosition( focalPoint ),
+	maskPosition: focalPointToPosition( focalPoint ),
+	transform: `scale(${ scaleToFactor( scale ) })`,
+	transformOrigin: focalPointToPosition( focalPoint ),
+} );
+
+/**
  * Builds the style for a solid-color mask "shape" element (background shape
- * or standalone foreground SVG). The element is sized to fill its container
- * exactly (0 % scale = container height, SVG's own aspect ratio preserved
- * automatically via `mask-size: auto`), then grown/shrunk as a whole via
- * `transform: scale()` anchored at the focal point — so it stays
- * proportionally consistent across screen sizes (unlike an absolute pixel
- * size would) while still being able to bleed past the container's edges.
+ * or standalone foreground SVG) — a mask box filled with a flat color.
  *
  * @param {Object}                  props
  * @param {string}                  props.url        Mask image URL.
@@ -59,45 +97,8 @@ const scaleToFactor = ( scale ) => Math.max( 0, 1 + ( Number( scale ) || 0 ) / 1
  * @return {Object} React style object.
  */
 const buildShapeStyle = ( { url, fillColor, focalPoint, scale } ) => ( {
-	position: 'absolute',
-	inset: 0,
+	...buildMaskBoxStyle( { url, focalPoint, scale } ),
 	backgroundColor: fillColor || '#000000',
-	WebkitMaskImage: `url(${ url })`,
-	maskImage: `url(${ url })`,
-	WebkitMaskRepeat: 'no-repeat',
-	maskRepeat: 'no-repeat',
-	WebkitMaskSize: 'auto 100%',
-	maskSize: 'auto 100%',
-	WebkitMaskPosition: focalPointToPosition( focalPoint ),
-	maskPosition: focalPointToPosition( focalPoint ),
-	transform: `scale(${ scaleToFactor( scale ) })`,
-	transformOrigin: 'center',
-} );
-
-/**
- * Builds the mask-related style props for the foreground pixel image when
- * it's cropped into the background shape. The image element itself stays
- * pinned to the container (its photo content fills it via
- * `object-fit: cover`) — only the mask "window" is resized/repositioned,
- * relative to the container just like `buildShapeStyle`. It can never bleed
- * past the image's own bounds, since there's no photo content beyond that
- * to reveal.
- *
- * @param {Object}                  props
- * @param {string}                  props.url        Background SVG URL.
- * @param {{x: number, y: number}}  props.focalPoint Background focal point value.
- * @param {number}                  props.scale      Background scale attribute value.
- * @return {Object} Partial React style object.
- */
-const buildMaskedImageMaskStyle = ( { url, focalPoint, scale } ) => ( {
-	WebkitMaskImage: `url(${ url })`,
-	maskImage: `url(${ url })`,
-	WebkitMaskRepeat: 'no-repeat',
-	maskRepeat: 'no-repeat',
-	WebkitMaskSize: `auto calc(100% + ${ scale }%)`,
-	maskSize: `auto calc(100% + ${ scale }%)`,
-	WebkitMaskPosition: focalPointToPosition( focalPoint ),
-	maskPosition: focalPointToPosition( focalPoint ),
 } );
 
 /**
@@ -237,7 +238,7 @@ export default function Edit( { attributes, setAttributes } ) {
 						) }
 						<RangeControl
 							label={ __( 'Größe', 'img-svg-block' ) }
-							help={ __( '0 % = Containerhöhe. Negative Werte verkleinern, positive vergrößern die Form – vom Fokuspunkt aus.', 'img-svg-block' ) }
+							help={ __( '0 % = Form ist vollständig sichtbar, ohne Beschnitt. Negative Werte verkleinern, positive vergrößern die Form – vom Fokuspunkt aus.', 'img-svg-block' ) }
 							value={ svgScale }
 							onChange={ ( value ) => setAttributes( { 'svg-scale': value } ) }
 							min={ -200 }
@@ -327,7 +328,7 @@ export default function Edit( { attributes, setAttributes } ) {
 								</PanelRow>
 								<RangeControl
 									label={ __( 'Größe', 'img-svg-block' ) }
-									help={ __( '0 % = Containerhöhe. Negative Werte verkleinern, positive vergrößern die Form – vom Fokuspunkt aus.', 'img-svg-block' ) }
+									help={ __( '0 % = Form ist vollständig sichtbar, ohne Beschnitt. Negative Werte verkleinern, positive vergrößern die Form – vom Fokuspunkt aus.', 'img-svg-block' ) }
 									value={ fgSvgScale }
 									onChange={ ( value ) => setAttributes( { 'fg-svg-scale': value } ) }
 									min={ -200 }
@@ -396,21 +397,36 @@ export default function Edit( { attributes, setAttributes } ) {
 							/>
 						) }
 						{ isPixelForeground ? (
-							<img
-								className={ `img-svg-block__image${ imgMaskEnable && svgUrl ? ' img-svg-block__image--masked' : '' }` }
-								src={ imgUrl }
-								alt={ imgAlt || '' }
-								style={ {
-									objectPosition: focalPointToPosition( fgFocalPoint ),
-									...( imgMaskEnable && svgUrl
-										? buildMaskedImageMaskStyle( {
-												url: svgUrl,
-												focalPoint: svgFocalPoint,
-												scale: svgScale,
-										  } )
-										: {} ),
-								} }
-							/>
+							imgMaskEnable && svgUrl ? (
+								<span
+									className="img-svg-block__mask-wrapper"
+									style={ buildMaskBoxStyle( {
+										url: svgUrl,
+										focalPoint: svgFocalPoint,
+										scale: svgScale,
+									} ) }
+								>
+									<img
+										className="img-svg-block__image img-svg-block__image--masked"
+										src={ imgUrl }
+										alt={ imgAlt || '' }
+										style={ {
+											position: 'absolute',
+											inset: 0,
+											objectPosition: focalPointToPosition( fgFocalPoint ),
+											transform: `scale(${ counterScaleFactor( scaleToFactor( svgScale ) ) })`,
+											transformOrigin: focalPointToPosition( svgFocalPoint ),
+										} }
+									/>
+								</span>
+							) : (
+								<img
+									className="img-svg-block__image"
+									src={ imgUrl }
+									alt={ imgAlt || '' }
+									style={ { objectPosition: focalPointToPosition( fgFocalPoint ) } }
+								/>
+							)
 						) : (
 							<span
 								className="img-svg-block__image img-svg-block__image--svg"

@@ -11,17 +11,10 @@
 	overflow: visible; // let scaled shapes/images bleed past the block's edges
 	aspect-ratio: 4 / 3; // fallback until the real image dimensions are known
 
-	.img-svg-block__shape {
-		position: absolute;
-		inset: 0;
-		z-index: 1;
-		-webkit-mask-repeat: no-repeat;
-		mask-repeat: no-repeat;
-		-webkit-mask-position: center;
-		mask-position: center;
-		-webkit-mask-size: auto 100%;
-		mask-size: auto 100%;
-	}
+	// .img-svg-block__shape, .img-svg-block__mask-wrapper and
+	// .img-svg-block__image--svg get all of their positioning/masking rules
+	// inline (position, inset, mask-*, transform) since those depend on
+	// per-block attributes — nothing to declare here.
 
 	.img-svg-block__image {
 		display: block;
@@ -30,24 +23,5 @@
 		object-fit: cover;
 		position: relative;
 		z-index: 1;
-
-		&--masked {
-			object-fit: cover;
-			-webkit-mask-repeat: no-repeat;
-			mask-repeat: no-repeat;
-			-webkit-mask-position: center;
-			mask-position: center;
-			-webkit-mask-size: auto 100%;
-			mask-size: auto 100%;
-		}
-
-		&--svg {
-			-webkit-mask-repeat: no-repeat;
-			mask-repeat: no-repeat;
-			-webkit-mask-position: center;
-			mask-position: center;
-			-webkit-mask-size: auto 100%;
-			mask-size: auto 100%;
-		}
 	}
 }

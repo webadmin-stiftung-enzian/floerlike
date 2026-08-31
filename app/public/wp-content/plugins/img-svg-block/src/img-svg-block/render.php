@@ -39,15 +39,56 @@ if ( ! function_exists( 'img_svg_block_scale_factor' ) ) {
 	}
 }
 
+if ( ! function_exists( 'img_svg_block_counter_scale_factor' ) ) {
+	/**
+	 * Inverse of a scale factor, for cancelling out a parent's
+	 * `transform: scale()` on a child element (e.g. so a photo doesn't
+	 * visually zoom while the mask "window" revealing it grows/shrinks).
+	 * Guards against dividing by zero when the parent is fully scaled down
+	 * to invisible.
+	 *
+	 * @param float $factor Scale factor (as returned by img_svg_block_scale_factor()).
+	 * @return float Counter-scale factor.
+	 */
+	function img_svg_block_counter_scale_factor( $factor ) {
+		return $factor > 0 ? 1 / $factor : 1;
+	}
+}
+
+if ( ! function_exists( 'img_svg_block_mask_box_style' ) ) {
+	/**
+	 * Builds the style for a mask "box" element sized to fill its container
+	 * exactly. `mask-size: contain` fits the SVG entirely within it at 0 %
+	 * scale, whichever axis is the limiting one — unlike forcing the height
+	 * to 100 % (which clips the sides of an SVG whose aspect ratio is wider
+	 * than the container's), this never crops anything, regardless of the
+	 * SVG's proportions. The whole box is then grown/shrunk via
+	 * `transform: scale()` anchored at the focal point, so it stays
+	 * proportionally consistent across screen sizes while still being able
+	 * to bleed past the container's edges.
+	 *
+	 * @param string     $url         Mask image URL.
+	 * @param array|null $focal_point Focal point with 'x' and 'y' keys (0-1).
+	 * @param int|float  $scale       Scale attribute value.
+	 * @return string Inline CSS declarations.
+	 */
+	function img_svg_block_mask_box_style( $url, $focal_point, $scale ) {
+		$position = img_svg_block_focal_point_position( $focal_point );
+
+		return sprintf(
+			" position: absolute; inset: 0; z-index: 1; -webkit-mask-image: url('%1\$s'); mask-image: url('%1\$s'); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: contain; mask-size: contain; -webkit-mask-position: %2\$s; mask-position: %2\$s; transform: scale(%3\$s); transform-origin: %2\$s;",
+			esc_url( $url ),
+			esc_attr( $position ),
+			esc_attr( img_svg_block_scale_factor( $scale ) )
+		);
+	}
+}
+
 if ( ! function_exists( 'img_svg_block_shape_style' ) ) {
 	/**
 	 * Builds the style for a solid-color mask "shape" element (background
-	 * shape or standalone foreground SVG). The element fills its container
-	 * exactly (0 % scale = container height, SVG's own aspect ratio preserved
-	 * automatically via `mask-size: auto`), then is grown/shrunk as a whole
-	 * via `transform: scale()` anchored at the focal point — so it stays
-	 * proportionally consistent across screen sizes while still being able to
-	 * bleed past the container's edges.
+	 * shape or standalone foreground SVG) — a mask box filled with a flat
+	 * color.
 	 *
 	 * @param string     $url         Mask image URL.
 	 * @param string     $fill_color  CSS color.
@@ -56,48 +97,7 @@ if ( ! function_exists( 'img_svg_block_shape_style' ) ) {
 	 * @return string Inline CSS declarations.
 	 */
 	function img_svg_block_shape_style( $url, $fill_color, $focal_point, $scale ) {
-		$position = img_svg_block_focal_point_position( $focal_point );
-
-		return sprintf(
-			" position: absolute; inset: 0; background-color: %s; -webkit-mask-image: url('%s'); mask-image: url('%s'); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: auto 100%%; mask-size: auto 100%%; -webkit-mask-position: %s; mask-position: %s; transform: scale(%s); transform-origin: center;",
-			esc_attr( $fill_color ),
-			esc_url( $url ),
-			esc_url( $url ),
-			esc_attr( $position ),
-			esc_attr( $position ),
-			esc_attr( img_svg_block_scale_factor( $scale ) )
-		);
-	}
-}
-
-if ( ! function_exists( 'img_svg_block_masked_image_mask_style' ) ) {
-	/**
-	 * Builds the mask-related style for the foreground pixel image when it's
-	 * cropped into the background shape. The image element itself stays
-	 * pinned to the container (its photo content fills it via
-	 * `object-fit: cover`) — only the mask "window" is resized/repositioned,
-	 * relative to the container just like `img_svg_block_shape_style`. It can
-	 * never bleed past the image's own bounds, since there's no photo content
-	 * beyond that to reveal.
-	 *
-	 * @param string     $url         Background SVG URL.
-	 * @param array|null $focal_point Background focal point with 'x' and 'y' keys (0-1).
-	 * @param int|float  $scale       Background scale attribute value.
-	 * @return string Inline CSS declarations.
-	 */
-	function img_svg_block_masked_image_mask_style( $url, $focal_point, $scale ) {
-		$mask_size = sprintf( 'auto calc(100%% + %d%%)', (int) $scale );
-		$position  = img_svg_block_focal_point_position( $focal_point );
-
-		return sprintf(
-			" -webkit-mask-image: url('%s'); mask-image: url('%s'); -webkit-mask-repeat: no-repeat; mask-repeat: no-repeat; -webkit-mask-size: %s; mask-size: %s; -webkit-mask-position: %s; mask-position: %s;",
-			esc_url( $url ),
-			esc_url( $url ),
-			esc_attr( $mask_size ),
-			esc_attr( $mask_size ),
-			esc_attr( $position ),
-			esc_attr( $position )
-		);
+		return sprintf( ' background-color: %s;', esc_attr( $fill_color ) ) . img_svg_block_mask_box_style( $url, $focal_point, $scale );
 	}
 }
 
@@ -128,13 +128,7 @@ if ( ! $has_foreground ) {
 	return;
 }
 
-$img_class = 'img-svg-block__image';
-$img_style = sprintf( 'object-position: %s;', esc_attr( img_svg_block_focal_point_position( $fg_focal_point ) ) );
-
-if ( $img_mask_enable && $svg_url ) {
-	$img_class .= ' img-svg-block__image--masked';
-	$img_style .= img_svg_block_masked_image_mask_style( $svg_url, $svg_focal_point, $svg_scale );
-}
+$fg_position = img_svg_block_focal_point_position( $fg_focal_point );
 
 $wrapper_style = '';
 if ( $is_pixel_fg && $img_width && $img_height ) {
@@ -154,12 +148,26 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 		></span>
 	<?php endif; ?>
 	<?php if ( $is_pixel_fg ) : ?>
-		<img
-			class="<?php echo esc_attr( $img_class ); ?>"
-			src="<?php echo esc_url( $img_url ); ?>"
-			alt="<?php echo esc_attr( $img_alt ); ?>"
-			style="<?php echo esc_attr( $img_style ); ?>"
-		/>
+		<?php if ( $img_mask_enable && $svg_url ) : ?>
+			<span
+				class="img-svg-block__mask-wrapper"
+				style="<?php echo esc_attr( img_svg_block_mask_box_style( $svg_url, $svg_focal_point, $svg_scale ) ); ?>"
+			>
+				<img
+					class="img-svg-block__image img-svg-block__image--masked"
+					src="<?php echo esc_url( $img_url ); ?>"
+					alt="<?php echo esc_attr( $img_alt ); ?>"
+					style="position: absolute; inset: 0; object-position: <?php echo esc_attr( $fg_position ); ?>; transform: scale(<?php echo esc_attr( img_svg_block_counter_scale_factor( img_svg_block_scale_factor( $svg_scale ) ) ); ?>); transform-origin: <?php echo esc_attr( img_svg_block_focal_point_position( $svg_focal_point ) ); ?>;"
+				/>
+			</span>
+		<?php else : ?>
+			<img
+				class="img-svg-block__image"
+				src="<?php echo esc_url( $img_url ); ?>"
+				alt="<?php echo esc_attr( $img_alt ); ?>"
+				style="object-position: <?php echo esc_attr( $fg_position ); ?>;"
+			/>
+		<?php endif; ?>
 	<?php else : ?>
 		<span
 			class="img-svg-block__image img-svg-block__image--svg"
