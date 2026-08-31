@@ -27,7 +27,7 @@ header.wp-block-template-part {
 
 .wp-block-navigation__responsive-container-open,
 .wp-block-woocommerce-customer-account,
-.wc-block-mini-cart  {
+.wc-block-mini-cart {
     z-index: 1;
 }
 
@@ -40,7 +40,7 @@ header.wp-block-template-part {
 .wp-block-navigation__responsive-container-open,
 .wc-block-mini-cart__quantity-badge {
     position: relative;
-    padding:0.25rem;
+    padding: 0.25rem;
     border-radius: 3rem;
     overflow: hidden;
 }
@@ -66,7 +66,7 @@ header.wp-block-template-part {
     fill: var(--wp--preset--color--main-1-pistachio-ultralight);
 }
 
-.wp-block-woocommerce-customer-account:hover .wc-block-customer-account__account-icon circle{
+.wp-block-woocommerce-customer-account:hover .wc-block-customer-account__account-icon circle {
     stroke: var(--wp--preset--color--main-1-pistachio-ultralight);
 }
 
@@ -92,4 +92,23 @@ header.wp-block-template-part {
     flex-shrink: 0;
     width: auto;
     /* Breite setzt Swiper inline */
+}
+
+section.highlight .swiper-slide .wp-block-columns {
+    gap: 0;
+}
+
+section.highlight .swiper-slide .wp-block-columns>.wp-block-column {
+    flex: 0 0 50%;
+    min-width: 0;
+    /* verhindert Überlauf durch breite Inhalte */
+    box-sizing: border-box;
+    padding: 2.5rem;
+}
+
+section.highlight .highlight-text-wrapper .highlight-text {
+    font-weight: 300;
+    font-size: var(--wp--preset--font-size--extra-large);
+    line-height: 1.25;
+    letter-spacing: 0.001;
 }

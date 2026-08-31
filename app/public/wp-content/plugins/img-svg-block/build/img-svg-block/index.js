@@ -1,1 +1,632 @@
-(()=>{"use strict";var e={137(){const e=window.wp.blocks,l=window.wp.i18n,i=window.wp.blockEditor,n=window.wp.components,s=window.wp.primitives,o=window.ReactJSXRuntime;var a=(0,o.jsx)(s.SVG,{xmlns:"http://www.w3.org/2000/svg",viewBox:"0 0 24 24",fill:"currentColor",children:(0,o.jsx)(s.Path,{d:"M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 4.5h14c.3 0 .5.2.5.5v8.4l-3-2.9c-.3-.3-.8-.3-1 0L11.9 14 9 12c-.3-.2-.6-.2-.8 0l-3.6 2.6V5c-.1-.3.1-.5.4-.5zm14 15H5c-.3 0-.5-.2-.5-.5v-2.4l4.1-3 3 1.9c.3.2.7.2.9-.1L16 12l3.5 3.4V19c0 .3-.2.5-.5.5z"})}),t=(0,o.jsx)(s.SVG,{xmlns:"http://www.w3.org/2000/svg",viewBox:"0 0 24 24",fill:"currentColor",children:(0,o.jsx)(s.Path,{fillRule:"evenodd",clipRule:"evenodd",d:"M11.53 4.47a.75.75 0 1 0-1.06 1.06l8 8a.75.75 0 1 0 1.06-1.06l-8-8Zm5 1a.75.75 0 1 0-1.06 1.06l2 2a.75.75 0 1 0 1.06-1.06l-2-2Zm-11.06 10a.75.75 0 0 1 1.06 0l2 2a.75.75 0 1 1-1.06 1.06l-2-2a.75.75 0 0 1 0-1.06Zm.06-5a.75.75 0 0 0-1.06 1.06l8 8a.75.75 0 1 0 1.06-1.06l-8-8Zm-.06-3a.75.75 0 0 1 1.06 0l10 10a.75.75 0 1 1-1.06 1.06l-10-10a.75.75 0 0 1 0-1.06Zm3.06-2a.75.75 0 0 0-1.06 1.06l10 10a.75.75 0 1 0 1.06-1.06l-10-10Z"})});const r=JSON.parse('{"UU":"stiftung-enzian/img-svg-block"}');(0,e.registerBlockType)(r.UU,{edit:function({attributes:e,setAttributes:s}){const r=(0,i.useBlockProps)(),{"svg-url":c,"svg-alt":g,"svg-id":d,"svg-fill-color":m,"svg-enable":v,"img-mask-enable":h,"img-url":u,"img-alt":k,"img-id":p,"img-width":w,"img-height":x,"svg-scale":b}=e,[_]=(0,i.useSettings)("color.palette"),j=e=>{s({"img-url":e.url,"img-id":String(e.id),"img-alt":e.alt||"","img-width":e.width||void 0,"img-height":e.height||void 0})};return(0,o.jsxs)(o.Fragment,{children:[(0,o.jsx)(i.InspectorControls,{children:(0,o.jsxs)(n.Panel,{children:[(0,o.jsxs)(n.PanelBody,{title:(0,l.__)("Bild","img-svg-block"),icon:a,initialOpen:!0,children:[(0,o.jsx)(n.PanelRow,{children:(0,o.jsx)(i.MediaUploadCheck,{children:(0,o.jsx)(i.MediaUpload,{onSelect:j,allowedTypes:["image"],value:p,render:({open:e})=>(0,o.jsx)(n.Button,{onClick:e,variant:"primary",children:u?(0,l.__)("Bild ändern","img-svg-block"):(0,l.__)("Bild auswählen","img-svg-block")})})})}),u&&(0,o.jsx)(n.PanelRow,{children:(0,o.jsx)(n.Button,{onClick:()=>{s({"img-url":"","img-id":"","img-alt":"","img-width":void 0,"img-height":void 0})},variant:"link",isDestructive:!0,children:(0,l.__)("Bild entfernen","img-svg-block")})})]}),(0,o.jsxs)(n.PanelBody,{title:(0,l.__)("Hintergrundform (SVG)","img-svg-block"),icon:t,initialOpen:!1,children:[(0,o.jsx)(n.PanelRow,{children:(0,o.jsx)(n.ToggleControl,{label:(0,l.__)("SVG-Hintergrund anzeigen","img-svg-block"),checked:!!v,onChange:e=>s({"svg-enable":e})})}),(0,o.jsx)(n.PanelRow,{children:(0,o.jsx)(i.MediaUploadCheck,{children:(0,o.jsx)(i.MediaUpload,{onSelect:e=>{s({"svg-url":e.url,"svg-id":String(e.id),"svg-alt":e.alt||""})},allowedTypes:["image/svg+xml"],value:d,render:({open:e})=>(0,o.jsx)(n.Button,{onClick:e,variant:"secondary",children:c?(0,l.__)("SVG ändern","img-svg-block"):(0,l.__)("SVG-Datei auswählen","img-svg-block")})})})}),c&&(0,o.jsx)(n.PanelRow,{children:(0,o.jsx)(n.Button,{onClick:()=>{s({"svg-url":"","svg-id":"","svg-alt":""})},variant:"link",isDestructive:!0,children:(0,l.__)("SVG entfernen","img-svg-block")})}),(0,o.jsx)(n.PanelRow,{children:(0,o.jsx)(n.ColorPalette,{colors:_,value:m,onChange:e=>s({"svg-fill-color":e})})}),(0,o.jsx)(n.PanelRow,{children:(0,o.jsx)(n.ToggleControl,{label:(0,l.__)("Bild in SVG-Form anzeigen","img-svg-block"),help:(0,l.__)("Schneidet das ausgewählte Bild in die Form des SVGs (Maske).","img-svg-block"),checked:!!h,onChange:e=>s({"img-mask-enable":e})})}),(0,o.jsx)(n.RangeControl,{label:(0,l.__)("SVG-Größe","img-svg-block"),help:(0,l.__)("0 % = Containerhöhe. Negative Werte verkleinern, positive vergrößern die Form (vom Zentrum aus).","img-svg-block"),value:b,onChange:e=>s({"svg-scale":e}),min:-20,max:100,step:1})]})]})}),(0,o.jsx)("figure",{...r,style:{...r.style,aspectRatio:w&&x?`${w} / ${x}`:void 0},children:u?(0,o.jsxs)(o.Fragment,{children:[v&&c&&(0,o.jsx)("span",{className:"img-svg-block__shape",style:{backgroundColor:m||"#000000",WebkitMaskImage:`url(${c})`,maskImage:`url(${c})`,WebkitMaskSize:`auto calc(100% + ${b}%)`,maskSize:`auto calc(100% + ${b}%)`},"aria-hidden":"true"}),(0,o.jsx)("img",{className:"img-svg-block__image"+(h&&c?" img-svg-block__image--masked":""),src:u,alt:k||"",style:h&&c?{WebkitMaskImage:`url(${c})`,maskImage:`url(${c})`,WebkitMaskSize:`auto calc(100% + ${b}%)`,maskSize:`auto calc(100% + ${b}%)`}:void 0})]}):(0,o.jsx)(n.Placeholder,{icon:a,label:(0,l.__)("Bild mit SVG-Hintergrund","img-svg-block"),instructions:(0,l.__)("Wähle ein Bild aus der Mediathek aus.","img-svg-block"),children:(0,o.jsx)(i.MediaUploadCheck,{children:(0,o.jsx)(i.MediaUpload,{onSelect:j,allowedTypes:["image"],value:p,render:({open:e})=>(0,o.jsx)(n.Button,{onClick:e,variant:"primary",children:(0,l.__)("Bild auswählen","img-svg-block")})})})})})]})}})}};const l={};function i(n){const s=l[n];if(void 0!==s)return s.exports;const o=l[n]={exports:{}};return e[n](o,o.exports,i),o.exports}i.m=e,(()=>{const e=[];i.O=(l,n,s,o)=>{if(n){o=o||0;for(var a=e.length;a>0&&e[a-1][2]>o;a--)e[a]=e[a-1];return void(e[a]=[n,s,o])}let t=1/0;for(a=0;a<e.length;a++){let[n,s,o]=e[a],c=!0;for(var r=0;r<n.length;r++)(!1&o||t>=o)&&Object.keys(i.O).every(e=>i.O[e](n[r]))?n.splice(r--,1):(c=!1,o<t&&(t=o));if(c){e.splice(a--,1);const i=s();void 0!==i&&(l=i)}}return l}})(),i.o=(e,l)=>Object.hasOwn(e,l),(()=>{const e={696:0,816:0};i.O.j=l=>0===e[l];const l=(l,n)=>{let[s,o,a]=n;var t,r,c=0;if(s.some(l=>0!==e[l])){for(t in o)i.o(o,t)&&(i.m[t]=o[t]);if(a)var g=a(i)}for(l&&l(n);c<s.length;c++)r=s[c],i.o(e,r)&&e[r]&&e[r][0](),e[r]=0;return i.O(g)},n=globalThis.webpackChunkimg_svg_block||=[];n.forEach(l.bind(null,0)),n.push=l.bind(null,n.push.bind(n))})();let n=i.O(void 0,[816],()=>i(137));n=i.O(n)})();
+/******/ (() => { // webpackBootstrap
+/******/ 	"use strict";
+/******/ 	var __webpack_modules__ = ({
+
+/***/ "./src/img-svg-block/edit.js"
+/*!***********************************!*\
+  !*** ./src/img-svg-block/edit.js ***!
+  \***********************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ Edit)
+/* harmony export */ });
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/i18n */ "@wordpress/i18n");
+/* harmony import */ var _wordpress_i18n__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! @wordpress/block-editor */ "@wordpress/block-editor");
+/* harmony import */ var _wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1___default = /*#__PURE__*/__webpack_require__.n(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__);
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! @wordpress/components */ "@wordpress/components");
+/* harmony import */ var _wordpress_components__WEBPACK_IMPORTED_MODULE_2___default = /*#__PURE__*/__webpack_require__.n(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__);
+/* harmony import */ var _wordpress_icons__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! @wordpress/icons */ "./node_modules/@wordpress/icons/build-module/library/background.mjs");
+/* harmony import */ var _wordpress_icons__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! @wordpress/icons */ "./node_modules/@wordpress/icons/build-module/library/image.mjs");
+/* harmony import */ var _editor_scss__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./editor.scss */ "./src/img-svg-block/editor.scss");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6___default = /*#__PURE__*/__webpack_require__.n(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__);
+/**
+ * Retrieves the translation of text.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-i18n/
+ */
+
+
+/**
+ * React hook that is used to mark the block wrapper element.
+ * It provides all the necessary props like the class name.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
+ */
+
+
+
+
+/**
+ * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
+ * Those files can contain any CSS code that gets applied to the editor.
+ *
+ * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
+ */
+
+
+/**
+ * The edit function describes the structure of your block in the context of the
+ * editor. This represents what the editor will render when the block is used.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-edit-save/#edit
+ *
+ * @return {Element} Element to render.
+ */
+
+function Edit({
+  attributes,
+  setAttributes
+}) {
+  const blockProps = (0,_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.useBlockProps)();
+  const {
+    'svg-url': svgUrl,
+    'svg-alt': svgAlt,
+    'svg-id': svgId,
+    'svg-fill-color': svgFillColor,
+    'svg-enable': svgEnable,
+    'img-mask-enable': imgMaskEnable,
+    'img-url': imgUrl,
+    'img-alt': imgAlt,
+    'img-id': imgId,
+    'img-width': imgWidth,
+    'img-height': imgHeight,
+    'svg-scale': svgScale
+  } = attributes;
+  const [colorPalette] = (0,_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.useSettings)('color.palette');
+  const onSelectImage = media => {
+    setAttributes({
+      'img-url': media.url,
+      'img-id': String(media.id),
+      'img-alt': media.alt || '',
+      'img-width': media.width || undefined,
+      'img-height': media.height || undefined
+    });
+  };
+  const onRemoveImage = () => {
+    setAttributes({
+      'img-url': '',
+      'img-id': '',
+      'img-alt': '',
+      'img-width': undefined,
+      'img-height': undefined
+    });
+  };
+  const onSelectSvg = media => {
+    setAttributes({
+      'svg-url': media.url,
+      'svg-id': String(media.id),
+      'svg-alt': media.alt || ''
+    });
+  };
+  const onRemoveSvg = () => {
+    setAttributes({
+      'svg-url': '',
+      'svg-id': '',
+      'svg-alt': ''
+    });
+  };
+  return /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
+    children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.InspectorControls, {
+      children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.Panel, {
+        children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelBody, {
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bild', 'img-svg-block'),
+          icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_4__["default"],
+          initialOpen: true,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelRow, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.MediaUploadCheck, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.MediaUpload, {
+                onSelect: onSelectImage,
+                allowedTypes: ['image'],
+                value: imgId,
+                render: ({
+                  open
+                }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.Button, {
+                  onClick: open,
+                  variant: "primary",
+                  children: imgUrl ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bild ändern', 'img-svg-block') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bild auswählen', 'img-svg-block')
+                })
+              })
+            })
+          }), imgUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelRow, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.Button, {
+              onClick: onRemoveImage,
+              variant: "link",
+              isDestructive: true,
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bild entfernen', 'img-svg-block')
+            })
+          })]
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelBody, {
+          title: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Hintergrundform (SVG)', 'img-svg-block'),
+          icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_3__["default"],
+          initialOpen: false,
+          children: [/*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelRow, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.ToggleControl, {
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SVG-Hintergrund anzeigen', 'img-svg-block'),
+              checked: !!svgEnable,
+              onChange: value => setAttributes({
+                'svg-enable': value
+              })
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelRow, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.MediaUploadCheck, {
+              children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.MediaUpload, {
+                onSelect: onSelectSvg,
+                allowedTypes: ['image/svg+xml'],
+                value: svgId,
+                render: ({
+                  open
+                }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.Button, {
+                  onClick: open,
+                  variant: "secondary",
+                  children: svgUrl ? (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SVG ändern', 'img-svg-block') : (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SVG-Datei auswählen', 'img-svg-block')
+                })
+              })
+            })
+          }), svgUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelRow, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.Button, {
+              onClick: onRemoveSvg,
+              variant: "link",
+              isDestructive: true,
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SVG entfernen', 'img-svg-block')
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelRow, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.ColorPalette, {
+              colors: colorPalette,
+              value: svgFillColor,
+              onChange: color => setAttributes({
+                'svg-fill-color': color
+              })
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.PanelRow, {
+            children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.ToggleControl, {
+              label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bild in SVG-Form anzeigen', 'img-svg-block'),
+              help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Schneidet das ausgewählte Bild in die Form des SVGs (Maske).', 'img-svg-block'),
+              checked: !!imgMaskEnable,
+              onChange: value => setAttributes({
+                'img-mask-enable': value
+              })
+            })
+          }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.RangeControl, {
+            label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('SVG-Größe', 'img-svg-block'),
+            help: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('0 % = Containerhöhe. Negative Werte verkleinern, positive vergrößern die Form (vom Zentrum aus).', 'img-svg-block'),
+            value: svgScale,
+            onChange: value => setAttributes({
+              'svg-scale': value
+            }),
+            min: -20,
+            max: 100,
+            step: 1
+          })]
+        })]
+      })
+    }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("figure", {
+      ...blockProps,
+      style: {
+        ...blockProps.style,
+        aspectRatio: imgWidth && imgHeight ? `${imgWidth} / ${imgHeight}` : undefined
+      },
+      children: !imgUrl ? /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.Placeholder, {
+        icon: _wordpress_icons__WEBPACK_IMPORTED_MODULE_4__["default"],
+        label: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bild mit SVG-Hintergrund', 'img-svg-block'),
+        instructions: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Wähle ein Bild aus der Mediathek aus.', 'img-svg-block'),
+        children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.MediaUploadCheck, {
+          children: /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_block_editor__WEBPACK_IMPORTED_MODULE_1__.MediaUpload, {
+            onSelect: onSelectImage,
+            allowedTypes: ['image'],
+            value: imgId,
+            render: ({
+              open
+            }) => /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)(_wordpress_components__WEBPACK_IMPORTED_MODULE_2__.Button, {
+              onClick: open,
+              variant: "primary",
+              children: (0,_wordpress_i18n__WEBPACK_IMPORTED_MODULE_0__.__)('Bild auswählen', 'img-svg-block')
+            })
+          })
+        })
+      }) : /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsxs)(react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.Fragment, {
+        children: [svgEnable && svgUrl && /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("span", {
+          className: "img-svg-block__shape",
+          style: {
+            backgroundColor: svgFillColor || '#000000',
+            WebkitMaskImage: `url(${svgUrl})`,
+            maskImage: `url(${svgUrl})`,
+            WebkitMaskSize: `auto calc(100% + ${svgScale}%)`,
+            maskSize: `auto calc(100% + ${svgScale}%)`
+          },
+          "aria-hidden": "true"
+        }), /*#__PURE__*/(0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_6__.jsx)("img", {
+          className: `img-svg-block__image${imgMaskEnable && svgUrl ? ' img-svg-block__image--masked' : ''}`,
+          src: imgUrl,
+          alt: imgAlt || '',
+          style: imgMaskEnable && svgUrl ? {
+            WebkitMaskImage: `url(${svgUrl})`,
+            maskImage: `url(${svgUrl})`,
+            WebkitMaskSize: `auto calc(100% + ${svgScale}%)`,
+            maskSize: `auto calc(100% + ${svgScale}%)`
+          } : undefined
+        })]
+      })
+    })]
+  });
+}
+
+/***/ },
+
+/***/ "./src/img-svg-block/index.js"
+/*!************************************!*\
+  !*** ./src/img-svg-block/index.js ***!
+  \************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony import */ var _wordpress_blocks__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/blocks */ "@wordpress/blocks");
+/* harmony import */ var _wordpress_blocks__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(_wordpress_blocks__WEBPACK_IMPORTED_MODULE_0__);
+/* harmony import */ var _style_scss__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./style.scss */ "./src/img-svg-block/style.scss");
+/* harmony import */ var _edit__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./edit */ "./src/img-svg-block/edit.js");
+/* harmony import */ var _block_json__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./block.json */ "./src/img-svg-block/block.json");
+/**
+ * Registers a new block provided a unique name and an object defining its behavior.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
+ */
+
+
+/**
+ * Lets webpack process CSS, SASS or SCSS files referenced in JavaScript files.
+ * All files containing `style` keyword are bundled together. The code used
+ * gets applied both to the front of your site and to the editor.
+ *
+ * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
+ */
+
+
+/**
+ * Internal dependencies
+ */
+
+
+
+/**
+ * Every block starts by registering a new block type definition.
+ *
+ * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
+ */
+(0,_wordpress_blocks__WEBPACK_IMPORTED_MODULE_0__.registerBlockType)(_block_json__WEBPACK_IMPORTED_MODULE_3__.name, {
+  /**
+   * @see ./edit.js
+   */
+  edit: _edit__WEBPACK_IMPORTED_MODULE_2__["default"]
+});
+
+/***/ },
+
+/***/ "./src/img-svg-block/editor.scss"
+/*!***************************************!*\
+  !*** ./src/img-svg-block/editor.scss ***!
+  \***************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
+/***/ "./src/img-svg-block/style.scss"
+/*!**************************************!*\
+  !*** ./src/img-svg-block/style.scss ***!
+  \**************************************/
+(__unused_webpack_module, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+// extracted by mini-css-extract-plugin
+
+
+/***/ },
+
+/***/ "react/jsx-runtime"
+/*!**********************************!*\
+  !*** external "ReactJSXRuntime" ***!
+  \**********************************/
+(module) {
+
+module.exports = window["ReactJSXRuntime"];
+
+/***/ },
+
+/***/ "@wordpress/block-editor"
+/*!*************************************!*\
+  !*** external ["wp","blockEditor"] ***!
+  \*************************************/
+(module) {
+
+module.exports = window["wp"]["blockEditor"];
+
+/***/ },
+
+/***/ "@wordpress/blocks"
+/*!********************************!*\
+  !*** external ["wp","blocks"] ***!
+  \********************************/
+(module) {
+
+module.exports = window["wp"]["blocks"];
+
+/***/ },
+
+/***/ "@wordpress/components"
+/*!************************************!*\
+  !*** external ["wp","components"] ***!
+  \************************************/
+(module) {
+
+module.exports = window["wp"]["components"];
+
+/***/ },
+
+/***/ "@wordpress/i18n"
+/*!******************************!*\
+  !*** external ["wp","i18n"] ***!
+  \******************************/
+(module) {
+
+module.exports = window["wp"]["i18n"];
+
+/***/ },
+
+/***/ "@wordpress/primitives"
+/*!************************************!*\
+  !*** external ["wp","primitives"] ***!
+  \************************************/
+(module) {
+
+module.exports = window["wp"]["primitives"];
+
+/***/ },
+
+/***/ "./node_modules/@wordpress/icons/build-module/library/background.mjs"
+/*!***************************************************************************!*\
+  !*** ./node_modules/@wordpress/icons/build-module/library/background.mjs ***!
+  \***************************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ background_default)
+/* harmony export */ });
+/* harmony import */ var _wordpress_primitives__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/primitives */ "@wordpress/primitives");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+// packages/icons/src/library/background.tsx
+
+
+var background_default = /* @__PURE__ */ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_wordpress_primitives__WEBPACK_IMPORTED_MODULE_0__.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "currentColor", children: /* @__PURE__ */ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_wordpress_primitives__WEBPACK_IMPORTED_MODULE_0__.Path, { fillRule: "evenodd", clipRule: "evenodd", d: "M11.53 4.47a.75.75 0 1 0-1.06 1.06l8 8a.75.75 0 1 0 1.06-1.06l-8-8Zm5 1a.75.75 0 1 0-1.06 1.06l2 2a.75.75 0 1 0 1.06-1.06l-2-2Zm-11.06 10a.75.75 0 0 1 1.06 0l2 2a.75.75 0 1 1-1.06 1.06l-2-2a.75.75 0 0 1 0-1.06Zm.06-5a.75.75 0 0 0-1.06 1.06l8 8a.75.75 0 1 0 1.06-1.06l-8-8Zm-.06-3a.75.75 0 0 1 1.06 0l10 10a.75.75 0 1 1-1.06 1.06l-10-10a.75.75 0 0 1 0-1.06Zm3.06-2a.75.75 0 0 0-1.06 1.06l10 10a.75.75 0 1 0 1.06-1.06l-10-10Z" }) });
+
+//# sourceMappingURL=background.mjs.map
+
+
+/***/ },
+
+/***/ "./node_modules/@wordpress/icons/build-module/library/image.mjs"
+/*!**********************************************************************!*\
+  !*** ./node_modules/@wordpress/icons/build-module/library/image.mjs ***!
+  \**********************************************************************/
+(__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   "default": () => (/* binding */ image_default)
+/* harmony export */ });
+/* harmony import */ var _wordpress_primitives__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! @wordpress/primitives */ "@wordpress/primitives");
+/* harmony import */ var react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! react/jsx-runtime */ "react/jsx-runtime");
+// packages/icons/src/library/image.tsx
+
+
+var image_default = /* @__PURE__ */ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_wordpress_primitives__WEBPACK_IMPORTED_MODULE_0__.SVG, { xmlns: "http://www.w3.org/2000/svg", viewBox: "0 0 24 24", fill: "currentColor", children: /* @__PURE__ */ (0,react_jsx_runtime__WEBPACK_IMPORTED_MODULE_1__.jsx)(_wordpress_primitives__WEBPACK_IMPORTED_MODULE_0__.Path, { d: "M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM5 4.5h14c.3 0 .5.2.5.5v8.4l-3-2.9c-.3-.3-.8-.3-1 0L11.9 14 9 12c-.3-.2-.6-.2-.8 0l-3.6 2.6V5c-.1-.3.1-.5.4-.5zm14 15H5c-.3 0-.5-.2-.5-.5v-2.4l4.1-3 3 1.9c.3.2.7.2.9-.1L16 12l3.5 3.4V19c0 .3-.2.5-.5.5z" }) });
+
+//# sourceMappingURL=image.mjs.map
+
+
+/***/ },
+
+/***/ "./src/img-svg-block/block.json"
+/*!**************************************!*\
+  !*** ./src/img-svg-block/block.json ***!
+  \**************************************/
+(module) {
+
+module.exports = /*#__PURE__*/JSON.parse('{"$schema":"https://schemas.wp.org/trunk/block.json","apiVersion":3,"name":"stiftung-enzian/img-svg-block","version":"0.1.0","title":"Bild mit SVG-Hintergrund","category":"media","icon":"smiley","description":"Bild-Block mit optionalem SVG-Formhintergrund.","example":{},"attributes":{"img-url":{"type":"string"},"img-alt":{"type":"string"},"img-id":{"type":"string"},"svg-url":{"type":"string"},"svg-alt":{"type":"string"},"svg-id":{"type":"string"},"svg-fill-color":{"type":"string"},"svg-enable":{"type":"boolean","default":false},"img-mask-enable":{"type":"boolean","default":false},"img-width":{"type":"number"},"img-height":{"type":"number"},"svg-scale":{"type":"number","default":0}},"supports":{"align":["wide","full"],"anchor":true},"textdomain":"img-svg-block","editorScript":"file:./index.js","editorStyle":"file:./index.css","style":"file:./style-index.css","render":"file:./render.php","viewScript":"file:./view.js"}');
+
+/***/ }
+
+/******/ 	});
+/************************************************************************/
+/******/ 	// The module cache
+/******/ 	const __webpack_module_cache__ = {};
+/******/ 	
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/ 		// Check if module is in cache
+/******/ 		const cachedModule = __webpack_module_cache__[moduleId];
+/******/ 		if (cachedModule !== undefined) {
+/******/ 			return cachedModule.exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		const module = __webpack_module_cache__[moduleId] = {
+/******/ 			// no module.id needed
+/******/ 			// no module.loaded needed
+/******/ 			exports: {}
+/******/ 		};
+/******/ 	
+/******/ 		// Execute the module function
+/******/ 		if (!(moduleId in __webpack_modules__)) {
+/******/ 			delete __webpack_module_cache__[moduleId];
+/******/ 			const e = new Error("Cannot find module '" + moduleId + "'");
+/******/ 			e.code = 'MODULE_NOT_FOUND';
+/******/ 			throw e;
+/******/ 		}
+/******/ 		__webpack_modules__[moduleId](module, module.exports, __webpack_require__);
+/******/ 	
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/ 	
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = __webpack_modules__;
+/******/ 	
+/************************************************************************/
+/******/ 	/* webpack/runtime/chunk loaded */
+/******/ 	(() => {
+/******/ 		const deferred = [];
+/******/ 		__webpack_require__.O = (result, chunkIds, fn, priority) => {
+/******/ 			if(chunkIds) {
+/******/ 				priority = priority || 0;
+/******/ 				for(var i = deferred.length; i > 0 && deferred[i - 1][2] > priority; i--) deferred[i] = deferred[i - 1];
+/******/ 				deferred[i] = [chunkIds, fn, priority];
+/******/ 				return;
+/******/ 			}
+/******/ 			let notFulfilled = Infinity;
+/******/ 			for (var i = 0; i < deferred.length; i++) {
+/******/ 				let [chunkIds, fn, priority] = deferred[i];
+/******/ 				let fulfilled = true;
+/******/ 				for (var j = 0; j < chunkIds.length; j++) {
+/******/ 					if ((priority & 1 === 0 || notFulfilled >= priority) && Object.keys(__webpack_require__.O).every((key) => (__webpack_require__.O[key](chunkIds[j])))) {
+/******/ 						chunkIds.splice(j--, 1);
+/******/ 					} else {
+/******/ 						fulfilled = false;
+/******/ 						if(priority < notFulfilled) notFulfilled = priority;
+/******/ 					}
+/******/ 				}
+/******/ 				if(fulfilled) {
+/******/ 					deferred.splice(i--, 1)
+/******/ 					const r = fn();
+/******/ 					if (r !== undefined) result = r;
+/******/ 				}
+/******/ 			}
+/******/ 			return result;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/compat get default export */
+/******/ 	(() => {
+/******/ 		// getDefaultExport function for compatibility with non-harmony modules
+/******/ 		__webpack_require__.n = (module) => {
+/******/ 			const getter = module && module.__esModule ?
+/******/ 				() => (module['default']) :
+/******/ 				() => (module);
+/******/ 			__webpack_require__.d(getter, { a: getter });
+/******/ 			return getter;
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/define property getters */
+/******/ 	(() => {
+/******/ 		// define getter/value functions for harmony exports
+/******/ 		__webpack_require__.d = (exports, definition) => {
+/******/ 			if(Array.isArray(definition)) {
+/******/ 				var i = 0;
+/******/ 				while(i < definition.length) {
+/******/ 					var key = definition[i++];
+/******/ 					var binding = definition[i++];
+/******/ 					if(!__webpack_require__.o(exports, key)) {
+/******/ 						if(binding === 0) {
+/******/ 							Object.defineProperty(exports, key, { enumerable: true, value: definition[i++] });
+/******/ 						} else {
+/******/ 							Object.defineProperty(exports, key, { enumerable: true, get: binding });
+/******/ 						}
+/******/ 					} else if(binding === 0) { i++; }
+/******/ 				}
+/******/ 			} else {
+/******/ 				for(var key in definition) {
+/******/ 					if(__webpack_require__.o(definition, key) && !__webpack_require__.o(exports, key)) {
+/******/ 						Object.defineProperty(exports, key, { enumerable: true, get: definition[key] });
+/******/ 					}
+/******/ 				}
+/******/ 			}
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/hasOwnProperty shorthand */
+/******/ 	(() => {
+/******/ 		__webpack_require__.o = (obj, prop) => (Object.hasOwn(obj, prop))
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/make namespace object */
+/******/ 	(() => {
+/******/ 		// define __esModule on exports
+/******/ 		__webpack_require__.r = (exports) => {
+/******/ 			if(Symbol.toStringTag) {
+/******/ 				Object.defineProperty(exports, Symbol.toStringTag, { value: 'Module' });
+/******/ 			}
+/******/ 			Object.defineProperty(exports, '__esModule', { value: true });
+/******/ 		};
+/******/ 	})();
+/******/ 	
+/******/ 	/* webpack/runtime/jsonp chunk loading */
+/******/ 	(() => {
+/******/ 		// no baseURI
+/******/ 		
+/******/ 		// object to store loaded and loading chunks
+/******/ 		// undefined = chunk not loaded, null = chunk preloaded/prefetched
+/******/ 		// [resolve, reject, Promise] = chunk loading, 0 = chunk loaded
+/******/ 		const installedChunks = {
+/******/ 			"img-svg-block/index": 0,
+/******/ 			"img-svg-block/style-index": 0
+/******/ 		};
+/******/ 		
+/******/ 		// no chunk on demand loading
+/******/ 		
+/******/ 		// no prefetching
+/******/ 		
+/******/ 		// no preloaded
+/******/ 		
+/******/ 		// no HMR
+/******/ 		
+/******/ 		// no HMR manifest
+/******/ 		
+/******/ 		__webpack_require__.O.j = (chunkId) => (installedChunks[chunkId] === 0);
+/******/ 		
+/******/ 		// install a JSONP callback for chunk loading
+/******/ 		const webpackJsonpCallback = (parentChunkLoadingFunction, data) => {
+/******/ 			let [chunkIds, moreModules, runtime] = data;
+/******/ 			// add "moreModules" to the modules object,
+/******/ 			// then flag all "chunkIds" as loaded and fire callback
+/******/ 			var moduleId, chunkId, i = 0;
+/******/ 			if(chunkIds.some((id) => (installedChunks[id] !== 0))) {
+/******/ 				for(moduleId in moreModules) {
+/******/ 					if(__webpack_require__.o(moreModules, moduleId)) {
+/******/ 						__webpack_require__.m[moduleId] = moreModules[moduleId];
+/******/ 					}
+/******/ 				}
+/******/ 				if(runtime) var result = runtime(__webpack_require__);
+/******/ 			}
+/******/ 			if(parentChunkLoadingFunction) parentChunkLoadingFunction(data);
+/******/ 			for(;i < chunkIds.length; i++) {
+/******/ 				chunkId = chunkIds[i];
+/******/ 				if(__webpack_require__.o(installedChunks, chunkId) && installedChunks[chunkId]) {
+/******/ 					installedChunks[chunkId][0]();
+/******/ 				}
+/******/ 				installedChunks[chunkId] = 0;
+/******/ 			}
+/******/ 			return __webpack_require__.O(result);
+/******/ 		}
+/******/ 		
+/******/ 		const chunkLoadingGlobal = globalThis["webpackChunkimg_svg_block"] ||= [];
+/******/ 		chunkLoadingGlobal.forEach(webpackJsonpCallback.bind(null, 0));
+/******/ 		chunkLoadingGlobal.push = webpackJsonpCallback.bind(null, chunkLoadingGlobal.push.bind(chunkLoadingGlobal));
+/******/ 	})();
+/******/ 	
+/************************************************************************/
+/******/ 	
+/******/ 	// startup
+/******/ 	// Load entry module and return exports
+/******/ 	// This entry module depends on other loaded chunks and execution need to be delayed
+/******/ 	let __webpack_exports__ = __webpack_require__.O(undefined, ["img-svg-block/style-index"], () => (__webpack_require__("./src/img-svg-block/index.js")))
+/******/ 	__webpack_exports__ = __webpack_require__.O(__webpack_exports__);
+/******/ 	
+/******/ })()
+;
+//# sourceMappingURL=index.js.map

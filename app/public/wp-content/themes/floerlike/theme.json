@@ -34,7 +34,7 @@
 				{
 					"name": "Extra Large",
 					"slug": "extra-large",
-					"size": "clamp(1.25rem, 1.25rem + 0.1vw, 1.5rem)"
+					"size": "clamp(1.500rem, calc(1.357rem + 0.714vw), 2.000rem)"
 				}
 			],
 			"fontFamilies": [
@@ -261,7 +261,7 @@
 				{
 					"name": "Extra Large",
 					"slug": "extra-large",
-					"size": "clamp(1.25rem, 1.25rem + 0.1vw, 1.5rem)"
+					"size": "clamp(1.500rem, calc(1.357rem + 0.714vw), 2.000rem)"
 				}
 			]
 		},
