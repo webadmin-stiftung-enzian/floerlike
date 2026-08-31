@@ -8,6 +8,7 @@
 	display: block;
 	max-width: 100%;
 	margin: 0;
+	overflow: visible; // let scaled shapes/images bleed past the block's edges
 	aspect-ratio: 4 / 3; // fallback until the real image dimensions are known
 
 	.img-svg-block__shape {
@@ -32,6 +33,15 @@
 
 		&--masked {
 			object-fit: cover;
+			-webkit-mask-repeat: no-repeat;
+			mask-repeat: no-repeat;
+			-webkit-mask-position: center;
+			mask-position: center;
+			-webkit-mask-size: auto 100%;
+			mask-size: auto 100%;
+		}
+
+		&--svg {
 			-webkit-mask-repeat: no-repeat;
 			mask-repeat: no-repeat;
 			-webkit-mask-position: center;

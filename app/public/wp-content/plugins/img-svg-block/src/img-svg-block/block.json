@@ -9,6 +9,10 @@
 	"description": "Bild-Block mit optionalem SVG-Formhintergrund.",
 	"example": {},
 	"attributes": {
+		"fg-type": {
+			"type": "string",
+			"default": "pixel"
+		},
 		"img-url": {
 			"type": "string"
 		},
@@ -17,6 +21,32 @@
 		},
 		"img-id": {
 			"type": "string"
+		},
+		"img-width": {
+			"type": "number"
+		},
+		"img-height": {
+			"type": "number"
+		},
+		"fg-svg-url": {
+			"type": "string"
+		},
+		"fg-svg-alt": {
+			"type": "string"
+		},
+		"fg-svg-id": {
+			"type": "string"
+		},
+		"fg-svg-fill-color": {
+			"type": "string"
+		},
+		"fg-svg-scale": {
+			"type": "number",
+			"default": 0
+		},
+		"fg-focal-point": {
+			"type": "object",
+			"default": { "x": 0.5, "y": 0.5 }
 		},
 		"svg-url": {
 			"type": "string"
@@ -38,15 +68,13 @@
 			"type": "boolean",
 			"default": false
 		},
-		"img-width": {
-			"type": "number"
-		},
-		"img-height": {
-			"type": "number"
-		},
 		"svg-scale": {
 			"type": "number",
 			"default": 0
+		},
+		"svg-focal-point": {
+			"type": "object",
+			"default": { "x": 0.5, "y": 0.5 }
 		}
 	},
 	"supports": {

@@ -14,6 +14,10 @@ return array(
 			
 		),
 		'attributes' => array(
+			'fg-type' => array(
+				'type' => 'string',
+				'default' => 'pixel'
+			),
 			'img-url' => array(
 				'type' => 'string'
 			),
@@ -22,6 +26,35 @@ return array(
 			),
 			'img-id' => array(
 				'type' => 'string'
+			),
+			'img-width' => array(
+				'type' => 'number'
+			),
+			'img-height' => array(
+				'type' => 'number'
+			),
+			'fg-svg-url' => array(
+				'type' => 'string'
+			),
+			'fg-svg-alt' => array(
+				'type' => 'string'
+			),
+			'fg-svg-id' => array(
+				'type' => 'string'
+			),
+			'fg-svg-fill-color' => array(
+				'type' => 'string'
+			),
+			'fg-svg-scale' => array(
+				'type' => 'number',
+				'default' => 0
+			),
+			'fg-focal-point' => array(
+				'type' => 'object',
+				'default' => array(
+					'x' => 0.5,
+					'y' => 0.5
+				)
 			),
 			'svg-url' => array(
 				'type' => 'string'
@@ -43,15 +76,16 @@ return array(
 				'type' => 'boolean',
 				'default' => false
 			),
-			'img-width' => array(
-				'type' => 'number'
-			),
-			'img-height' => array(
-				'type' => 'number'
-			),
 			'svg-scale' => array(
 				'type' => 'number',
 				'default' => 0
+			),
+			'svg-focal-point' => array(
+				'type' => 'object',
+				'default' => array(
+					'x' => 0.5,
+					'y' => 0.5
+				)
 			)
 		),
 		'supports' => array(

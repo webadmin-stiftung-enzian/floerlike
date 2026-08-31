@@ -12,7 +12,7 @@ import { __ } from '@wordpress/i18n';
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-block-editor/#useblockprops
  */
 import { useBlockProps, MediaUpload, MediaUploadCheck, InspectorControls, useSettings } from '@wordpress/block-editor';
-import { Panel, PanelBody, PanelRow, ColorPalette, Button, ToggleControl, RangeControl, Placeholder } from '@wordpress/components';
+import { Panel, PanelBody, PanelRow, ColorPalette, Button, ToggleControl, RadioControl, RangeControl, FocalPointPicker, Placeholder } from '@wordpress/components';
 import { background, image as imageIcon } from '@wordpress/icons';
 
 /**
@@ -22,6 +22,83 @@ import { background, image as imageIcon } from '@wordpress/icons';
  * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
  */
 import './editor.scss';
+
+/**
+ * Formats a focal point object as a CSS position string.
+ *
+ * @param {{x: number, y: number}} focalPoint Focal point value.
+ * @return {string} CSS position, e.g. "50% 50%".
+ */
+const focalPointToPosition = ( focalPoint ) =>
+	`${ ( focalPoint?.x ?? 0.5 ) * 100 }% ${ ( focalPoint?.y ?? 0.5 ) * 100 }%`;
+
+/**
+ * Converts a "Größe" scale attribute (-200..200, 0 = original size) into a
+ * CSS transform scale factor, so the shape grows/shrinks as a whole and can
+ * overflow past the block's edges instead of just zooming inside a fixed mask.
+ *
+ * @param {number} scale Scale attribute value.
+ * @return {number} Non-negative scale factor for `transform: scale()`.
+ */
+const scaleToFactor = ( scale ) => Math.max( 0, 1 + ( Number( scale ) || 0 ) / 100 );
+
+/**
+ * Builds the style for a solid-color mask "shape" element (background shape
+ * or standalone foreground SVG). The element is sized to fill its container
+ * exactly (0 % scale = container height, SVG's own aspect ratio preserved
+ * automatically via `mask-size: auto`), then grown/shrunk as a whole via
+ * `transform: scale()` anchored at the focal point — so it stays
+ * proportionally consistent across screen sizes (unlike an absolute pixel
+ * size would) while still being able to bleed past the container's edges.
+ *
+ * @param {Object}                  props
+ * @param {string}                  props.url        Mask image URL.
+ * @param {string}                  props.fillColor  CSS color.
+ * @param {{x: number, y: number}}  props.focalPoint Focal point value.
+ * @param {number}                  props.scale      Scale attribute value.
+ * @return {Object} React style object.
+ */
+const buildShapeStyle = ( { url, fillColor, focalPoint, scale } ) => ( {
+	position: 'absolute',
+	inset: 0,
+	backgroundColor: fillColor || '#000000',
+	WebkitMaskImage: `url(${ url })`,
+	maskImage: `url(${ url })`,
+	WebkitMaskRepeat: 'no-repeat',
+	maskRepeat: 'no-repeat',
+	WebkitMaskSize: 'auto 100%',
+	maskSize: 'auto 100%',
+	WebkitMaskPosition: focalPointToPosition( focalPoint ),
+	maskPosition: focalPointToPosition( focalPoint ),
+	transform: `scale(${ scaleToFactor( scale ) })`,
+	transformOrigin: 'center',
+} );
+
+/**
+ * Builds the mask-related style props for the foreground pixel image when
+ * it's cropped into the background shape. The image element itself stays
+ * pinned to the container (its photo content fills it via
+ * `object-fit: cover`) — only the mask "window" is resized/repositioned,
+ * relative to the container just like `buildShapeStyle`. It can never bleed
+ * past the image's own bounds, since there's no photo content beyond that
+ * to reveal.
+ *
+ * @param {Object}                  props
+ * @param {string}                  props.url        Background SVG URL.
+ * @param {{x: number, y: number}}  props.focalPoint Background focal point value.
+ * @param {number}                  props.scale      Background scale attribute value.
+ * @return {Object} Partial React style object.
+ */
+const buildMaskedImageMaskStyle = ( { url, focalPoint, scale } ) => ( {
+	WebkitMaskImage: `url(${ url })`,
+	maskImage: `url(${ url })`,
+	WebkitMaskRepeat: 'no-repeat',
+	maskRepeat: 'no-repeat',
+	WebkitMaskSize: `auto calc(100% + ${ scale }%)`,
+	maskSize: `auto calc(100% + ${ scale }%)`,
+	WebkitMaskPosition: focalPointToPosition( focalPoint ),
+	maskPosition: focalPointToPosition( focalPoint ),
+} );
 
 /**
  * The edit function describes the structure of your block in the context of the
@@ -34,21 +111,33 @@ import './editor.scss';
 export default function Edit( { attributes, setAttributes } ) {
 	const blockProps = useBlockProps();
 	const {
+		'fg-type': fgType,
+		'img-url': imgUrl,
+		'img-alt': imgAlt,
+		'img-id': imgId,
+		'img-width': imgWidth,
+		'img-height': imgHeight,
+		'fg-svg-url': fgSvgUrl,
+		'fg-svg-alt': fgSvgAlt,
+		'fg-svg-id': fgSvgId,
+		'fg-svg-fill-color': fgSvgFillColor,
+		'fg-svg-scale': fgSvgScale,
+		'fg-focal-point': fgFocalPoint,
 		'svg-url': svgUrl,
 		'svg-alt': svgAlt,
 		'svg-id': svgId,
 		'svg-fill-color': svgFillColor,
 		'svg-enable': svgEnable,
 		'img-mask-enable': imgMaskEnable,
-		'img-url': imgUrl,
-		'img-alt': imgAlt,
-		'img-id': imgId,
-		'img-width': imgWidth,
-		'img-height': imgHeight,
 		'svg-scale': svgScale,
+		'svg-focal-point': svgFocalPoint,
 	} = attributes;
 
 	const [ colorPalette ] = useSettings( 'color.palette' );
+
+	const isPixelForeground = fgType !== 'svg';
+	const hasForeground = isPixelForeground ? !! imgUrl : !! fgSvgUrl;
+	const foregroundPreviewUrl = isPixelForeground ? imgUrl : fgSvgUrl;
 
 	const onSelectImage = ( media ) => {
 		setAttributes( {
@@ -70,6 +159,18 @@ export default function Edit( { attributes, setAttributes } ) {
 		} );
 	};
 
+	const onSelectForegroundSvg = ( media ) => {
+		setAttributes( {
+			'fg-svg-url': media.url,
+			'fg-svg-id': String( media.id ),
+			'fg-svg-alt': media.alt || '',
+		} );
+	};
+
+	const onRemoveForegroundSvg = () => {
+		setAttributes( { 'fg-svg-url': '', 'fg-svg-id': '', 'fg-svg-alt': '' } );
+	};
+
 	const onSelectSvg = ( media ) => {
 		setAttributes( {
 			'svg-url': media.url,
@@ -86,35 +187,10 @@ export default function Edit( { attributes, setAttributes } ) {
 		<>
 			<InspectorControls>
 				<Panel>
-					<PanelBody title={ __( 'Bild', 'img-svg-block' ) } icon={ imageIcon } initialOpen={ true }>
-						<PanelRow>
-							<MediaUploadCheck>
-								<MediaUpload
-									onSelect={ onSelectImage }
-									allowedTypes={ [ 'image' ] }
-									value={ imgId }
-									render={ ( { open } ) => (
-										<Button onClick={ open } variant="primary">
-											{ imgUrl
-												? __( 'Bild ändern', 'img-svg-block' )
-												: __( 'Bild auswählen', 'img-svg-block' ) }
-										</Button>
-									) }
-								/>
-							</MediaUploadCheck>
-						</PanelRow>
-						{ imgUrl && (
-							<PanelRow>
-								<Button onClick={ onRemoveImage } variant="link" isDestructive>
-									{ __( 'Bild entfernen', 'img-svg-block' ) }
-								</Button>
-							</PanelRow>
-						) }
-					</PanelBody>
-					<PanelBody title={ __( 'Hintergrundform (SVG)', 'img-svg-block' ) } icon={ background } initialOpen={ false }>
+					<PanelBody title={ __( 'Hintergrund', 'img-svg-block' ) } icon={ background } initialOpen={ true }>
 						<PanelRow>
 							<ToggleControl
-								label={ __( 'SVG-Hintergrund anzeigen', 'img-svg-block' ) }
+								label={ __( 'Hintergrundform anzeigen', 'img-svg-block' ) }
 								checked={ !! svgEnable }
 								onChange={ ( value ) => setAttributes( { 'svg-enable': value } ) }
 							/>
@@ -149,23 +225,127 @@ export default function Edit( { attributes, setAttributes } ) {
 								onChange={ ( color ) => setAttributes( { 'svg-fill-color': color } ) }
 							/>
 						</PanelRow>
-						<PanelRow>
-							<ToggleControl
-								label={ __( 'Bild in SVG-Form anzeigen', 'img-svg-block' ) }
-								help={ __( 'Schneidet das ausgewählte Bild in die Form des SVGs (Maske).', 'img-svg-block' ) }
-								checked={ !! imgMaskEnable }
-								onChange={ ( value ) => setAttributes( { 'img-mask-enable': value } ) }
-							/>
-						</PanelRow>
+						{ isPixelForeground && (
+							<PanelRow>
+								<ToggleControl
+									label={ __( 'Vordergrund-Bild in Hintergrundform anzeigen', 'img-svg-block' ) }
+									help={ __( 'Schneidet das Vordergrundbild in die Form des SVGs (Maske).', 'img-svg-block' ) }
+									checked={ !! imgMaskEnable }
+									onChange={ ( value ) => setAttributes( { 'img-mask-enable': value } ) }
+								/>
+							</PanelRow>
+						) }
 						<RangeControl
-							label={ __( 'SVG-Größe', 'img-svg-block' ) }
-							help={ __( '0 % = Containerhöhe. Negative Werte verkleinern, positive vergrößern die Form (vom Zentrum aus).', 'img-svg-block' ) }
+							label={ __( 'Größe', 'img-svg-block' ) }
+							help={ __( '0 % = Containerhöhe. Negative Werte verkleinern, positive vergrößern die Form – vom Fokuspunkt aus.', 'img-svg-block' ) }
 							value={ svgScale }
 							onChange={ ( value ) => setAttributes( { 'svg-scale': value } ) }
-							min={ -20 }
-							max={ 100 }
+							min={ -200 }
+							max={ 200 }
 							step={ 1 }
 						/>
+						{ svgUrl && (
+							<PanelRow>
+								<FocalPointPicker
+									label={ __( 'Fokuspunkt der Form', 'img-svg-block' ) }
+									url={ svgUrl }
+									value={ svgFocalPoint }
+									onChange={ ( value ) => setAttributes( { 'svg-focal-point': value } ) }
+								/>
+							</PanelRow>
+						) }
+					</PanelBody>
+					<PanelBody title={ __( 'Vordergrund', 'img-svg-block' ) } icon={ imageIcon } initialOpen={ true }>
+						<PanelRow>
+							<RadioControl
+								label={ __( 'Format', 'img-svg-block' ) }
+								selected={ fgType || 'pixel' }
+								options={ [
+									{ label: __( 'Pixelbild', 'img-svg-block' ), value: 'pixel' },
+									{ label: __( 'Vektorgrafik (SVG)', 'img-svg-block' ), value: 'svg' },
+								] }
+								onChange={ ( value ) => setAttributes( { 'fg-type': value } ) }
+							/>
+						</PanelRow>
+						{ isPixelForeground ? (
+							<>
+								<PanelRow>
+									<MediaUploadCheck>
+										<MediaUpload
+											onSelect={ onSelectImage }
+											allowedTypes={ [ 'image' ] }
+											value={ imgId }
+											render={ ( { open } ) => (
+												<Button onClick={ open } variant="primary">
+													{ imgUrl
+														? __( 'Bild ändern', 'img-svg-block' )
+														: __( 'Bild auswählen', 'img-svg-block' ) }
+												</Button>
+											) }
+										/>
+									</MediaUploadCheck>
+								</PanelRow>
+								{ imgUrl && (
+									<PanelRow>
+										<Button onClick={ onRemoveImage } variant="link" isDestructive>
+											{ __( 'Bild entfernen', 'img-svg-block' ) }
+										</Button>
+									</PanelRow>
+								) }
+							</>
+						) : (
+							<>
+								<PanelRow>
+									<MediaUploadCheck>
+										<MediaUpload
+											onSelect={ onSelectForegroundSvg }
+											allowedTypes={ [ 'image/svg+xml' ] }
+											value={ fgSvgId }
+											render={ ( { open } ) => (
+												<Button onClick={ open } variant="primary">
+													{ fgSvgUrl
+														? __( 'SVG ändern', 'img-svg-block' )
+														: __( 'SVG-Datei auswählen', 'img-svg-block' ) }
+												</Button>
+											) }
+										/>
+									</MediaUploadCheck>
+								</PanelRow>
+								{ fgSvgUrl && (
+									<PanelRow>
+										<Button onClick={ onRemoveForegroundSvg } variant="link" isDestructive>
+											{ __( 'SVG entfernen', 'img-svg-block' ) }
+										</Button>
+									</PanelRow>
+								) }
+								<PanelRow>
+									<ColorPalette
+										colors={ colorPalette }
+										value={ fgSvgFillColor }
+										onChange={ ( color ) => setAttributes( { 'fg-svg-fill-color': color } ) }
+									/>
+								</PanelRow>
+								<RangeControl
+									label={ __( 'Größe', 'img-svg-block' ) }
+									help={ __( '0 % = Containerhöhe. Negative Werte verkleinern, positive vergrößern die Form – vom Fokuspunkt aus.', 'img-svg-block' ) }
+									value={ fgSvgScale }
+									onChange={ ( value ) => setAttributes( { 'fg-svg-scale': value } ) }
+									min={ -200 }
+									max={ 200 }
+									step={ 1 }
+								/>
+							</>
+						) }
+						{ hasForeground && (
+							<PanelRow>
+								<FocalPointPicker
+									label={ __( 'Fokuspunkt', 'img-svg-block' ) }
+									url={ foregroundPreviewUrl }
+									value={ fgFocalPoint }
+									onChange={ ( value ) => setAttributes( { 'fg-focal-point': value } ) }
+								/>
+							</PanelRow>
+						) }
 					</PanelBody>
 				</Panel>
 			</InspectorControls>
@@ -173,23 +353,29 @@ export default function Edit( { attributes, setAttributes } ) {
 				{ ...blockProps }
 				style={ {
 					...blockProps.style,
-					aspectRatio: imgWidth && imgHeight ? `${ imgWidth } / ${ imgHeight }` : undefined,
+					aspectRatio: isPixelForeground && imgWidth && imgHeight ? `${ imgWidth } / ${ imgHeight }` : undefined,
 				} }
 			>
-				{ ! imgUrl ? (
+				{ ! hasForeground ? (
 					<Placeholder
 						icon={ imageIcon }
 						label={ __( 'Bild mit SVG-Hintergrund', 'img-svg-block' ) }
-						instructions={ __( 'Wähle ein Bild aus der Mediathek aus.', 'img-svg-block' ) }
+						instructions={
+							isPixelForeground
+								? __( 'Wähle ein Bild aus der Mediathek aus.', 'img-svg-block' )
+								: __( 'Wähle eine SVG-Datei aus der Mediathek aus.', 'img-svg-block' )
+						}
 					>
 						<MediaUploadCheck>
 							<MediaUpload
-								onSelect={ onSelectImage }
-								allowedTypes={ [ 'image' ] }
-								value={ imgId }
+								onSelect={ isPixelForeground ? onSelectImage : onSelectForegroundSvg }
+								allowedTypes={ isPixelForeground ? [ 'image' ] : [ 'image/svg+xml' ] }
+								value={ isPixelForeground ? imgId : fgSvgId }
 								render={ ( { open } ) => (
 									<Button onClick={ open } variant="primary">
-										{ __( 'Bild auswählen', 'img-svg-block' ) }
+										{ isPixelForeground
+											? __( 'Bild auswählen', 'img-svg-block' )
+											: __( 'SVG-Datei auswählen', 'img-svg-block' ) }
 									</Button>
 								) }
 							/>
@@ -200,31 +386,44 @@ export default function Edit( { attributes, setAttributes } ) {
 						{ svgEnable && svgUrl && (
 							<span
 								className="img-svg-block__shape"
-								style={ {
-									backgroundColor: svgFillColor || '#000000',
-									WebkitMaskImage: `url(${ svgUrl })`,
-									maskImage: `url(${ svgUrl })`,
-									WebkitMaskSize: `auto calc(100% + ${ svgScale }%)`,
-									maskSize: `auto calc(100% + ${ svgScale }%)`,
-								} }
+								style={ buildShapeStyle( {
+									url: svgUrl,
+									fillColor: svgFillColor,
+									focalPoint: svgFocalPoint,
+									scale: svgScale,
+								} ) }
 								aria-hidden="true"
 							/>
 						) }
-						<img
-							className={ `img-svg-block__image${ imgMaskEnable && svgUrl ? ' img-svg-block__image--masked' : '' }` }
-							src={ imgUrl }
-							alt={ imgAlt || '' }
-							style={
-								imgMaskEnable && svgUrl
-									? {
-											WebkitMaskImage: `url(${ svgUrl })`,
-											maskImage: `url(${ svgUrl })`,
-											WebkitMaskSize: `auto calc(100% + ${ svgScale }%)`,
-											maskSize: `auto calc(100% + ${ svgScale }%)`,
-									  }
-									: undefined
-							}
-						/>
+						{ isPixelForeground ? (
+							<img
+								className={ `img-svg-block__image${ imgMaskEnable && svgUrl ? ' img-svg-block__image--masked' : '' }` }
+								src={ imgUrl }
+								alt={ imgAlt || '' }
+								style={ {
+									objectPosition: focalPointToPosition( fgFocalPoint ),
+									...( imgMaskEnable && svgUrl
+										? buildMaskedImageMaskStyle( {
+												url: svgUrl,
+												focalPoint: svgFocalPoint,
+												scale: svgScale,
+										  } )
+										: {} ),
+								} }
+							/>
+						) : (
+							<span
+								className="img-svg-block__image img-svg-block__image--svg"
+								style={ buildShapeStyle( {
+									url: fgSvgUrl,
+									fillColor: fgSvgFillColor,
+									focalPoint: fgFocalPoint,
+									scale: fgSvgScale,
+								} ) }
+								role="img"
+								aria-label={ fgSvgAlt || '' }
+							/>
+						) }
 					</>
 				) }
 			</figure>

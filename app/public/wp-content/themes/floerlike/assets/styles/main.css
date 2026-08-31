@@ -94,15 +94,30 @@ header.wp-block-template-part {
     /* Breite setzt Swiper inline */
 }
 
+section.cta {
+    height: 15rem;
+    overflow-x: visible;
+    overflow-y: clip;
+}
+
+section.cta .wp-block-columns{
+    height: 100%;
+}
+
+section.cta .wp-block-columns,
 section.highlight .swiper-slide .wp-block-columns {
     gap: 0;
 }
 
+section.cta .wp-block-columns>.wp-block-column,
 section.highlight .swiper-slide .wp-block-columns>.wp-block-column {
     flex: 0 0 50%;
     min-width: 0;
     /* verhindert Überlauf durch breite Inhalte */
     box-sizing: border-box;
+}
+
+section.highlight .swiper-slide .wp-block-columns>.wp-block-column {
     padding: 2.5rem;
 }
 
