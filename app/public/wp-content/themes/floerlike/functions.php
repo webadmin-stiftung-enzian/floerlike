@@ -1,4 +1,12 @@
 <?php
+// Theme-Styles auch im Block-Editor laden, damit Blöcke dort wie im Frontend aussehen
+function floerlike_setup_editor_styles()
+{
+    add_theme_support('editor-styles');
+    add_editor_style('assets/styles/main.css');
+}
+add_action('after_setup_theme', 'floerlike_setup_editor_styles');
+
 // SVG-Upload erlauben
 function allow_svg_upload($mimes)
 {
