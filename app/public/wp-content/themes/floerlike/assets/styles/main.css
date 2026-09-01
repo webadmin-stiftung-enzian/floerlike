@@ -96,8 +96,7 @@ header.wp-block-template-part {
 
 section.cta {
     height: 15rem;
-    overflow-x: visible;
-    overflow-y: clip;
+    overflow: clip;
 }
 
 section.cta .wp-block-columns{
@@ -117,13 +116,34 @@ section.highlight .swiper-slide .wp-block-columns>.wp-block-column {
     box-sizing: border-box;
 }
 
+section.cta .wp-block-columns>.wp-block-column {
+    height: 100%;
+    display: grid;
+    align-content: center;
+}
+
+section.cta .cta-message > div{
+    padding: 3rem;
+}
+
+section.cta .cta-message h2 {
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    font-size: var(--wp--preset--font-size--xl);
+    font-weight: 200;
+}
+
 section.highlight .swiper-slide .wp-block-columns>.wp-block-column {
-    padding: 2.5rem;
+    padding: 3rem;
 }
 
 section.highlight .highlight-text-wrapper .highlight-text {
     font-weight: 300;
-    font-size: var(--wp--preset--font-size--extra-large);
+    font-size: var(--wp--preset--font-size--l);
     line-height: 1.25;
     letter-spacing: 0.001;
+}
+
+section.highlight .highlight-text-wrapper h2{
+    font-weight: 300;
+    font-size: var(--wp--preset--font-size--xl);
 }
