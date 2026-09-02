@@ -381,7 +381,7 @@
 					"outline": {
 						"border": {
 							"color": "var(--wp--preset--color--main-1-pistachio-ultralight)",
-							"radius": "1rem",
+							"radius": "3rem",
 							"width": "1px",
 							"style": "solid"
 						},
