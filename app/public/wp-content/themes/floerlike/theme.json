@@ -36,7 +36,7 @@
 				{
 					"name": "Large",
 					"slug": "l",
-					"size": "clamp(1.250rem, calc(1.179rem + 0.357vw), 1.500rem)"
+					"size": "clamp(1.000rem, calc(0.818rem + 0.909vw), 1.500rem)"
 				},
 				{
 					"name": "Extra Large",
@@ -263,7 +263,7 @@
 				{
 					"name": "Large",
 					"slug": "l",
-					"size": "clamp(1.250rem, calc(1.179rem + 0.357vw), 1.500rem)"
+					"size": "clamp(1.000rem, calc(0.818rem + 0.909vw), 1.500rem)"
 				},
 				{
 					"name": "Extra Large",
@@ -350,7 +350,7 @@
 			},
 			"core/button": {
 				"border": {
-					"radius": "1rem",
+					"radius": "3rem",
 					"width": "1px",
 					"style": "solid",
 					"color": "var(--wp--preset--color--main-1-pistachio-dark)"

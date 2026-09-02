@@ -242,7 +242,7 @@ export default function Edit( { attributes, setAttributes } ) {
 							value={ svgScale }
 							onChange={ ( value ) => setAttributes( { 'svg-scale': value } ) }
 							min={ -200 }
-							max={ 200 }
+							max={ 400 }
 							step={ 1 }
 						/>
 						{ svgUrl && (
