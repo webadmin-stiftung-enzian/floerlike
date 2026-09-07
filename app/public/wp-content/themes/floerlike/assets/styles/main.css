@@ -119,24 +119,33 @@ header.wp-block-template-part {
     position: absolute;
     inset: -3px;
     border-radius: 50%;
-    border: 1px solid var(--wp--preset--color--main-2-deluge-dark);
+    border: 1px solid var(--wp--preset--color--main-2-deluge);
     background: transparent;
     transition: background 0.35s ease-in-out;
 }
 
 /* .cb-carousel-block>.cb-button-prev:hover::before,
 .cb-carousel-block>.cb-button-next:hover::before {
-    background: var(--wp--preset--color--main-2-deluge-dark);
+    background: var(--wp--preset--color--main-2-deluge);
 } */
 
 .wp-block-cb-carousel-v2 .cb-pagination .cb-pagination-bullet {
-    background: var(--wp--preset--color--main-2-deluge-dark) !important;
+    background: var(--wp--preset--color--main-2-deluge) !important;
 }
 
 .wp-block-cb-carousel-v2 .cb-button-next:hover,
 .wp-block-cb-carousel-v2 .cb-button-prev:hover {
     color: var(--wp--preset--color--main-1-pistachio-ultralight) !important;
-    background: var(--wp--preset--color--main-2-deluge-dark) !important;
+    background: var(--wp--preset--color--main-2-deluge) !important;
+}
+
+.swiper-navigation-icon {
+    color: var(--wp--preset--color--main-2-deluge-light);
+}
+
+.wp-block-cb-carousel-v2 .cb-button-next:hover .swiper-navigation-icon,
+.wp-block-cb-carousel-v2 .cb-button-prev:hover .swiper-navigation-icon {
+    color: var(--wp--preset--color--main-1-pistachio-ultralight);
 }
 
 .cb-carousel-block>.cb-button-prev,
@@ -148,7 +157,7 @@ header.wp-block-template-part {
     padding: 1rem;
     border-radius: 50%;
     aspect-ratio: 1 / 1;
-    background:transparent;
+    background: var(--wp--preset--color--main-2-deluge-lightdark);
     transition: background 0.35s ease-in-out;
 }
 
@@ -251,6 +260,7 @@ section.cta .cta-message>div {
     flex-direction: column;
     gap: 1.5rem;
     padding: 3rem;
+    z-index: 1;
 }
 
 section.cta .cta-message div.wp-block-buttons {
@@ -335,6 +345,42 @@ section.category .category-img-wrapper figure img {
     height: 100%;
 }
 
+section.services {
+    padding: 3rem;
+}
+
+section.services .services-wrapper {
+    display: grid;
+    /* grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(3, 1fr); */
+    gap: 3rem;
+}
+
+section.services h2 {
+    font-weight: 300;
+    font-size: var(--wp--preset--font-size--xl);
+    line-height: 1.33;
+    letter-spacing: 0.001;
+    padding-bottom: 1.5rem;
+    padding-top: 1.5rem;
+}
+
+section.services .services-wrapper .wp-block-group.is-vertical{
+    gap: 1.5rem;
+}
+
+section.services .services-wrapper .wp-block-image {
+    max-width: 9rem;          /* Box begrenzen -> WP zentriert sie bereits */
+    margin-inline: auto;      /* explizit, falls der Kontext mal kein constrained layout ist */
+}
+
+section.services .services-wrapper .wp-block-image img {
+    display: block;           /* kein inline-Baseline-Spalt */
+    width: 100%;
+    height: auto;             /* Seitenverhältnis aus width/height-Attributen */
+}
+
+
 footer {
     max-width: 1440px;
     margin-left: auto;
@@ -387,15 +433,15 @@ footer .footer-wrapper a {
 }
 
 footer .footer-wrapper a:hover {
-    color: var(--wp--preset--color--main-2-deluge-dark);
+    color: var(--wp--preset--color--main-4-gianna-light);
 }
 
 footer .footer-wrapper a:focus {
-    color: var(--wp--preset--color--main-2-deluge-dark);
+    color: var(--wp--preset--color--main-4-gianna-light);
 }
 
 footer .footer-wrapper a:active {
-    color: var(--wp--preset--color--main-2-deluge-dark);
+    color: var(--wp--preset--color--main-4-gianna-light);
 }
 
 footer .footer-wrapper a:visited {
