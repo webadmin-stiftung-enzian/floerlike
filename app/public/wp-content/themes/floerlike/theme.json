@@ -65,7 +65,7 @@
 							"fontWeight": "200",
 							"fontDisplay": "swap",
 							"src": [
-								"file:./asset/fonts/PPNeueMontrealMono-Light.woff2"
+								"file:./assets/fonts/PPNeueMontrealMono-Light.woff2"
 							]
 						},
 						{
@@ -73,7 +73,7 @@
 							"fontWeight": "300",
 							"fontDisplay": "swap",
 							"src": [
-								"file:./asset/fonts/PPNeueMontrealMono-Book.woff2"
+								"file:./assets/fonts/PPNeueMontrealMono-Book.woff2"
 							]
 						},
 						{
@@ -81,7 +81,7 @@
 							"fontWeight": "400",
 							"fontDisplay": "swap",
 							"src": [
-								"file:./asset/fonts/PPNeueMontrealMono-Regular.woff2"
+								"file:./assets/fonts/PPNeueMontrealMono-Regular.woff2"
 							]
 						},
 						{
@@ -89,7 +89,7 @@
 							"fontWeight": "500",
 							"fontDisplay": "swap",
 							"src": [
-								"file:./asset/fonts/PPNeueMontrealMono-Medium.woff2"
+								"file:./assets/fonts/PPNeueMontrealMono-Medium.woff2"
 							]
 						},
 						{
@@ -97,7 +97,7 @@
 							"fontWeight": "600",
 							"fontDisplay": "swap",
 							"src": [
-								"file:./asset/fonts/PPNeueMontrealMono-Bold.woff2"
+								"file:./assets/fonts/PPNeueMontrealMono-Bold.woff2"
 							]
 						}
 					]

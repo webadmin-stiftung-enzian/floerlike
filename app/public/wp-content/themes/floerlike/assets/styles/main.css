@@ -380,6 +380,52 @@ section.services .services-wrapper .wp-block-image img {
     height: auto;             /* Seitenverhältnis aus width/height-Attributen */
 }
 
+section.feature div.wp-block-column:has(figure) {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+}
+
+section.feature .img-svg-block__textpath {
+    font-weight: 200;
+}
+
+section.feature div.wp-block-column figure{
+    grid-column: 1 / span 3;
+    grid-row: 1/ span 3;
+}
+
+section.feature div.wp-block-group:has(.wp-block-woocommerce-product-price) {
+    grid-column: 3 / span 3;
+    grid-row: 3 / span 3;
+    display:flex;
+    justify-content: start;
+    align-items: start;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+section.feature div.wp-block-group .wp-block-buttons,
+section.feature div.wp-block-group .wp-block-post-title,
+section.feature div.wp-block-group .wp-block-woocommerce-product-price {
+    width: 100%;
+}
+
+section.feature div.wp-block-group .wp-block-post-title {
+
+}
+
+section.feature div.wp-block-group .wp-block-woocommerce-product-price .woocommerce-Price-amount{
+  font-family: var(--wp--preset--font-family--neue-montreal-mono);
+  font-weight: 300;
+  letter-spacing: 0.0125em;
+  line-height: 1.33;
+  color: var(--wp--preset--color--main-1-pistachio-dark);
+  border-radius: 100%;
+  border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
+  padding: 0.5rem;
+  
+}
 
 footer {
     max-width: 1440px;

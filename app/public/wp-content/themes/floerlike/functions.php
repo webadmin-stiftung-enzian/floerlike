@@ -76,6 +76,18 @@ add_filter('render_block_woocommerce/product-collection', function ($content, $b
     return preg_replace('/<\/div>\s*$/', $controls . '</div>', $content, 1);
 }, 10, 2);
 
+// Block bindings source for product permalink
+add_action('init', function () {
+    register_block_bindings_source('ja/product-permalink', array(
+        'label'              => __('Produkt-Link', 'ja'),
+        'uses_context'       => array('postId'),
+        'get_value_callback' => function (array $source_args, WP_Block $block) {
+            $post_id = $block->context['postId'] ?? 0;
+            return $post_id ? get_permalink($post_id) : null;
+        },
+    ));
+});
+
 // GSAP und ScrollTrigger einbinden
 wp_enqueue_script('gsap', get_template_directory_uri() . '/assets/libs/gsap.min.js', [], '3.12.5', true);
 wp_enqueue_script('gsap-scrolltrigger', get_template_directory_uri() . '/assets/libs/ScrollTrigger.min.js', ['gsap'], '3.12.5', true);
