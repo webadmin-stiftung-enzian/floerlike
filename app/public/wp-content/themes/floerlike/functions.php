@@ -7,25 +7,15 @@ function floerlike_setup_editor_styles()
 }
 add_action('after_setup_theme', 'floerlike_setup_editor_styles');
 
-// SVG-Upload erlauben
-function allow_svg_upload($mimes)
-{
-    $mimes['svg']  = 'image/svg+xml';
-    $mimes['svgz'] = 'image/svg+xml';
-    return $mimes;
-}
-add_filter('upload_mimes', 'allow_svg_upload');
-
-// MIME-Check von WordPress für SVG korrigieren
-function fix_svg_mime_check($data, $file, $filename, $mimes)
-{
-    if (str_ends_with(strtolower($filename), '.svg')) {
-        $data['ext']  = 'svg';
-        $data['type'] = 'image/svg+xml';
-    }
-    return $data;
-}
-add_filter('wp_check_filetype_and_ext', 'fix_svg_mime_check', 10, 4);
+// SVG-Uploads: bewusst nicht hier freigeschaltet.
+//
+// Das Safe-SVG-Plugin erlaubt den Upload selbst – aber nur für Rollen, die es
+// dürfen, und erst nachdem es die Datei durch seinen Allowlist-Sanitizer
+// geschickt hat. Ein eigener upload_mimes-Filter an dieser Stelle würde daran
+// nichts verbessern, und ein eigener wp_check_filetype_and_ext-Filter würde die
+// Inhaltsprüfung für alles aushebeln, was auf „.svg“ endet: eine beliebige
+// Datei könnte sich damit als SVG ausgeben. Bleibt der Upload also aus, ist
+// Safe SVG deaktiviert – und dann soll er auch ausbleiben.
 
 // Optional: SVG-Vorschau in der Mediathek anzeigen
 function svg_media_thumbnails($response, $attachment)

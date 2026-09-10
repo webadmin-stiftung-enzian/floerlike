@@ -24,4 +24,40 @@
 		position: relative;
 		z-index: 1;
 	}
+
+	// A vector graphic keeps its own artwork, so it is shown whole rather than
+	// cropped to fill — "Größe" is what crops it, from the focal point.
+	.img-svg-block__image--svg {
+		object-fit: contain;
+	}
+
+	// An embedded SVG — the foreground, or the textPath layer over it. Only
+	// its size is set here: a tinted drawing carries `fill="currentColor"` on
+	// its root from the embedding step (render.php / inline-svg.js) and
+	// inherits the block's color from there, while an untinted one must keep
+	// its own fills untouched.
+	.img-svg-block__inline-svg svg {
+		display: block;
+		width: 100%;
+		height: 100%;
+	}
+
+	// The textPath layer frames the foreground: it covers the whole block,
+	// above everything else, and never swallows a click meant for the block.
+	.img-svg-block__textpath {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		display: block;
+		width: 100%;
+		height: 100%;
+		object-fit: contain;
+		pointer-events: none;
+	}
+
+	// .img-svg-block__textpath text {
+	// 	fill: currentColor; 
+	// 	font-size: inherit;
+	// 	font-family: inherit;
+	// }
 }

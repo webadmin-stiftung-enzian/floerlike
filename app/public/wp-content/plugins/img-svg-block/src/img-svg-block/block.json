@@ -37,7 +37,35 @@
 		"fg-svg-id": {
 			"type": "string"
 		},
-		"fg-svg-fill-color": {
+		"fg-svg-color": {
+			"type": "string"
+		},
+		"fg-textpath-enable": {
+			"type": "boolean",
+			"default": false
+		},
+		"fg-textpath-url": {
+			"type": "string"
+		},
+		"fg-textpath-alt": {
+			"type": "string"
+		},
+		"fg-textpath-id": {
+			"type": "string"
+		},
+		"fg-textpath-text": {
+			"type": "string"
+		},
+		"fg-textpath-color": {
+			"type": "string"
+		},
+		"fg-textpath-font-family": {
+			"type": "string"
+		},
+		"fg-textpath-font-size": {
+			"type": "string"
+		},
+		"fg-textpath-letter-spacing": {
 			"type": "string"
 		},
 		"fg-svg-scale": {

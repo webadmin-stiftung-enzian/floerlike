@@ -42,7 +42,35 @@ return array(
 			'fg-svg-id' => array(
 				'type' => 'string'
 			),
-			'fg-svg-fill-color' => array(
+			'fg-svg-color' => array(
+				'type' => 'string'
+			),
+			'fg-textpath-enable' => array(
+				'type' => 'boolean',
+				'default' => false
+			),
+			'fg-textpath-url' => array(
+				'type' => 'string'
+			),
+			'fg-textpath-alt' => array(
+				'type' => 'string'
+			),
+			'fg-textpath-id' => array(
+				'type' => 'string'
+			),
+			'fg-textpath-text' => array(
+				'type' => 'string'
+			),
+			'fg-textpath-color' => array(
+				'type' => 'string'
+			),
+			'fg-textpath-font-family' => array(
+				'type' => 'string'
+			),
+			'fg-textpath-font-size' => array(
+				'type' => 'string'
+			),
+			'fg-textpath-letter-spacing' => array(
 				'type' => 'string'
 			),
 			'fg-svg-scale' => array(
