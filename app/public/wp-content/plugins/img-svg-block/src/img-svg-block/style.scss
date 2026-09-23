@@ -10,6 +10,7 @@
 	margin: 0;
 	overflow: visible; // let scaled shapes/images bleed past the block's edges
 	aspect-ratio: 4 / 3; // fallback until the real image dimensions are known
+	height: 100%;
 
 	// .img-svg-block__shape, .img-svg-block__mask-wrapper and
 	// .img-svg-block__image--svg get all of their positioning/masking rules

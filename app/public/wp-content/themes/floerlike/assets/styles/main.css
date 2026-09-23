@@ -4,7 +4,10 @@ h2 {
 
 header.wp-block-template-part {
     position: fixed;
-    top: 0;
+    /* Der Abstand zum Bildschirmrand gehört hierher, nicht an die .navbar:
+       GSAP schreibt deren transform inline, ein transform aus der CSS wäre
+       damit überschrieben. navbar-animation.js liest diesen Wert aus. */
+    top: 3rem;
     left: 0;
     right: 0;
     z-index: 999;
@@ -14,6 +17,7 @@ header.wp-block-template-part {
 .navbar {
     padding: 0.75rem 1.5rem;
     border-radius: 3rem;
+    width: 88%;
 }
 
 .wp-block-navigation__responsive-container.is-menu-open {
@@ -78,6 +82,46 @@ header.wp-block-template-part {
 .wp-block-woocommerce-customer-account:hover .wc-block-customer-account__link::after,
 .wc-block-mini-cart__button:hover .wc-block-mini-cart__quantity-badge::after,
 .wp-block-navigation-item__content:hover::after {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Buttons füllen sich wie die Navigation: eine Farbfläche fährt von links ein,
+   statt dass die Hintergrundfarbe umspringt. Die Füllfarbe steht je Stil in
+   --btn-fill; die Grundfarben und die Hover-Text-/Randfarbe bleiben in der
+   theme.json. Die Hover-Hintergrundfarbe ist dort bewusst nicht gesetzt --
+   sie würde sofort umspringen und die einfahrende Fläche verdecken. */
+.wp-block-button__link {
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
+    position: relative;
+    /* eigener Stapelkontext: erst dadurch liegt ::after über dem Hintergrund
+       des Buttons und trotzdem unter seiner Beschriftung */
+    isolation: isolate;
+    overflow: hidden;
+    transition: color 0.25s ease-in-out, border-color 0.25s ease-in-out;
+}
+
+.wp-block-button.is-style-outline .wp-block-button__link {
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-ultralight);
+}
+
+.wp-block-button.is-style-outline-dark .wp-block-button__link {
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+.wp-block-button__link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--btn-fill);
+    transform: translateX(-100%);
+    opacity: 0;
+    transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+.wp-block-button__link:hover::after {
     transform: translateX(0);
     opacity: 1;
 }
@@ -212,14 +256,22 @@ section.cta {
     overflow: clip;
 }
 
+
+section.highlight .block-editor-inner-blocks,
+section.highlight .block-editor-inner-blocks .block-editor-block-list__layout,
 section.cta .wp-block-columns {
     height: 100%;
+}
+
+section.highlight .swiper-slide {
+    aspect-ratio: 3/2;
 }
 
 section.category .wp-block-columns,
 section.cta .wp-block-columns,
 section.highlight .swiper-slide .wp-block-columns {
     gap: 0;
+    height: 100%;
 }
 
 section.cta .wp-block-columns {
@@ -273,24 +325,64 @@ section.cta .cta-message h2 {
     font-weight: 200;
 }
 
-section.highlight .swiper-slide .wp-block-columns>.wp-block-column {
-    padding: 3rem;
+.highlight.wp-block-columns {
+    gap: 0;
+    height: 100%;
+    /* Core setzt :where(.wp-block-columns) { margin-bottom: 1.75em }; im Editor
+       greift der Reset des Carousel-Plugins bei Synced Patterns nicht (Extra-Wrapper) */
+    margin-bottom: 0;
 }
 
-section.highlight .highlight-text-wrapper .highlight-text {
+.highlight>.wp-block-column {
+    padding: 3rem;
+    /* height: 100% + Padding darf die Slide-Höhe nicht sprengen (Editor: content-box) */
+    box-sizing: border-box;
+}
+
+.highlight .highlight-text-wrapper .highlight-text {
     font-weight: 300;
     font-size: var(--wp--preset--font-size--l);
     line-height: 1.33;
     letter-spacing: 0.001;
 }
 
-section.highlight .highlight-text-wrapper h2 {
+.highlight .highlight-text-wrapper h2 {
     font-weight: 300;
     font-size: var(--wp--preset--font-size--xl);
 }
 
+section.topic .wp-block-columns .wp-block-column,
 section.category .category-text-wrapper {
     padding: 3rem;
+}
+
+section.topic .wp-block-columns .wp-block-column div.wp-block-group {
+    display: flex;
+    flex-direction: column;
+    height: 100%;    
+}
+
+section.topic .wp-block-columns .wp-block-column div.wp-block-group > * {
+    margin-left: 0;
+    margin-right: 0;
+}
+
+section.topic .wp-block-columns .wp-block-column div.wp-block-group > h2 {
+    font-weight: 300;
+    font-size: var(--wp--preset--font-size--xl);
+    line-height: 1.33;
+    margin-bottom: 1.5rem;
+}
+
+section.topic .wp-block-columns .wp-block-column div.wp-block-group > h4 {
+    font-weight: 300;
+    font-size: var(--wp--preset--font-size--l);
+    line-height: 1.33;
+    margin-bottom: 1.5rem;
+}
+
+section.topic .wp-block-columns .wp-block-column div.wp-block-group > .wp-block-buttons{
+    margin-top: auto;
 }
 
 section.category .category-text-wrapper div.wp-block-group {
@@ -403,6 +495,7 @@ section.feature div.wp-block-group:has(.wp-block-woocommerce-product-price) {
     align-items: start;
     flex-direction: column;
     gap: 1.5rem;
+    z-index: 1;
 }
 
 section.feature div.wp-block-group .wp-block-buttons,
@@ -411,8 +504,12 @@ section.feature div.wp-block-group .wp-block-woocommerce-product-price {
     width: 100%;
 }
 
-section.feature div.wp-block-group .wp-block-post-title {
+section.feature div.wp-block-group .wp-block-buttons {
+    margin-block-start: 3rem !important;
+}
 
+section.feature div.wp-block-group .wp-block-post-title {
+    margin-block-end: 0 !important;
 }
 
 section.feature div.wp-block-group .wp-block-woocommerce-product-price .woocommerce-Price-amount{
@@ -423,8 +520,12 @@ section.feature div.wp-block-group .wp-block-woocommerce-product-price .woocomme
   color: var(--wp--preset--color--main-1-pistachio-dark);
   border-radius: 100%;
   border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
-  padding: 0.5rem;
+  padding: 0.75rem 1rem;
   
+}
+
+section.store .wp-block-image img {
+  width: 100%;
 }
 
 footer {

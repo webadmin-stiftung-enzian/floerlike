@@ -57,6 +57,19 @@ document.addEventListener('DOMContentLoaded', function () {
             menuObserver.observe(responsiveContainer, { attributes: true, attributeFilter: ['class'] });
         }
 
+        const header = navbar.closest('header');
+
+        // Distance from the top of the viewport to the navbar's resting top edge.
+        // `yPercent: -100` only moves the navbar by its own height, so without this
+        // extra offset a strip as tall as that distance stays on screen. Both
+        // `getComputedStyle().top` and `offsetTop` ignore transforms, so the value
+        // is still correct while the navbar is currently hidden -- unlike
+        // getBoundingClientRect(), which would include the transform.
+        const topGap = () => {
+            const headerTop = header ? parseFloat(getComputedStyle(header).top) : 0;
+            return (Number.isFinite(headerTop) ? headerTop : 0) + navbar.offsetTop;
+        };
+
         ScrollTrigger.create({
             start: "top -80",
             end: "max",
@@ -74,6 +87,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
                 gsap.to(navbar, {
                     yPercent: delta > 0 ? -100 : 0,
+                    y: delta > 0 ? -topGap() : 0,
                     duration: 0.3,
                     ease: "power1.out"
                 });
