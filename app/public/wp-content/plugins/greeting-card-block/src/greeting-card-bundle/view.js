@@ -10,24 +10,47 @@ import { store, getContext, getElement } from '@wordpress/interactivity';
 
 const MAX_LENGTH = 300;
 
+/**
+ * Gruppen-ID für ein zusammengehörendes Paar aus Strauss und Grusskarte.
+ *
+ * Beide Warenkorb-Positionen bekommen denselben Wert als `gcb_group` mit; der
+ * Server hält sie darüber zusammen (siehe includes/class-integration.php). Der
+ * Warenkorb-Schlüssel der Elternposition taugt dafür nicht: er steht beim
+ * Absenden noch gar nicht fest und ändert sich später bei jeder Mengenänderung.
+ *
+ * crypto.randomUUID() gibt es nur in sicheren Kontexten (HTTPS bzw. localhost);
+ * der Rückfall erzeugt eine ausreichend eindeutige ID für denselben Zweck.
+ */
+function createGroupId() {
+	const uuid =
+		typeof crypto !== 'undefined' && crypto.randomUUID
+			? crypto.randomUUID()
+			: `${ Date.now().toString( 36 ) }${ Math.random()
+					.toString( 36 )
+					.slice( 2, 10 ) }`;
+
+	// sanitize_key() auf PHP-Seite lässt nur Kleinbuchstaben, Ziffern,
+	// Bindestriche und Unterstriche durch -- hier gleich passend erzeugen.
+	return `gcb${ uuid.replace( /[^a-z0-9]/gi, '' ).toLowerCase() }`;
+}
+
 const { state } = store( 'greeting-card-bundle', {
 	state: {
 		get cardMissing() {
-			return state.wantsCard && ! state.selectedItemId;
+			return state.wantsCard && ! state.selectedCardId;
 		},
 		get textMissing() {
 			return state.wantsCard && state.text.trim() === '';
 		},
-		// "Weg 2": findet die zu den gewählten Attributen passende Variation
-		// des eingehüllten Hauptprodukts (z. B. Strauss-Grösse). Ein Attribut-
-		// wert von '' auf der Variation bedeutet "Any" (WooCommerce-Konvention)
-		// und matcht jede Auswahl.
+		// Findet die zu den gewählten Attributen passende Variation (z. B.
+		// Strauss-Grösse). Ein Attributwert von '' auf der Variation bedeutet
+		// "Any" (WooCommerce-Konvention) und matcht jede Auswahl.
 		get matchedVariation() {
-			if ( ! state.mainItem ) {
+			if ( ! state.variationSelector ) {
 				return null;
 			}
 			return (
-				state.mainItem.variations.find( ( variation ) =>
+				state.variationSelector.variations.find( ( variation ) =>
 					Object.entries( variation.attributes ).every(
 						( [ name, value ] ) =>
 							value === '' ||
@@ -37,10 +60,10 @@ const { state } = store( 'greeting-card-bundle', {
 			);
 		},
 		get variationMissing() {
-			if ( ! state.mainItem ) {
+			if ( ! state.variationSelector ) {
 				return false;
 			}
-			const allSelected = state.mainItem.attributes.every(
+			const allSelected = state.variationSelector.attributes.every(
 				( attribute ) => state.selectedAttributes[ attribute.name ]
 			);
 			return ! allSelected || ! state.matchedVariation;
@@ -68,7 +91,7 @@ const { state } = store( 'greeting-card-bundle', {
 			return state.submitAttempted && state.variationMissing;
 		},
 		get isCardPressed() {
-			return getContext().bundleItemId === state.selectedItemId;
+			return getContext().cardId === state.selectedCardId;
 		},
 		get charCounter() {
 			return `Zeichen verbleibend: ${ MAX_LENGTH - state.text.length }`;
@@ -79,9 +102,8 @@ const { state } = store( 'greeting-card-bundle', {
 			state.wantsCard = event.target.checked;
 		},
 		selectCard() {
-			const { bundleItemId } = getContext();
-			state.selectedItemId =
-				state.selectedItemId === bundleItemId ? 0 : bundleItemId;
+			const { cardId } = getContext();
+			state.selectedCardId = state.selectedCardId === cardId ? 0 : cardId;
 		},
 		selectAttribute( event ) {
 			const { attributeName } = getContext();
@@ -94,24 +116,18 @@ const { state } = store( 'greeting-card-bundle', {
 			state.text = event.target.value.substring( 0, MAX_LENGTH );
 		},
 
-/**
-		 * Sendet die Bundle-Konfiguration (welche Karte, falls gewählt) plus den
-		 * Grusstext über die Store API an cart/add-item. Die Struktur von
-		 * `bundle_configuration` (Array von { bundled_item_id, quantity,
-		 * optional_selected }, NICHT ein nach bundle_item_id indiziertes Objekt)
-		 * ist gegen den Quellcode der installierten Product-Bundles-Version
-		 * verifiziert (WC_PB_Cart::map_store_api_bundle_configuration).
+		/**
+		 * Legt Strauss und (falls gewählt) Grusskarte in EINEM Request über
+		 * /wc/store/v1/batch in den Warenkorb.
 		 *
-		 * "Weg 2" (Strauss als eingehülltes Bundled Item, siehe SETUP.md):
-		 * Wird KEINE Karte gewählt, wird das Bundle-Produkt komplett umgangen
-		 * und die Strauss-Variante direkt gekauft -- ein ganz normaler,
-		 * bundle-loser Store-API-Aufruf. Grund: WooCommerce's Cart-Block
-		 * blendet das (per "Faked Parent Item" eigentlich unsichtbar gedachte)
-		 * Bundle-Container-Item in der Praxis nicht zuverlässig aus, was ohne
-		 * gewählte Karte zu einer für Kund:innen verwirrenden, inhaltlich
-		 * unnötigen Eltern-Kind-Anzeige führen würde. Nur wenn tatsächlich eine
-		 * Karte gewählt wird, ist eine Bundle-Beziehung im Warenkorb fachlich
-		 * begründet -- dann läuft der Request wie gehabt über das Bundle.
+		 * Beide Teil-Anfragen tragen dieselbe `gcb_group`; daraus leitet der
+		 * Server die Eltern-Kind-Beziehung ab. `validation:
+		 * 'require-all-validate'` sorgt dafür, dass nicht der Strauss allein im
+		 * Warenkorb landet, wenn die Karte abgewiesen wird.
+		 *
+		 * Achtung: Die Teil-Anfragen laufen serverseitig als Body-Params, nicht
+		 * als JSON -- der Filter in class-integration.php liest deshalb beide
+		 * Quellen.
 		 */
 		async addToCart() {
 			state.submitAttempted = true;
@@ -124,81 +140,91 @@ const { state } = store( 'greeting-card-bundle', {
 			state.isAdding = true;
 
 			try {
-				const wantsBundle =
-					( state.wantsCard && state.selectedItemId ) ||
-					! state.mainItem;
+				const group = createGroupId();
 
-				let body;
+				// Variables Produkt: die gewählte Variation kaufen. Einfaches
+				// Produkt: das Produkt selbst.
+				const parentId = state.variationSelector
+					? state.matchedVariation.variationId
+					: state.productId;
 
-				if ( wantsBundle ) {
-					const bundleConfiguration = [];
+				// Jede Teil-Anfrage prüft den Nonce selbst
+				// (AbstractCartRoute::check_nonce) und erbt die Header des
+				// Batch-Requests NICHT -- ohne diesen Header antwortet sie mit
+				// 401, während der Batch-Request selbst 200 meldet.
+				const headers = { Nonce: state.nonce };
 
-					if ( state.wantsCard && state.selectedItemId ) {
-						bundleConfiguration.push( {
-							bundled_item_id: state.selectedItemId,
-							quantity: 1,
-							optional_selected: 'yes',
-						} );
-					}
+				const requests = [
+					{
+						path: '/wc/store/v1/cart/add-item',
+						method: 'POST',
+						headers,
+						body: {
+							id: parentId,
+							quantity: state.quantity,
+							gcb_group: group,
+							gcb_role: 'parent',
+						},
+					},
+				];
 
-					// Variante des eingehüllten Hauptprodukts (z. B.
-					// Strauss-Grösse) mit in die Konfiguration aufnehmen. Durch
-					// die isValid-Prüfung oben ist state.matchedVariation an
-					// dieser Stelle garantiert nicht null.
-					if ( state.mainItem ) {
-						bundleConfiguration.push( {
-							bundled_item_id: state.mainItem.bundleItemId,
-							quantity: 1,
-							variation_id: state.matchedVariation.variationId,
-							attributes: Object.entries(
-								state.selectedAttributes
-							).map( ( [ name, option ] ) => ( {
-								name,
-								option,
-							} ) ),
-						} );
-					}
-
-					body = {
-						id: state.bundleId,
-						quantity: state.quantity,
-						bundle_configuration: bundleConfiguration,
-						greeting_card_text: state.wantsCard
-							? state.text.trim()
-							: '',
-					};
-				} else {
-					// Keine Karte gewünscht: Bundle umgehen, Strauss-Variante
-					// direkt kaufen (siehe Hintergrund oben).
-					body = {
-						id: state.matchedVariation.variationId,
-						quantity: state.quantity,
-					};
+				if ( state.wantsCard && state.selectedCardId ) {
+					requests.push( {
+						path: '/wc/store/v1/cart/add-item',
+						method: 'POST',
+						headers,
+						body: {
+							id: state.selectedCardId,
+							quantity: state.quantity,
+							gcb_group: group,
+							gcb_role: 'card',
+							greeting_card_text: state.text.trim(),
+						},
+					} );
 				}
 
-				const response = await fetch( state.addItemUrl, {
+				const response = await fetch( state.batchUrl, {
 					method: 'POST',
 					headers: {
 						'Content-Type': 'application/json',
 						Nonce: state.nonce,
 					},
-					body: JSON.stringify( body ),
+					body: JSON.stringify( {
+						requests,
+						validation: 'require-all-validate',
+					} ),
 				} );
 
+				const payload = await response.json().catch( () => null );
+
 				if ( ! response.ok ) {
-					const err = await response.json().catch( () => null );
+					throw new Error( payload?.message || 'Add to cart failed' );
+				}
+
+				// Der Batch-Endpunkt antwortet mit 200, auch wenn eine
+				// Teil-Anfrage fehlgeschlagen ist -- deren Status steht nur in
+				// der jeweiligen Antwort.
+				const failed = ( payload?.responses || [] ).find(
+					( item ) => item?.status && item.status >= 400
+				);
+
+				if ( failed ) {
 					throw new Error(
-						err?.message || 'Add to cart failed'
+						failed.body?.message || 'Add to cart failed'
 					);
 				}
 
-				// Die add-item-Antwort IST der komplette Warenkorb. Damit Mini-Cart /
-				// Cart-Block (React-basiert, eigener Data Store) den neuen Stand
-				// anzeigen, spielen wir ihn in deren Store zurück.
-				const cart = await response.json();
-				window.wp?.data
-					?.dispatch( 'wc/store/cart' )
-					?.receiveCart( cart );
+				// Die letzte add-item-Antwort IST der komplette Warenkorb. Damit
+				// Mini-Cart / Cart-Block (React-basiert, eigener Data Store) den
+				// neuen Stand anzeigen, spielen wir ihn in deren Store zurück.
+				const responses = payload?.responses || [];
+				const cart = responses[ responses.length - 1 ]?.body;
+
+				if ( cart ) {
+					window.wp?.data
+						?.dispatch( 'wc/store/cart' )
+						?.receiveCart( cart );
+				}
 
 				// Fallback für Themes, die den Mini-Cart erst lazy laden.
 				document.body.dispatchEvent(
@@ -206,9 +232,7 @@ const { state } = store( 'greeting-card-bundle', {
 				);
 			} catch ( error ) {
 				state.errorMessage =
-					error instanceof Error
-						? error.message
-						: String( error );
+					error instanceof Error ? error.message : String( error );
 			} finally {
 				state.isAdding = false;
 			}
@@ -221,11 +245,11 @@ const { state } = store( 'greeting-card-bundle', {
 				modules: [ Navigation, Pagination ],
 				loop: false,
 				navigation: {
-					nextEl: '.swiper-button-next',
-					prevEl: '.swiper-button-prev',
+					nextEl: ref.querySelector( '.swiper-button-next' ),
+					prevEl: ref.querySelector( '.swiper-button-prev' ),
 				},
 				pagination: {
-					el: '.swiper-pagination',
+					el: ref.querySelector( '.swiper-pagination' ),
 					clickable: true,
 				},
 			} );

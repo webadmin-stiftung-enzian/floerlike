@@ -22,8 +22,9 @@ import { useBlockProps } from '@wordpress/block-editor';
 import './editor.scss';
 
 /**
- * The block's markup depends on the bundled items of the current product
- * (§6 der Spec) und wird komplett von render.php erzeugt. Im Editor gibt es
+ * The block's markup depends on the greeting cards linked to the current
+ * product (Tab "Linked Products" -> "Bundle-sells") und wird komplett von
+ * render.php erzeugt. Im Editor gibt es
  * keine Live-Vorschau, nur einen Platzhalter — Bearbeitung findet auf der
  * Produktseite selbst statt.
  *
@@ -33,7 +34,7 @@ export default function Edit() {
 	return (
 		<p { ...useBlockProps() }>
 			{ __(
-				'Grusskarte + Bundle in den Warenkorb – Vorschau nur auf der Produktseite sichtbar.',
+				'Grusskarte + Produkt in den Warenkorb – Vorschau nur auf der Produktseite sichtbar.',
 				'greeting-card-block'
 			) }
 		</p>

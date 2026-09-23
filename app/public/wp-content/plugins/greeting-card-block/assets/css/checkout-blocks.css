@@ -1,0 +1,43 @@
+/**
+ * Grusskarte im Warenkorb-, Mini-Cart- und Checkout-Block einrücken.
+ *
+ * Die Klassen setzt assets/js/checkout-blocks.js über den Checkout-Filter
+ * `cartItemClass`. Bewusst zurückhaltend gehalten: eine Einrückung und eine
+ * kurze Verbindungslinie reichen, um die Zugehörigkeit zu zeigen, ohne den
+ * Block-Styles des Themes ins Gehege zu kommen.
+ */
+
+.gcb-item--card {
+	position: relative;
+	padding-left: 1.5rem;
+}
+
+/* Verbindungslinie vom Produkt zur darunterliegenden Karte. */
+.gcb-item--card::before {
+	content: "";
+	position: absolute;
+	left: 0.5rem;
+	top: 0;
+	bottom: 50%;
+	width: 1px;
+	background: currentColor;
+	opacity: 0.25;
+}
+
+.gcb-item--card::after {
+	content: "";
+	position: absolute;
+	left: 0.5rem;
+	top: 50%;
+	width: 0.6rem;
+	height: 1px;
+	background: currentColor;
+	opacity: 0.25;
+}
+
+/* Die Menge der Karte folgt dem Produkt (siehe class-integration.php). Im
+   Warenkorb-Block ist sie über die Store API bereits nicht editierbar; der
+   verbleibende Nur-Lese-Zähler wäre dennoch nur verwirrend. */
+.gcb-item--card .wc-block-cart-item__quantity .wc-block-components-quantity-selector {
+	display: none;
+}

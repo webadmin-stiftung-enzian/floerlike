@@ -1,7 +1,7 @@
 {
 	"name": "greeting-card-block",
-	"version": "0.2.0",
-	"description": "Grusskarte als optionales Bundled Item (WooCommerce Product Bundles) mit eigener Auswahl-UI",
+	"version": "0.3.0",
+	"description": "Optionale Grusskarte zu einem Produkt (verknüpft über Bundle-sells) mit eigener Auswahl-UI",
 	"author": "The WordPress Contributors",
 	"license": "GPL-2.0-or-later",
 	"main": "build/index.js",

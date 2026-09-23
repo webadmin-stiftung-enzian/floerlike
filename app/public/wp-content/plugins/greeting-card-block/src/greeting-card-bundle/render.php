@@ -16,50 +16,32 @@ if (! defined('ABSPATH')) {
 }
 
 $product_id = absint($block->context['postId'] ?? get_the_ID());
-$bundle     = wc_get_product($product_id);
+$product    = wc_get_product($product_id);
 
 // Gemeinsames Zuständigkeits-Prädikat (siehe includes/class-integration.php):
-// unser Block rendert NUR auf Grusskarten-Bundles. Auf allen anderen Produkten
-// (Simple/Variable, oder Bundles ohne Grusskarte) bleibt die native
-// Add-to-Cart-Form zuständig — siehe den render_block-Filter dort.
-if (! gcb_is_greeting_card_bundle($bundle)) {
+// unser Block rendert NUR auf Produkten, die unter "Bundle-sells" verknüpfte
+// Grusskarten haben. Auf allen anderen bleibt die native Add-to-Cart-Form
+// zuständig — siehe die Koexistenz-Weiche dort.
+if (! gcb_is_card_parent($product)) {
 	return;
 }
 
-/** @var WC_Product_Bundle $bundle */
 $cards = [];
-foreach ($bundle->get_bundled_items() as $bundled_item) {
-	$cp = $bundled_item->get_product();
-	if (! $cp || ! has_term('grusskarte', 'product_cat', $cp->get_id())) {
-		continue;
-	}
-	// Nur ECHT optionale Bundled Items in die Auswahl aufnehmen. Ein als
-	// Pflicht (nicht optional) konfiguriertes Grusskarten-Item wird von
-	// Product Bundles ohnehin immer automatisch hinzugefügt -- unabhängig
-	// von Checkbox/Slider-Auswahl -- und gehört daher nicht in eine "Möchten
-	// Sie...?"-Auswahl, die suggeriert, es liesse sich abwählen.
-	if (! $bundled_item->is_optional()) {
-		continue;
-	}
+foreach (gcb_get_card_ids($product) as $card_id) {
+	$card = wc_get_product($card_id);
+
 	$cards[] = [
-		'bundleItemId' => $bundled_item->get_id(), // Indexschlüssel der Store-API-configuration (nicht die Produkt-ID!)
-		'productId'    => $cp->get_id(),
-		'name'         => $cp->get_name(),
-		// get_price() auf dem Bundled Item (nicht dem Produkt!) berücksichtigt
-		// einen allfälligen "% Discount" aus den Item-Einstellungen.
-		'price'        => $bundled_item->get_price(),
-		'image'        => wp_get_attachment_image_url($cp->get_image_id(), 'woocommerce_thumbnail')
-						  ?: wc_placeholder_img_src(),
+		'productId' => $card->get_id(),
+		'name'      => $card->get_name(),
+		'price'     => $card->get_price(),
+		'image'     => wp_get_attachment_image_url($card->get_image_id(), 'woocommerce_thumbnail')
+					   ?: wc_placeholder_img_src(),
 	];
 }
 
-// "Weg 2" (siehe SETUP.md): der Strauss selbst ist ein variables Produkt und
-// steckt als Pflicht-Bundled-Item in diesem Container. Dann brauchen wir
-// zusätzlich zur Kartenauswahl eine Varianten-/Attributauswahl für dieses
-// Pflicht-Item, deren variation_id/attributes ebenfalls in die
-// bundle_configuration einfliessen (siehe view.js). Bei "Weg 1" (Strauss ist
-// selbst das Bundle, keine Variationen) liefert die Helper-Funktion null und
-// dieser ganze Block bleibt einfach aus.
+// Variantenauswahl für variable Produkte (z. B. Strauss-Grösse). Einfache
+// Produkte haben keine, dann bleibt dieser ganze Abschnitt aus und der Block
+// legt direkt die Produkt-ID in den Warenkorb.
 //
 // WICHTIG zur Preisanzeige: Der separate native "Preis"-Block auf der
 // Produktseite (woocommerce/product-price) reagiert NICHT auf unsere eigene
@@ -67,14 +49,14 @@ foreach ($bundle->get_bundled_items() as $bundled_item) {
 // gekoppelt, das wir hier bewusst nicht verwenden. Deshalb liefern wir pro
 // Variante einen eigenen `priceText` mit, den view.js reaktiv anzeigt
 // (state.matchedVariationPriceText).
-$main_item = gcb_get_variable_main_item($bundle);
 $variation_selector = null;
 
-if ($main_item) {
-	$main_product = $main_item->get_product();
+if ($product->is_type('variable')) {
+	/** @var WC_Product_Variable $variable_product */
+	$variable_product = $product;
 
 	$variation_attributes = [];
-	foreach ($main_product->get_variation_attributes() as $raw_name => $raw_options) {
+	foreach ($variable_product->get_variation_attributes() as $raw_name => $raw_options) {
 		$taxonomy    = wc_variation_attribute_name($raw_name);
 		$is_taxonomy = taxonomy_exists($taxonomy);
 		$options     = [];
@@ -91,13 +73,13 @@ if ($main_item) {
 
 		$variation_attributes[] = [
 			'name'    => $raw_name, // Schlüssel für data-wp-context / attributes-Payload
-			'label'   => wc_attribute_label($raw_name, $main_product),
+			'label'   => wc_attribute_label($raw_name, $product),
 			'options' => $options,
 		];
 	}
 
 	$variations = [];
-	foreach ($main_product->get_available_variations() as $variation_data) {
+	foreach ($variable_product->get_available_variations() as $variation_data) {
 		// WC liefert Attribut-Keys als "attribute_{name}" -- Präfix entfernen,
 		// damit sie zu den Keys in $variation_attributes/selectedAttributes passen.
 		$variation_attrs = [];
@@ -109,7 +91,7 @@ if ($main_item) {
 			'variationId' => $variation_data['variation_id'],
 			'attributes'  => $variation_attrs,
 			// Reiner Text (keine Preis-HTML-Spans) fürs Interactivity-API-
-			// data-wp-text -- siehe Hintergrund zur Preisanzeige weiter unten.
+			// data-wp-text -- siehe Hintergrund zur Preisanzeige oben.
 			// html_entity_decode ist nötig, weil wc_price() Währungssymbole/
 			// -leerzeichen als HTML-Entities ausgibt (z. B. "&#67;&#72;&#70;"
 			// für "CHF", "&nbsp;"); data-wp-text setzt textContent und würde
@@ -124,28 +106,27 @@ if ($main_item) {
 	}
 
 	$variation_selector = [
-		'bundleItemId' => $main_item->get_id(),
-		'name'         => $main_product->get_name(),
-		'attributes'   => $variation_attributes,
-		'variations'   => $variations,
+		'name'       => $product->get_name(),
+		'attributes' => $variation_attributes,
+		'variations' => $variations,
 	];
 }
 
 wp_interactivity_state('greeting-card-bundle', [
-	'bundleId'           => $product_id,
+	'productId'          => $product_id,
 	'cards'              => $cards,
 	'nonce'              => wp_create_nonce('wc_store_api'),
 	// rest_url() statt hartkodiertem Pfad: funktioniert auch bei Unterverzeichnis-
 	// Installationen oder abweichender REST-API-Basis.
-	'addItemUrl'         => rest_url('wc/store/v1/cart/add-item'),
+	'batchUrl'           => rest_url('wc/store/v1/batch'),
 	'wantsCard'          => false,
-	'selectedItemId'     => 0,
+	'selectedCardId'     => 0,
 	'text'               => '',
 	'quantity'           => 1,
 	'submitAttempted'    => false,
 	'isAdding'           => false,
 	'errorMessage'       => '',
-	'mainItem'           => $variation_selector,
+	'variationSelector'  => $variation_selector,
 	'selectedAttributes' => $variation_selector
 		? array_fill_keys(array_column($variation_selector['attributes'], 'name'), '')
 		: [],
@@ -188,46 +169,42 @@ wp_interactivity_state('greeting-card-bundle', [
 			id="wantsGreetingCard"
 			name="wantsGreetingCard"
 			data-wp-on--change="actions.toggleWantsCard" />
-		<label for="wantsGreetingCard"><?php esc_html_e('Möchten Sie eine Grusskarte hinzufügen?', 'greeting-card-block'); ?></label>
+		<label for="wantsGreetingCard"><?php echo esc_html(gcb_get_cards_title($product)); ?></label>
 	</div>
 
 	<div class="greeting-card-bundle__content" data-wp-bind--hidden="!state.wantsCard">
-		<?php if (empty($cards)) : ?>
-			<p class="greeting-card-bundle__empty"><?php esc_html_e('Aktuell sind keine Grusskarten verfügbar.', 'greeting-card-block'); ?></p>
-		<?php else : ?>
-			<div class="greeting-card-bundle__cards" data-wp-class--has-error="state.showCardError">
-				<div class="greeting-card-bundle__cards-slider swiper" data-wp-init="callbacks.initSwiper">
-					<div class="swiper-wrapper">
-						<?php foreach ($cards as $card) : ?>
-							<div class="swiper-slide">
-								<button
-									type="button"
-									class="greeting-card-bundle__card"
-									data-wp-context='<?php echo wp_json_encode(['bundleItemId' => $card['bundleItemId']]); ?>'
-									data-wp-on--click="actions.selectCard"
-									data-wp-bind--aria-pressed="state.isCardPressed"
-									aria-pressed="false">
-									<img
-										src="<?php echo esc_url($card['image']); ?>"
-										alt="<?php echo esc_attr($card['name']); ?>" />
-									<p><?php echo wp_kses_post(wc_price($card['price'])); ?></p>
-								</button>
-							</div>
-						<?php endforeach; ?>
-					</div>
-					<div class="swiper-button-next"></div>
-					<div class="swiper-button-prev"></div>
-					<div class="swiper-pagination"></div>
+		<div class="greeting-card-bundle__cards" data-wp-class--has-error="state.showCardError">
+			<div class="greeting-card-bundle__cards-slider swiper" data-wp-init="callbacks.initSwiper">
+				<div class="swiper-wrapper">
+					<?php foreach ($cards as $card) : ?>
+						<div class="swiper-slide">
+							<button
+								type="button"
+								class="greeting-card-bundle__card"
+								data-wp-context='<?php echo wp_json_encode(['cardId' => $card['productId']]); ?>'
+								data-wp-on--click="actions.selectCard"
+								data-wp-bind--aria-pressed="state.isCardPressed"
+								aria-pressed="false">
+								<img
+									src="<?php echo esc_url($card['image']); ?>"
+									alt="<?php echo esc_attr($card['name']); ?>" />
+								<p><?php echo wp_kses_post(wc_price($card['price'])); ?></p>
+							</button>
+						</div>
+					<?php endforeach; ?>
 				</div>
-				<div
-					class="wc-block-components-notice-banner is-error"
-					role="alert"
-					data-wp-bind--hidden="!state.showCardError"
-					hidden>
-					<div class="wc-block-components-notice-banner__content"><?php esc_html_e('Bitte wählen Sie eine Grusskarte aus.', 'greeting-card-block'); ?></div>
-				</div>
+				<div class="swiper-button-next"></div>
+				<div class="swiper-button-prev"></div>
+				<div class="swiper-pagination"></div>
 			</div>
-		<?php endif; ?>
+			<div
+				class="wc-block-components-notice-banner is-error"
+				role="alert"
+				data-wp-bind--hidden="!state.showCardError"
+				hidden>
+				<div class="wc-block-components-notice-banner__content"><?php esc_html_e('Bitte wählen Sie eine Grusskarte aus.', 'greeting-card-block'); ?></div>
+			</div>
+		</div>
 
 		<div class="greeting-card-bundle__message">
 			<label for="greetingCardMessage"><?php esc_html_e('Nachricht auf der Grusskarte:', 'greeting-card-block'); ?></label>

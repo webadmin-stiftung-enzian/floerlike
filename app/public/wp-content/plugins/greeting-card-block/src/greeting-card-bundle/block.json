@@ -2,10 +2,10 @@
 	"$schema": "https://schemas.wp.org/trunk/block.json",
 	"apiVersion": 3,
 	"name": "greeting-card-block/greeting-card-bundle",
-	"version": "0.2.0",
-	"title": "Grusskarte + Bundle in den Warenkorb",
+	"version": "0.3.0",
+	"title": "Grusskarte + Produkt in den Warenkorb",
 	"category": "widgets",
-	"description": "Auswahl-UI für die optionale Grusskarte (WooCommerce Product Bundle) und Add-to-Cart über die Store API.",
+	"description": "Auswahl-UI für die optionale Grusskarte (verknüpft über \"Bundle-sells\") und Add-to-Cart über die Store API.",
 	"example": {},
 	"supports": {
 		"html": false,

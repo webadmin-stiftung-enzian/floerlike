@@ -2,8 +2,8 @@
 
 /**
  * Plugin Name:       greeting-card-block
- * Description:       Grusskarte als optionales Bundled Item (WooCommerce Product Bundles) mit eigener Auswahl-UI
- * Version:           0.2.0
+ * Description:       Optionale Grusskarte zu einem Produkt (verknüpft über "Bundle-sells") mit eigener Auswahl-UI
+ * Version:           0.3.0
  * Requires at least: 6.8
  * Requires PHP:      7.4
  * Author:            The WordPress Contributors
@@ -27,6 +27,8 @@ if (! defined('ABSPATH')) {
  */
 
 require_once __DIR__ . '/includes/class-integration.php';
+require_once __DIR__ . '/includes/class-store-api.php';
+require_once __DIR__ . '/includes/class-checkout-blocks-integration.php';
 
 function greeting_card_block_greeting_card_block_block_init()
 {
