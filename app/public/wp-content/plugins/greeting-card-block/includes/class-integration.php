@@ -75,13 +75,36 @@ function gcb_get_card_ids($product)
 }
 
 /**
- * 0b. Zuständigkeits-Prädikat: bietet dieses Produkt Grusskarten an?
+ * 0b. Zuständigkeits-Prädikat: übernimmt unser Block den Warenkorb-Button
+ * dieses Produkts?
+ *
+ * Ja für alle einfachen und variablen Produkte — unabhängig davon, ob Karten
+ * verknüpft sind. Ohne Karten zeigt der Block einfach keine Kartenauswahl,
+ * das Produkt bleibt aber kaufbar. Bundle-, Grouped- und External-Produkte
+ * brauchen eigene Formulare (Konfiguration, Einzelmengen, Fremd-Link), die
+ * der Block nicht nachbaut; dort bleibt die native Form zuständig.
  *
  * Gemeinsam genutzt von render.php (Selbst-Unterdrückung auf allen anderen
  * Produkten) und der Koexistenz-Weiche unten (Unterdrückung der nativen
  * Add-to-Cart-Form nur auf genau den Produkten, für die unser Block zuständig
  * ist). Beide Seiten MÜSSEN dieselbe Bedingung verwenden – sonst driften sie
  * auseinander und ein Produkt zeigt am Ende zwei oder null Add-to-Cart-Buttons.
+ *
+ * @param WC_Product|int|null $product
+ * @return bool
+ */
+function gcb_handles_product($product)
+{
+    if (! $product instanceof WC_Product) {
+        $product = $product ? wc_get_product($product) : null;
+    }
+
+    return $product instanceof WC_Product && $product->is_type(['simple', 'variable']);
+}
+
+/**
+ * 0b'. Hat dieses Produkt verknüpfte Karten? Steuert nur, ob der Block die
+ * Kartenauswahl zeigt — nicht, ob er überhaupt rendert (siehe 0b).
  *
  * @param WC_Product|int|null $product
  * @return bool
@@ -388,20 +411,20 @@ add_action('woocommerce_checkout_create_order_line_item', function ($item, $cart
  *
  * Deshalb klammern wir NUR diesen einen Callback per Output-Buffering ein
  * (Prioritäten 29/31 – knapp davor/danach) und verwerfen seine Ausgabe genau
- * dann, wenn das aktuelle Produkt Grusskarten anbietet. Titel, Preis,
+ * dann, wenn unser Block für das aktuelle Produkt zuständig ist. Titel, Preis,
  * Bewertung, Kurzbeschreibung, Meta und Sharing (die anderen an denselben Hook
  * gebundenen Callbacks) bleiben unangetastet.
  */
 add_action('woocommerce_single_product_summary', function () {
     global $product;
-    if (gcb_is_card_parent($product)) {
+    if (gcb_handles_product($product)) {
         ob_start();
     }
 }, 29);
 
 add_action('woocommerce_single_product_summary', function () {
     global $product;
-    if (gcb_is_card_parent($product)) {
+    if (gcb_handles_product($product)) {
         ob_end_clean();
     }
 }, 31);
@@ -421,7 +444,7 @@ add_filter('render_block', function ($content, $block) {
         return $content;
     }
 
-    return gcb_is_card_parent(get_the_ID()) ? '' : $content;
+    return gcb_handles_product(get_the_ID()) ? '' : $content;
 }, 10, 2);
 
 /**
@@ -440,7 +463,7 @@ add_filter('render_block', function ($content, $block) {
 add_action('woocommerce_before_add_to_cart_form', function () {
     global $product;
 
-    if (class_exists('WC_PB_BS_Display') && gcb_is_card_parent($product)) {
+    if (class_exists('WC_PB_BS_Display') && gcb_handles_product($product)) {
         remove_action('woocommerce_before_add_to_cart_form', ['WC_PB_BS_Display', 'add_bundle_sells_display_hooks']);
     }
 }, 5);

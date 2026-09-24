@@ -11,6 +11,35 @@ import { store, getContext, getElement } from '@wordpress/interactivity';
 const MAX_LENGTH = 300;
 
 /**
+ * Zugangscode zum privaten WooCommerce-Store `woocommerce/products`, aus dem
+ * der native Preis-Block seinen Preis liest (siehe callbacks.syncNativePrice
+ * und die Erläuterung zu $native_price_sync in render.php).
+ *
+ * WooCommerce verlangt diesen Text wörtlich und warnt damit selbst, dass sich
+ * der Store ändern kann. Passt er nach einem Update nicht mehr, wirft store()
+ * einen Fehler -- der wird abgefangen, und der Preis-Block zeigt dann einfach
+ * weiter die Preisspanne.
+ */
+const PRODUCTS_STORE_LOCK =
+	'I acknowledge that using a private store means my plugin will inevitably break on the next store release.';
+
+/**
+ * Passt die Variante zu den Attributen? Leere Werte gelten auf beiden Seiten
+ * als "beliebig": auf der Variante nach WooCommerce-Konvention ("Any …"), in
+ * der Auswahl, solange das Attribut noch nicht gewählt ist.
+ *
+ * @param {Object} variation  Variante aus state.variationSelector.variations.
+ * @param {Object} attributes Auswahl, Attributname => Wert.
+ * @return {boolean} Ob die Variante zur Auswahl passt.
+ */
+function variationMatches( variation, attributes ) {
+	return Object.entries( variation.attributes ).every(
+		( [ name, value ] ) =>
+			value === '' || ! attributes[ name ] || attributes[ name ] === value
+	);
+}
+
+/**
  * Gruppen-ID für ein zusammengehörendes Paar aus Strauss und Grusskarte.
  *
  * Beide Warenkorb-Positionen bekommen denselben Wert als `gcb_group` mit; der
@@ -59,14 +88,14 @@ const { state } = store( 'greeting-card-bundle', {
 				) || null
 			);
 		},
+		// Noch nicht jedes Attribut gewählt -- "Bitte wählen Sie eine Option."
 		get variationMissing() {
 			if ( ! state.variationSelector ) {
 				return false;
 			}
-			const allSelected = state.variationSelector.attributes.every(
+			return ! state.variationSelector.attributes.every(
 				( attribute ) => state.selectedAttributes[ attribute.name ]
 			);
-			return ! allSelected || ! state.matchedVariation;
 		},
 		// Eigene Preisanzeige für die gewählte Variante -- der separate native
 		// Preis-Block auf der Produktseite reagiert nicht auf unsere Auswahl
@@ -74,11 +103,26 @@ const { state } = store( 'greeting-card-bundle', {
 		get matchedVariationPriceText() {
 			return state.matchedVariation?.priceText ?? '';
 		},
+		// Alles gewählt, aber nichts Kaufbares dahinter: entweder gibt es die
+		// Kombination nicht (bei mehreren Attributen möglich, render.php filtert
+		// nur einzelne Werte) oder die Variante ist ausverkauft/nicht kaufbar.
+		// Wird sofort angezeigt, nicht erst nach dem Klick -- die Auswahl ist
+		// dann ohnehin eine Sackgasse.
+		get matchedVariationUnavailable() {
+			if ( ! state.variationSelector || state.variationMissing ) {
+				return false;
+			}
+			const variation = state.matchedVariation;
+			return (
+				! variation || ! variation.inStock || ! variation.purchasable
+			);
+		},
 		get isValid() {
 			return (
 				! state.cardMissing &&
 				! state.textMissing &&
-				! state.variationMissing
+				! state.variationMissing &&
+				! state.matchedVariationUnavailable
 			);
 		},
 		get showCardError() {
@@ -93,6 +137,29 @@ const { state } = store( 'greeting-card-bundle', {
 		get isCardPressed() {
 			return getContext().cardId === state.selectedCardId;
 		},
+		// Variantenknopf: ist dieser Wert für sein Attribut gewählt?
+		get isOptionSelected() {
+			const { attributeName, value } = getContext();
+			return state.selectedAttributes[ attributeName ] === value;
+		},
+		// Variantenknopf: gibt es zu diesem Wert -- zusammen mit dem, was bei den
+		// ANDEREN Attributen schon gewählt ist -- mindestens eine kaufbare
+		// Variante? Sonst wird der Knopf ausgegraut und gesperrt. Das fängt
+		// ausverkaufte Varianten ab und bei mehreren Attributen Kombinationen,
+		// die es nicht gibt.
+		get isOptionAvailable() {
+			const { attributeName, value } = getContext();
+			const candidate = {
+				...state.selectedAttributes,
+				[ attributeName ]: value,
+			};
+			return state.variationSelector.variations.some(
+				( variation ) =>
+					variation.inStock &&
+					variation.purchasable &&
+					variationMatches( variation, candidate )
+			);
+		},
 		get charCounter() {
 			return `Zeichen verbleibend: ${ MAX_LENGTH - state.text.length }`;
 		},
@@ -105,11 +172,13 @@ const { state } = store( 'greeting-card-bundle', {
 			const { cardId } = getContext();
 			state.selectedCardId = state.selectedCardId === cardId ? 0 : cardId;
 		},
-		selectAttribute( event ) {
-			const { attributeName } = getContext();
+		// Wert aus dem Kontext statt aus event.target: der Kontext ist die eine
+		// Quelle, aus der auch isOptionSelected/isOptionAvailable lesen.
+		selectAttribute() {
+			const { attributeName, value } = getContext();
 			state.selectedAttributes = {
 				...state.selectedAttributes,
-				[ attributeName ]: event.target.value,
+				[ attributeName ]: value,
 			};
 		},
 		updateText( event ) {
@@ -239,6 +308,38 @@ const { state } = store( 'greeting-card-bundle', {
 		},
 	},
 	callbacks: {
+		/**
+		 * Gibt die gewählte Variante an den nativen Preis-Block weiter.
+		 *
+		 * Läuft als data-wp-watch am Block-Wrapper, also bei jeder Änderung der
+		 * Auswahl erneut. `variationId` im Store `woocommerce/products` ist
+		 * genau das, worauf der Preis-Block reagiert: gesetzt zeigt er den Preis
+		 * dieser Variante, `null` wieder die Preisspanne. Auch ausverkaufte
+		 * Varianten zeigen ihren Preis, wie in der nativen Form.
+		 */
+		syncNativePrice() {
+			if ( ! state.nativePriceSync ) {
+				return;
+			}
+
+			const variation = state.variationMissing
+				? null
+				: state.matchedVariation;
+
+			try {
+				const { state: productsState } = store(
+					'woocommerce/products',
+					{},
+					{ lock: PRODUCTS_STORE_LOCK }
+				);
+				productsState.variationId = variation
+					? variation.variationId
+					: null;
+			} catch ( error ) {
+				// Store geändert oder gesperrt -- der Preis-Block bleibt bei
+				// der Preisspanne, der Kauf funktioniert unverändert.
+			}
+		},
 		initSwiper() {
 			const { ref } = getElement();
 			new Swiper( ref, {

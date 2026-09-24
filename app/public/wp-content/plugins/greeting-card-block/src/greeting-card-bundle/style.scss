@@ -37,18 +37,132 @@
 	}
 }
 
-/* "Weg 2": Varianten-/Grössenauswahl für das eingehüllte Hauptprodukt. */
+/* Variantenauswahl als Knopfgruppe.
+ *
+ * Technisch Radio-Buttons (siehe render.php), optisch wie die Theme-Buttons:
+ * Pill-Form, 1px Kontur, beim Hover fährt die Füllung von links ein. Gewählt
+ * heisst: Füllung steht dauerhaft. Farben kommen aus den Theme-Presets, mit
+ * festen Werten als Rückfall, falls der Block einmal ohne dieses Theme läuft. */
 .greeting-card-bundle__variations {
+	--gcb-option-color: var(--wp--preset--color--main-1-pistachio-dark, #597241);
+	--gcb-option-color-inverse: var(--wp--preset--color--neutral-light, #fff);
+	/* Hover bewusst heller als "gewählt": sonst sieht der Knopf unter der
+	   Maus aus, als wäre er bereits ausgewählt. */
+	--gcb-option-hover: var(--wp--preset--color--main-1-pistachio-light, #d4e5c4);
+
 	display: flex;
-	flex-wrap: wrap;
+	flex-direction: column;
 	gap: 1rem;
 	margin-bottom: 1rem;
 }
 
 .greeting-card-bundle__variation-attribute {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+
+.greeting-card-bundle__variation-label {
+	margin-bottom: 0.5rem;
+	padding: 0;
+	color: var(--gcb-option-color);
+	font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
+	font-size: var(--wp--preset--font-size--s, 0.875rem);
+	font-weight: 300;
+}
+
+.greeting-card-bundle__options {
 	display: flex;
-	flex-direction: column;
-	gap: 0.25rem;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+.greeting-card-bundle__option {
+	position: relative;
+	/* eigener Stapelkontext: ::after liegt über dem Hintergrund, aber unter
+	   der Beschriftung -- wie bei den Theme-Buttons */
+	isolation: isolate;
+	overflow: hidden;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	min-width: 4.5rem;
+	padding: 0.5rem 1rem;
+	border: 1px solid var(--gcb-option-color);
+	border-radius: 3rem;
+	background-color: transparent;
+	color: var(--gcb-option-color);
+	font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
+	font-size: var(--wp--preset--font-size--s, 0.875rem);
+	font-weight: 300;
+	line-height: 1.4;
+	cursor: pointer;
+	user-select: none;
+	transition: color 0.25s ease-in-out;
+
+	&::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		z-index: -1;
+		border-radius: inherit;
+		background-color: var(--gcb-option-color);
+		transform: translateX(-100%);
+		opacity: 0;
+		transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
+	}
+
+	&:hover::after,
+	&.is-selected::after {
+		transform: translateX(0);
+		opacity: 1;
+	}
+
+	&:hover:not(.is-selected)::after {
+		background-color: var(--gcb-option-hover);
+	}
+
+	&.is-selected {
+		color: var(--gcb-option-color-inverse);
+	}
+
+	/* Tastaturfokus liegt auf dem versteckten Radio -- am Knopf sichtbar machen. */
+	&:has(.greeting-card-bundle__option-input:focus-visible) {
+		outline: 2px solid var(--gcb-option-color);
+		outline-offset: 2px;
+	}
+
+	/* Keine kaufbare Variante mit diesem Wert: ausgegraut, nicht wählbar. */
+	&.is-unavailable {
+		opacity: 0.4;
+		cursor: not-allowed;
+		text-decoration: line-through;
+
+		&:hover {
+			color: var(--gcb-option-color);
+		}
+
+		&:hover::after {
+			transform: translateX(-100%);
+			opacity: 0;
+		}
+	}
+}
+
+/* Das Radio selbst unsichtbar, aber fokussier- und vorlesbar lassen (kein
+   display:none, sonst fällt es aus Tastaturbedienung und Screenreader). */
+.greeting-card-bundle__option-input {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
 }
 
 .greeting-card-bundle__message-wrapper {

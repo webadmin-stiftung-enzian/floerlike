@@ -1,6 +1,6 @@
 h2 {
     margin-block-end: 1.5rem !important;
-}
+}   
 
 header.wp-block-template-part {
     position: fixed;
@@ -17,7 +17,7 @@ header.wp-block-template-part {
 .navbar {
     padding: 0.75rem 1.5rem;
     border-radius: 3rem;
-    width: 88%;
+    width: calc(var(--wp--style--global--content-size) - 3rem);
 }
 
 .wp-block-navigation__responsive-container.is-menu-open {
@@ -86,11 +86,45 @@ header.wp-block-template-part {
     opacity: 1;
 }
 
-/* Buttons füllen sich wie die Navigation: eine Farbfläche fährt von links ein,
-   statt dass die Hintergrundfarbe umspringt. Die Füllfarbe steht je Stil in
-   --btn-fill; die Grundfarben und die Hover-Text-/Randfarbe bleiben in der
-   theme.json. Die Hover-Hintergrundfarbe ist dort bewusst nicht gesetzt --
-   sie würde sofort umspringen und die einfahrende Fläche verdecken. */
+/* ===========================================================================
+   BUTTONS
+
+   Eine gemeinsame Mechanik für zwei Verwendungen:
+
+   1. .wp-block-button__link — die Core-Buttons aus dem Editor. Ihre Farben,
+      Abstände, Radius und Schrift kommen weiterhin aus der theme.json
+      (styles.blocks.core/button samt variations), hier kommt nur die
+      Füll-Animation dazu.
+   2. .button — freie Klasse für eigenes Markup (Plugins, Template-Teile,
+      Custom-HTML-Blöcke). Sie bringt dieselbe Optik mit, aber eigenständig,
+      weil die theme.json nur Blöcke erreicht.
+
+   Alle Farben stehen als Tokens am Element, die Varianten setzen nur diese
+   Tokens um:
+
+     --btn-text / --btn-bg / --btn-border   Grundzustand
+     --btn-fill                             einfahrende Fläche beim Hover
+     --btn-text-hover / --btn-border-hover  Zustand während des Hovers
+
+   Verwendung -- .solid oder .outline gehört immer dazu:
+     <a class="button solid">…</a>            gefüllt, für helle Flächen
+     <a class="button outline">…</a>          Kontur dunkel, für helle Flächen
+     <a class="button outline on-dark">…</a>  Kontur hell, für dunkle Flächen
+     <a class="button solid full">…</a>       volle Breite
+     <button class="button solid" disabled>   ausgegraut, nicht klickbar
+
+   Die Klasse .button allein bleibt absichtlich wirkungslos: WooCommerce gibt
+   auf klassischen Seiten (Konto, Bestellbestätigung, Endpunkte) eigene
+   Elemente mit class="button" aus, die hier nicht mitgestaltet werden sollen.
+
+   Buttons füllen sich wie die Navigation: eine Farbfläche fährt von links ein,
+   statt dass die Hintergrundfarbe umspringt. Die Hover-Hintergrundfarbe ist in
+   der theme.json bewusst nicht gesetzt -- sie würde sofort umspringen und die
+   einfahrende Fläche verdecken.
+   =========================================================================== */
+
+.button.solid,
+.button.outline,
 .wp-block-button__link {
     --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
     position: relative;
@@ -101,14 +135,8 @@ header.wp-block-template-part {
     transition: color 0.25s ease-in-out, border-color 0.25s ease-in-out;
 }
 
-.wp-block-button.is-style-outline .wp-block-button__link {
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-ultralight);
-}
-
-.wp-block-button.is-style-outline-dark .wp-block-button__link {
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
-}
-
+.button.solid::after,
+.button.outline::after,
 .wp-block-button__link::after {
     content: "";
     position: absolute;
@@ -121,9 +149,125 @@ header.wp-block-template-part {
     transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
 }
 
-.wp-block-button__link:hover::after {
+.button.solid:hover::after,
+.button.solid:focus-visible::after,
+.button.outline:hover::after,
+.button.outline:focus-visible::after,
+.wp-block-button__link:hover::after,
+.wp-block-button__link:focus-visible::after {
     transform: translateX(0);
     opacity: 1;
+}
+
+/* Core-Buttons: nur die Füllfarbe je Stil, alles andere aus der theme.json. */
+.wp-block-button.is-style-outline .wp-block-button__link {
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-ultralight);
+}
+
+.wp-block-button.is-style-outline-dark .wp-block-button__link {
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+/* ---------------------------------------------------------------------------
+   Freie Button-Klasse
+   --------------------------------------------------------------------------- */
+
+.button.solid,
+.button.outline, 
+.wp-block-button__link {
+    /* gemeinsame Form und Typografie beider Varianten */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    /* Werte gespiegelt aus theme.json → styles.blocks.core/button */
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--btn-border);
+    border-radius: 3rem;
+    background-color: var(--btn-bg);
+    background-image: none;
+    color: var(--btn-text);
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-size: var(--wp--preset--font-size--s);
+    font-weight: 300;
+    line-height: 1.4;
+    text-align: center;
+    text-decoration: none;
+    cursor: pointer;
+    /* eigene Button-Optik auch auf <button> und <input type="submit"> */
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+.button.solid:hover,
+.button.solid:focus-visible,
+.button.outline:hover,
+.button.outline:focus-visible,
+.wp-block-button__link:hover,
+.wp-block-button__link:focus-visible {
+    color: var(--btn-text-hover);
+    border-color: var(--btn-border-hover);
+    text-decoration: none;
+}
+
+.button.solid:focus-visible,
+.button.outline:focus-visible,
+.wp-block-button__link:focus-visible {
+    outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
+    outline-offset: 2px;
+}
+
+/* Gefüllt, für helle Flächen: heller Grund, der beim Hover dunkel einfährt. */
+.button.solid {
+    --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-text-hover: var(--wp--preset--color--neutral-light);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-ultralight);
+}
+
+/* Kontur auf hellen Flächen -- entspricht dem Core-Stil "outline-dark". */
+.button.outline,
+.wp-block-button__link {
+    --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-bg: transparent;
+    --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-text-hover: var(--wp--preset--color--neutral-light);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-ultralight);
+}
+
+/* Umkehrung für dunkle Flächen -- entspricht dem Core-Stil "outline".
+   Kombinierbar mit .outline und .solid: class="button outline on-dark" */
+.button.on-dark {
+    --btn-text: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-bg: transparent;
+    --btn-border: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+.button.on-dark:focus-visible {
+    outline-color: var(--wp--preset--color--main-1-pistachio-ultralight);
+}
+
+.button.solid[disabled],
+.button.outline[disabled],
+.button[aria-disabled="true"].solid,
+.button[aria-disabled="true"].outline,
+.button.solid.is-disabled,
+.button.outline.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Volle Breite, z. B. in schmalen Spalten oder auf dem Handy. */
+.button.full {
+    display: flex;
+    width: 100%;
 }
 
 .cb-carousel-block {
@@ -359,29 +503,29 @@ section.category .category-text-wrapper {
 section.topic .wp-block-columns .wp-block-column div.wp-block-group {
     display: flex;
     flex-direction: column;
-    height: 100%;    
+    height: 100%;
 }
 
-section.topic .wp-block-columns .wp-block-column div.wp-block-group > * {
+section.topic .wp-block-columns .wp-block-column div.wp-block-group>* {
     margin-left: 0;
     margin-right: 0;
 }
 
-section.topic .wp-block-columns .wp-block-column div.wp-block-group > h2 {
+section.topic .wp-block-columns .wp-block-column div.wp-block-group>h2 {
     font-weight: 300;
     font-size: var(--wp--preset--font-size--xl);
     line-height: 1.33;
     margin-bottom: 1.5rem;
 }
 
-section.topic .wp-block-columns .wp-block-column div.wp-block-group > h4 {
+section.topic .wp-block-columns .wp-block-column div.wp-block-group>h4 {
     font-weight: 300;
     font-size: var(--wp--preset--font-size--l);
     line-height: 1.33;
     margin-bottom: 1.5rem;
 }
 
-section.topic .wp-block-columns .wp-block-column div.wp-block-group > .wp-block-buttons{
+section.topic .wp-block-columns .wp-block-column div.wp-block-group>.wp-block-buttons {
     margin-top: auto;
 }
 
@@ -457,19 +601,23 @@ section.services h2 {
     padding-top: 1.5rem;
 }
 
-section.services .services-wrapper .wp-block-group.is-vertical{
+section.services .services-wrapper .wp-block-group.is-vertical {
     gap: 1.5rem;
 }
 
 section.services .services-wrapper .wp-block-image {
-    max-width: 9rem;          /* Box begrenzen -> WP zentriert sie bereits */
-    margin-inline: auto;      /* explizit, falls der Kontext mal kein constrained layout ist */
+    max-width: 9rem;
+    /* Box begrenzen -> WP zentriert sie bereits */
+    margin-inline: auto;
+    /* explizit, falls der Kontext mal kein constrained layout ist */
 }
 
 section.services .services-wrapper .wp-block-image img {
-    display: block;           /* kein inline-Baseline-Spalt */
+    display: block;
+    /* kein inline-Baseline-Spalt */
     width: 100%;
-    height: auto;             /* Seitenverhältnis aus width/height-Attributen */
+    height: auto;
+    /* Seitenverhältnis aus width/height-Attributen */
 }
 
 section.feature div.wp-block-column:has(figure) {
@@ -482,7 +630,7 @@ section.feature .img-svg-block__textpath {
     font-weight: 200;
 }
 
-section.feature div.wp-block-column figure{
+section.feature div.wp-block-column figure {
     grid-column: 1 / span 3;
     grid-row: 1/ span 3;
 }
@@ -490,7 +638,7 @@ section.feature div.wp-block-column figure{
 section.feature div.wp-block-group:has(.wp-block-woocommerce-product-price) {
     grid-column: 3 / span 3;
     grid-row: 3 / span 3;
-    display:flex;
+    display: flex;
     justify-content: start;
     align-items: start;
     flex-direction: column;
@@ -512,20 +660,66 @@ section.feature div.wp-block-group .wp-block-post-title {
     margin-block-end: 0 !important;
 }
 
-section.feature div.wp-block-group .wp-block-woocommerce-product-price .woocommerce-Price-amount{
-  font-family: var(--wp--preset--font-family--neue-montreal-mono);
-  font-weight: 300;
-  letter-spacing: 0.0125em;
-  line-height: 1.33;
-  color: var(--wp--preset--color--main-1-pistachio-dark);
-  border-radius: 100%;
-  border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
-  padding: 0.75rem 1rem;
-  
+section.feature div.wp-block-group .wp-block-woocommerce-product-price .woocommerce-Price-amount {
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    font-weight: 300;
+    letter-spacing: 0.0125em;
+    line-height: 1.33;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    border-radius: 100%;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
+    padding: 0.75rem 1rem;
+
 }
 
 section.store .wp-block-image img {
-  width: 100%;
+    width: 100%;
+}
+
+section.product.single {
+    margin-block-start: 1.5rem;
+    margin-block-end: 3rem;
+}
+
+section.product.single h1 {
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    font-size: var(--wp--preset--font-size--large);
+    font-weight: 300;
+    line-height: 1.2;
+    margin-block-end: 1.5rem;
+}
+
+section.product.single .wp-block-post-excerpt__excerpt {
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-size: var(--wp--preset--font-size--normal);
+    font-weight: 300;
+    line-height: 1.4;
+    margin-block-end: 1.5rem;
+}
+
+section.product.single .wc-block-components-product-price {
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    font-weight: 300;
+    letter-spacing: 0.0125em;
+    line-height: 1.33;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    font-size: var(--wp--preset--font-size--normal);
+    margin-block-end: 1.5rem;
+}
+
+section.product.single .wc-block-breadcrumbs {
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    font-weight: 300;
+    letter-spacing: 0.0125em;
+    line-height: 1.33;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    font-size: 0.75rem;
+}
+
+
+section.product.single button.single_add_to_cart_button {
+ 
 }
 
 footer {

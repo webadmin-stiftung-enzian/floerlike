@@ -1,1 +1,198 @@
-.wp-block-greeting-card-block-greeting-card-bundle{padding:2px}.swiper{height:300px;overflow:hidden;position:relative;width:100%}.swiper-wrapper{align-items:stretch;display:flex;flex-wrap:nowrap}.swiper-slide{align-items:center;display:flex;flex-direction:column;flex-shrink:0;height:100%;justify-content:center;width:100%}.swiper-slide img{display:block;max-height:200px;max-width:100%;-o-object-fit:contain;object-fit:contain}.greeting-card-bundle__variations{display:flex;flex-wrap:wrap;gap:1rem;margin-bottom:1rem}.greeting-card-bundle__variation-attribute{display:flex;flex-direction:column;gap:.25rem}.greeting-card-bundle__message-wrapper{display:inline-block;position:relative}.greeting-card-bundle__char-counter{bottom:6px;color:#666;font-size:.75rem;pointer-events:none;position:absolute;left:8px}.greeting-card-bundle__content[hidden]{display:none}[data-wp-interactive=greeting-card-bundle] [hidden]{display:none!important}.greeting-card-bundle__card[aria-pressed=true]{border-radius:4px;outline:2px solid var(--wp--preset--color--primary,#007cba);outline-offset:2px}.greeting-card-bundle__cards.has-error,.greeting-card-bundle__message textarea.has-error{border-radius:4px;outline:2px solid #cc1818;outline-offset:2px}
+/*!************************************************************************************************************************************************************************************************************************************************************!*\
+  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./src/greeting-card-bundle/style.scss ***!
+  \************************************************************************************************************************************************************************************************************************************************************/
+@charset "UTF-8";
+/**
+ * The following styles get applied both on the front of your site
+ * and in the editor.
+ */
+.wp-block-greeting-card-block-greeting-card-bundle {
+  padding: 2px;
+}
+.swiper {
+  width: 100%;
+  height: 300px;
+  overflow: hidden;
+  position: relative;
+}
+.swiper-wrapper {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: stretch;
+}
+.swiper-slide {
+  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.swiper-slide img {
+  max-width: 100%;
+  max-height: 200px;
+  -o-object-fit: contain;
+     object-fit: contain;
+  display: block;
+}
+/* Variantenauswahl als Knopfgruppe.
+ *
+ * Technisch Radio-Buttons (siehe render.php), optisch wie die Theme-Buttons:
+ * Pill-Form, 1px Kontur, beim Hover fährt die Füllung von links ein. Gewählt
+ * heisst: Füllung steht dauerhaft. Farben kommen aus den Theme-Presets, mit
+ * festen Werten als Rückfall, falls der Block einmal ohne dieses Theme läuft. */
+.greeting-card-bundle__variations {
+  --gcb-option-color: var(--wp--preset--color--main-1-pistachio-dark, #597241);
+  --gcb-option-color-inverse: var(--wp--preset--color--neutral-light, #fff);
+  /* Hover bewusst heller als "gewählt": sonst sieht der Knopf unter der
+     Maus aus, als wäre er bereits ausgewählt. */
+  --gcb-option-hover: var(--wp--preset--color--main-1-pistachio-light, #d4e5c4);
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+.greeting-card-bundle__variation-attribute {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+.greeting-card-bundle__variation-label {
+  margin-bottom: 0.5rem;
+  padding: 0;
+  color: var(--gcb-option-color);
+  font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
+  font-size: var(--wp--preset--font-size--s, 0.875rem);
+  font-weight: 300;
+}
+.greeting-card-bundle__options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+.greeting-card-bundle__option {
+  position: relative;
+  /* eigener Stapelkontext: ::after liegt über dem Hintergrund, aber unter
+     der Beschriftung -- wie bei den Theme-Buttons */
+  isolation: isolate;
+  overflow: hidden;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 4.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--gcb-option-color);
+  border-radius: 3rem;
+  background-color: transparent;
+  color: var(--gcb-option-color);
+  font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
+  font-size: var(--wp--preset--font-size--s, 0.875rem);
+  font-weight: 300;
+  line-height: 1.4;
+  cursor: pointer;
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  transition: color 0.25s ease-in-out;
+}
+.greeting-card-bundle__option::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background-color: var(--gcb-option-color);
+  transform: translateX(100%);
+  opacity: 0;
+  transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
+}
+.greeting-card-bundle__option:hover::after, .greeting-card-bundle__option.is-selected::after {
+  transform: translateX(0);
+  opacity: 1;
+}
+.greeting-card-bundle__option:hover:not(.is-selected)::after {
+  background-color: var(--gcb-option-hover);
+}
+.greeting-card-bundle__option.is-selected {
+  color: var(--gcb-option-color-inverse);
+}
+.greeting-card-bundle__option {
+  /* Tastaturfokus liegt auf dem versteckten Radio -- am Knopf sichtbar machen. */
+}
+.greeting-card-bundle__option:has(.greeting-card-bundle__option-input:focus-visible) {
+  outline: 2px solid var(--gcb-option-color);
+  outline-offset: 2px;
+}
+.greeting-card-bundle__option {
+  /* Keine kaufbare Variante mit diesem Wert: ausgegraut, nicht wählbar. */
+}
+.greeting-card-bundle__option.is-unavailable {
+  opacity: 0.4;
+  cursor: not-allowed;
+  text-decoration: line-through;
+}
+.greeting-card-bundle__option.is-unavailable:hover {
+  color: var(--gcb-option-color);
+}
+.greeting-card-bundle__option.is-unavailable:hover::after {
+  transform: translateX(100%);
+  opacity: 0;
+}
+/* Das Radio selbst unsichtbar, aber fokussier- und vorlesbar lassen (kein
+   display:none, sonst fällt es aus Tastaturbedienung und Screenreader). */
+.greeting-card-bundle__option-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.greeting-card-bundle__message-wrapper {
+  position: relative;
+  display: inline-block;
+}
+.greeting-card-bundle__char-counter {
+  position: absolute;
+  bottom: 6px;
+  left: 8px;
+  font-size: 0.75rem;
+  color: #666;
+  pointer-events: none; /* verhindert Textauswahl beim Klick */
+}
+/* Inhalt ausblenden, wenn keine Grusskarte gewünscht ist (data-wp-bind--hidden). */
+.greeting-card-bundle__content[hidden] {
+  display: none;
+}
+/* WooCommerce setzt .wc-block-components-notice-banner auf display:flex – das
+ * überschreibt aufgrund höherer Spezifität das [hidden]-Attribut (UA display:none).
+ * Daher das Ausblenden per !important erzwingen, damit data-wp-bind--hidden greift.
+ *
+ * WICHTIG: Als Anker das data-wp-interactive-Attribut verwenden, NICHT die
+ * Block-Wrapper-Klasse (.wp-block-greeting-card-block-greeting-card-bundle).
+ * Wird der Block innerhalb des "Add to Cart with Options"-Blocks gerendert,
+ * liefert get_block_wrapper_attributes() KEINE Klasse (class=""), sodass eine
+ * klassenbasierte Regel nie greift und die Fehlerbanner trotz [hidden]-Attribut
+ * sichtbar bleiben. Das data-wp-interactive-Attribut ist dagegen immer vorhanden. */
+[data-wp-interactive=greeting-card-bundle] [hidden] {
+  display: none !important;
+}
+/* Ausgewählte Karte hervorheben. */
+.greeting-card-bundle__card[aria-pressed=true] {
+  outline: 2px solid var(--wp--preset--color--primary, #007cba);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+/* Validierungsfehler: rote Umrandung um die Fehlerquelle. */
+.greeting-card-bundle__cards.has-error,
+.greeting-card-bundle__message textarea.has-error {
+  outline: 2px solid #cc1818;
+  outline-offset: 2px;
+  border-radius: 4px;
+}
