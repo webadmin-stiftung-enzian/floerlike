@@ -233,9 +233,9 @@ header.wp-block-template-part {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-bg: transparent;
     --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
-    --btn-text-hover: var(--wp--preset--color--neutral-light);
-    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
 }
 
 /* Umkehrung für dunkle Flächen -- entspricht dem Core-Stil "outline".

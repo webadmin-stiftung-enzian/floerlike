@@ -103,7 +103,7 @@
   inset: 0;
   z-index: -1;
   border-radius: inherit;
-  background-color: var(--gcb-option-color);
+  background-color: var(--wp--preset--color--main-1-pistachio-light);
   transform: translateX(-100%);
   opacity: 0;
   transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
