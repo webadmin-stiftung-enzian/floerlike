@@ -80,7 +80,8 @@ if ($product->is_type('variable')) {
 		];
 	}
 
-	$variations = [];
+	$variations             = [];
+	$variation_descriptions = [];
 	foreach ($variable_product->get_available_variations() as $variation_data) {
 		// WC liefert Attribut-Keys als "attribute_{name}" -- Präfix entfernen,
 		// damit sie zu den Keys in $variation_attributes/selectedAttributes passen.
@@ -88,6 +89,15 @@ if ($product->is_type('variable')) {
 		foreach ($variation_data['attributes'] as $key => $value) {
 			$variation_attrs[substr($key, strlen('attribute_'))] = $value;
 		}
+
+		// Beschreibung der Variante (Feld "Beschreibung" in den Variationen).
+		// WooCommerce liefert sie als HTML ("<p>ca. 35 cm Ø</p>"); im Knopf
+		// brauchen wir reinen Text -- ein <p> ist in einem <label> nicht
+		// erlaubt. Nur fürs Rendern hier, nicht im State fürs JavaScript.
+		$variation_descriptions[] = [
+			'attributes'  => $variation_attrs,
+			'description' => trim(wp_strip_all_tags($variation_data['variation_description'] ?? '')),
+		];
 
 		$variations[] = [
 			'variationId' => $variation_data['variation_id'],
@@ -131,6 +141,27 @@ if ($product->is_type('variable')) {
 				return in_array($option['value'], $used, true);
 			}
 		));
+	}
+
+	// Beschreibung pro Knopf: die Beschreibung der Variante(n), die genau
+	// diesen Wert haben. Bei einem einzigen Attribut (z. B. nur "Grösse")
+	// gehört zu jedem Wert genau eine Variante -- eindeutig. Bei mehreren
+	// Attributen kann ein Wert zu mehreren Varianten mit unterschiedlichen
+	// Beschreibungen gehören; dann bleibt der Knopf ohne Beschreibung, statt
+	// eine willkürlich auszuwählen.
+	foreach ($variation_attributes as $index => $attribute) {
+		foreach ($attribute['options'] as $option_index => $option) {
+			$texts = [];
+			foreach ($variation_descriptions as $variation) {
+				if (($variation['attributes'][$attribute['name']] ?? null) === $option['value']) {
+					$texts[] = $variation['description'];
+				}
+			}
+
+			$texts = array_unique($texts);
+			$variation_attributes[$index]['options'][$option_index]['description'] =
+				1 === count($texts) ? reset($texts) : '';
+		}
 	}
 
 	$variation_selector = [
@@ -305,8 +336,13 @@ wp_interactivity_state('greeting-card-bundle', [
 					<legend class="greeting-card-bundle__variation-label"><?php echo esc_html($attribute['label']); ?></legend>
 					<div class="greeting-card-bundle__options">
 						<?php foreach ($attribute['options'] as $option) : ?>
+							<?php
+							// Aussehen über die Theme-Klassen "button outline" (main.css),
+							// wie jeder andere Button der Seite. Das Plugin selbst legt nur
+							// Ersatzwerte fest, falls das Theme fehlt (style.scss).
+							?>
 							<label
-								class="greeting-card-bundle__option"
+								class="greeting-card-bundle__option button outline"
 								<?php
 								// wp_interactivity_data_wp_context() escapt den JSON-Kontext
 								// korrekt fürs Attribut -- Attributwerte können Anführungs-
@@ -319,16 +355,27 @@ wp_interactivity_state('greeting-card-bundle', [
 								);
 								?>
 								data-wp-class--is-selected="state.isOptionSelected"
-								data-wp-class--is-unavailable="!state.isOptionAvailable">
+								data-wp-class--is-disabled="!state.isOptionAvailable">
 								<input
 									type="radio"
-									class="greeting-card-bundle__option-input"
+									class="greeting-card-bundle__visually-hidden"
 									name="gcb-attribute-<?php echo esc_attr($attribute['name']); ?>"
 									value="<?php echo esc_attr($option['value']); ?>"
 									data-wp-on--change="actions.selectAttribute"
 									data-wp-bind--checked="state.isOptionSelected"
 									data-wp-bind--disabled="!state.isOptionAvailable" />
-								<span class="greeting-card-bundle__option-text"><?php echo esc_html($option['label']); ?></span>
+								<?php
+								// Zwei Zeilen über zwei Elemente statt <br>: Wert und darunter
+								// die Beschreibung der Variante (z. B. "ca. 35 cm Ø"). CSS
+								// stellt sie untereinander (style.scss). esc_html() bei beiden,
+								// die Beschreibung kommt aus dem Admin.
+								?>
+								<span class="greeting-card-bundle__option-text">
+									<span class="greeting-card-bundle__option-label"><?php echo esc_html($option['label']); ?></span>
+									<?php if ('' !== $option['description']) : ?>
+										<span class="greeting-card-bundle__option-description"><?php echo esc_html($option['description']); ?></span>
+									<?php endif; ?>
+								</span>
 							</label>
 						<?php endforeach; ?>
 					</div>
@@ -363,33 +410,52 @@ wp_interactivity_state('greeting-card-bundle', [
 				id="wantsGreetingCard"
 				name="wantsGreetingCard"
 				data-wp-on--change="actions.toggleWantsCard" />
-			<label for="wantsGreetingCard"><?php echo esc_html(gcb_get_cards_title($product)); ?></label>
+			<label for="wantsGreetingCard">Möchten Sie eine Grusskarte hinzufügen?</label>
 		</div>
 
 		<div class="greeting-card-bundle__content" data-wp-bind--hidden="!state.wantsCard">
-			<div class="greeting-card-bundle__cards" data-wp-class--has-error="state.showCardError">
-				<div class="greeting-card-bundle__cards-slider swiper" data-wp-init="callbacks.initSwiper">
-					<div class="swiper-wrapper">
-						<?php foreach ($cards as $card) : ?>
-							<div class="swiper-slide">
-								<button
-									type="button"
-									class="greeting-card-bundle__card"
-									data-wp-context='<?php echo wp_json_encode(['cardId' => $card['productId']]); ?>'
-									data-wp-on--click="actions.selectCard"
-									data-wp-bind--aria-pressed="state.isCardPressed"
-									aria-pressed="false">
-									<img
-										src="<?php echo esc_url($card['image']); ?>"
-										alt="<?php echo esc_attr($card['name']); ?>" />
-									<p><?php echo wp_kses_post(wc_price($card['price'])); ?></p>
-								</button>
-							</div>
-						<?php endforeach; ?>
+			<?php
+			// Kartenauswahl: dasselbe Muster wie die Variantenknöpfe -- eine
+			// Radio-Gruppe ("genau eine Karte"), jede Karte ein <label> mit den
+			// Theme-Klassen "button outline tile". Abwählen geht über die
+			// Checkbox "Grusskarte hinzufügen", nicht über die Karte selbst.
+			?>
+			<fieldset class="greeting-card-bundle__cards" data-wp-class--has-error="state.showCardError">
+				<legend class="greeting-card-bundle__visually-hidden"><?php esc_html_e('Grusskarte wählen', 'greeting-card-block'); ?></legend>
+				<?php
+				// Gleiche Struktur wie der Slider-Block, damit main.css beide
+				// gleich gestaltet: Pfeile und Punkte liegen NEBEN dem Swiper.
+				// Theme-Klasse "slider" statt "cb-carousel-block" -- sonst würde
+				// das Carousel-Plugin diesen Slider ein zweites Mal starten.
+				?>
+				<div class="greeting-card-bundle__cards-slider slider" data-wp-init="callbacks.initSwiper">
+					<div class="swiper">
+						<div class="swiper-wrapper">
+							<?php foreach ($cards as $card) : ?>
+								<div class="swiper-slide">
+									<label
+										class="greeting-card-bundle__card button outline tile"
+										<?php echo wp_interactivity_data_wp_context(['cardId' => $card['productId']]); ?>
+										data-wp-class--is-selected="state.isCardSelected">
+										<input
+											type="radio"
+											class="greeting-card-bundle__visually-hidden"
+											name="gcb-card"
+											value="<?php echo esc_attr($card['productId']); ?>"
+											data-wp-on--change="actions.selectCard"
+											data-wp-bind--checked="state.isCardSelected" />
+										<img
+											src="<?php echo esc_url($card['image']); ?>"
+											alt="<?php echo esc_attr($card['name']); ?>" />
+										<span class="greeting-card-bundle__card-price"><?php echo wp_kses_post(wc_price($card['price'])); ?></span>
+									</label>
+								</div>
+							<?php endforeach; ?>
+						</div>
 					</div>
-					<div class="swiper-button-next"></div>
-					<div class="swiper-button-prev"></div>
 					<div class="swiper-pagination"></div>
+					<div class="swiper-button-prev"></div>
+					<div class="swiper-button-next"></div>
 				</div>
 				<div
 					class="wc-block-components-notice-banner is-error"
@@ -398,7 +464,7 @@ wp_interactivity_state('greeting-card-bundle', [
 					hidden>
 					<div class="wc-block-components-notice-banner__content"><?php esc_html_e('Bitte wählen Sie eine Grusskarte aus.', 'greeting-card-block'); ?></div>
 				</div>
-			</div>
+			</fieldset>
 
 			<div class="greeting-card-bundle__message">
 				<label for="greetingCardMessage"><?php esc_html_e('Nachricht auf der Grusskarte:', 'greeting-card-block'); ?></label>
@@ -434,7 +500,7 @@ wp_interactivity_state('greeting-card-bundle', [
 
 	<button
 		type="button"
-		class="wc-block-components-button wp-element-button greeting-card-bundle__submit button outline"
+		class="greeting-card-bundle__submit button outline"
 		data-wp-on--click="actions.addToCart"
 		data-wp-bind--disabled="state.isAdding">
 		<span data-wp-bind--hidden="state.isAdding"><?php esc_html_e('In den Warenkorb', 'greeting-card-block'); ?></span>

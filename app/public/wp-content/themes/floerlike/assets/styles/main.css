@@ -181,16 +181,16 @@ header.wp-block-template-part {
     justify-content: center;
     gap: 0.5rem;
     /* Werte gespiegelt aus theme.json → styles.blocks.core/button */
-    padding: 0.5rem 1rem;
+    padding: 0.75rem 1.5rem;
     border: 1px solid var(--btn-border);
     border-radius: 3rem;
     background-color: var(--btn-bg);
     background-image: none;
     color: var(--btn-text);
     font-family: var(--wp--preset--font-family--neue-frutiger-world);
-    font-size: var(--wp--preset--font-size--s);
+    font-size: var(--wp--preset--font-size--normal);
     font-weight: 300;
-    line-height: 1.4;
+    line-height: 1;
     text-align: center;
     text-decoration: none;
     cursor: pointer;
@@ -210,8 +210,13 @@ header.wp-block-template-part {
     text-decoration: none;
 }
 
+/* :has(:focus-visible) für Buttons, die selbst nicht fokussierbar sind, aber
+   ein fokussierbares Element enthalten -- z. B. ein <label class="button">
+   um einen unsichtbaren Radio-Button (Variantenauswahl im Grusskarten-Block). */
 .button.solid:focus-visible,
 .button.outline:focus-visible,
+.button.solid:has(:focus-visible),
+.button.outline:has(:focus-visible),
 .wp-block-button__link:focus-visible {
     outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
     outline-offset: 2px;
@@ -249,8 +254,24 @@ header.wp-block-template-part {
     --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
 }
 
-.button.on-dark:focus-visible {
+.button.on-dark:focus-visible,
+.button.on-dark:has(:focus-visible) {
     outline-color: var(--wp--preset--color--main-1-pistachio-ultralight);
+}
+
+/* Gewählt -- für Buttons, die eine Auswahl darstellen (z. B. Grösse eines
+   Strausses). Der Hover-Zustand der jeweiligen Variante bleibt stehen:
+   Füllung eingefahren, Schrift- und Randfarbe wie beim Hover. */
+.button.solid.is-selected,
+.button.outline.is-selected {
+    color: var(--btn-text-hover);
+    border-color: var(--btn-border-hover);
+}
+
+.button.solid.is-selected::after,
+.button.outline.is-selected::after {
+    transform: translateX(0);
+    opacity: 1;
 }
 
 .button.solid[disabled],
@@ -270,7 +291,88 @@ header.wp-block-template-part {
     width: 100%;
 }
 
-.cb-carousel-block {
+/* Text optisch exakt mittig.
+   Flexbox zentriert nur den Zeilenkasten der Schrift, nicht die Buchstaben.
+   Bei neue-frutiger-world liegt dieser Kasten asymmetrisch um die Grundlinie
+   (gemessen bei 14.8px: 13px darüber, 3px darunter), Kleinbuchstaben sassen
+   dadurch gut 1px zu tief. text-box schneidet den Kasten auf die Höhe der
+   Kleinbuchstaben (ex) bis zur Grundlinie (alphabetic) zu -- danach sitzt
+   deren Mitte genau in der Mitte des Buttons. Für Beschriftungen in
+   Grossbuchstaben wäre "cap" statt "ex" die passende Wahl.
+
+   WICHTIG: text-box wirkt nicht auf Flex-Container (dort liegt der Text in
+   einem anonymen Flex-Element), daher hier inline-block -- für Core-Buttons
+   ohnehin die WordPress-Grundeinstellung. Waagrecht zentriert text-align.
+   Der Innenabstand oben/unten gibt genau den weggeschnittenen Platz zurück,
+   die Höhe des Buttons bleibt unverändert.
+
+   Browser ohne text-box (ältere Versionen, ggf. Firefox) überspringen den
+   Block und behalten die bisherige Darstellung. */
+@supports (text-box: trim-both ex alphabetic) {
+    .button.solid,
+    .button.outline,
+    .wp-block-button__link {
+        display: inline-block;
+        text-box: trim-both ex alphabetic;
+        /* padding-block: calc(0.5rem + (1lh - 1ex) / 2); */
+    }
+
+    .button.full {
+        display: block;
+    }
+}
+
+/* Kachel: Button mit Bild und Text untereinander, z. B. Grusskarten zur
+   Auswahl (class="button outline tile"). Verhält sich wie jeder Button
+   (Hover-Füllung, gewählt, gesperrt), aber mit weniger runden Ecken -- eine
+   Pill-Form wirkt bei einem hohen Bild wie ein Oval.
+
+   Steht bewusst NACH dem text-box-Block: Kacheln brauchen wieder Flexbox fürs
+   Untereinander, und das Zuschneiden auf die Schrift ergibt bei Bild + Text
+   keinen Sinn. */
+.button.tile {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.75rem;
+    border-radius: 0.75rem;
+    text-box: normal;
+}
+
+/* ===========================================================================
+   SLIDER
+
+   Eine Optik für zwei Quellen:
+
+   1. .cb-carousel-block — der Slider-Block (Plugin "Carousel Block").
+   2. .slider — eigene Slider, z. B. die Kartenauswahl im Grusskarten-Block.
+      Eigener Klassenname mit Absicht: das Carousel-Plugin startet Swiper für
+      JEDES ".cb-carousel-block .swiper" auf der Seite -- trüge ein fremder
+      Slider diese Klasse, würde er doppelt gestartet.
+
+   Beide haben dieselbe Struktur, die Bedienelemente liegen NEBEN dem Swiper:
+
+     <div class="slider">
+       <div class="swiper"><div class="swiper-wrapper">…Folien…</div></div>
+       <div class="swiper-pagination"></div>
+       <div class="swiper-button-prev"></div>
+       <div class="swiper-button-next"></div>
+     </div>
+
+   Angesprochen werden die Bedienelemente deshalb über die allgemeinen
+   Swiper-Klassen, die beide tragen -- nicht über die cb-…-Klassen des Plugins.
+
+   3. .wc-block-next-previous-buttons__button — die Pfeile der WooCommerce-
+      Produktgalerie (und des Karussell-Layouts der Produktsammlung). Kein
+      Swiper, aber gleiche Optik: Sie sind unten bei Aussehen, Ring, Hover
+      und Symbol mit aufgeführt. Positioniert werden sie weiterhin von
+      WooCommerce (links/rechts über dem grossen Bild). WooCommerce gestaltet
+      sie nur mit :where(), also Spezifität null -- unsere Regeln gewinnen
+      ohne !important.
+   =========================================================================== */
+
+:is(.cb-carousel-block, .slider) {
     display: grid;
     grid-template-columns: 1fr auto auto auto 1fr;
     grid-template-rows: 1fr;
@@ -279,30 +381,33 @@ header.wp-block-template-part {
     overflow: hidden;
 }
 
-.cb-carousel-block>.swiper {
+:is(.cb-carousel-block, .slider)>.swiper {
     grid-row: 1;
     grid-column: 1 / -1;
     margin-bottom: 0 !important;
 }
 
-.cb-carousel-block>.cb-pagination {
+:is(.cb-carousel-block, .slider)>.swiper-pagination {
     grid-row: 1;
     grid-column: 3;
     z-index: 1;
     align-self: end;
+    display: flex;
     margin: 3rem 1rem !important;
     padding: 1rem 0 !important;
     gap: 0.5rem !important;
     justify-content: unset !important;
 }
 
-.cb-carousel-block>.cb-pagination span {
+:is(.cb-carousel-block, .slider)>.swiper-pagination span {
     position: relative;
+    margin: 0 4px !important;
 }
 
-.cb-carousel-block>.cb-button-prev::before,
-.cb-carousel-block>.cb-button-next::before,
-.cb-carousel-block>.cb-pagination span::after {
+:is(.cb-carousel-block, .slider)>.swiper-button-prev::before,
+:is(.cb-carousel-block, .slider)>.swiper-button-next::before,
+.wc-block-next-previous-buttons__button::before,
+:is(.cb-carousel-block, .slider)>.swiper-pagination span::after {
     content: '';
     position: absolute;
     inset: -3px;
@@ -312,36 +417,34 @@ header.wp-block-template-part {
     transition: background 0.35s ease-in-out;
 }
 
-/* .cb-carousel-block>.cb-button-prev:hover::before,
-.cb-carousel-block>.cb-button-next:hover::before {
-    background: var(--wp--preset--color--main-2-deluge);
-} */
-
-.wp-block-cb-carousel-v2 .cb-pagination .cb-pagination-bullet {
+:is(.cb-carousel-block, .slider)>.swiper-pagination .swiper-pagination-bullet {
+    width: 8px;
+    height: 8px;
     background: var(--wp--preset--color--main-2-deluge) !important;
 }
 
-.wp-block-cb-carousel-v2 .cb-button-next:hover,
-.wp-block-cb-carousel-v2 .cb-button-prev:hover {
+:is(.cb-carousel-block, .slider)>.swiper-button-next:hover,
+:is(.cb-carousel-block, .slider)>.swiper-button-prev:hover,
+.wc-block-next-previous-buttons__button:hover {
     color: var(--wp--preset--color--main-1-pistachio-ultralight) !important;
     background: var(--wp--preset--color--main-2-deluge) !important;
 }
 
-.swiper-navigation-icon {
+.swiper-navigation-icon,
+.wc-block-next-previous-buttons__icon {
     color: var(--wp--preset--color--main-2-deluge-light);
 }
 
-.wp-block-cb-carousel-v2 .cb-button-next:hover .swiper-navigation-icon,
-.wp-block-cb-carousel-v2 .cb-button-prev:hover .swiper-navigation-icon {
+:is(.cb-carousel-block, .slider)>.swiper-button-next:hover .swiper-navigation-icon,
+:is(.cb-carousel-block, .slider)>.swiper-button-prev:hover .swiper-navigation-icon,
+.wc-block-next-previous-buttons__button:hover .wc-block-next-previous-buttons__icon {
     color: var(--wp--preset--color--main-1-pistachio-ultralight);
 }
 
-.cb-carousel-block>.cb-button-prev,
-.cb-carousel-block>.cb-button-next {
-    grid-row: 1;
-    z-index: 1;
-    align-self: end;
-    margin: 3rem 0 !important;
+/* Aussehen der Pfeil-Knöpfe -- für alle drei Quellen gleich. */
+:is(.cb-carousel-block, .slider)>.swiper-button-prev,
+:is(.cb-carousel-block, .slider)>.swiper-button-next,
+.wc-block-next-previous-buttons__button {
     padding: 1rem;
     border-radius: 50%;
     aspect-ratio: 1 / 1;
@@ -349,18 +452,68 @@ header.wp-block-template-part {
     transition: background 0.35s ease-in-out;
 }
 
-.cb-carousel-block>.cb-button-prev {
+/* Platz im Raster -- nur für die Swiper-Slider. */
+:is(.cb-carousel-block, .slider)>.swiper-button-prev,
+:is(.cb-carousel-block, .slider)>.swiper-button-next {
+    grid-row: 1;
+    z-index: 1;
+    align-self: end;
+    margin: 3rem 0 !important;
+}
+
+/* Galerie-Pfeile: WooCommerce gibt ihnen feste 40px und kein Innenabstand.
+   Hier dieselbe Rechnung wie bei den Swiper-Pfeilen -- 11px Symbol plus 1rem
+   Innenabstand rundum --, damit alle Knöpfe exakt gleich gross sind.
+   position: relative braucht der Ring (::before). */
+.wc-block-next-previous-buttons__button {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: content-box;
+    width: 11px;
+    height: 11px;
+    border: 0;
+}
+
+/* Das Symbol von WooCommerce ist 8×12px und per Innenabstand leicht
+   verschoben -- auf dieselbe Höhe wie das Swiper-Symbol bringen. */
+.wc-block-next-previous-buttons__icon {
+    width: auto;
+    height: 11px;
+    padding: 0;
+}
+
+/* Gesperrt (erstes/letztes Bild): wie bei Swiper der ganze Knopf blass,
+   nicht nur das Symbol (das WooCommerce sonst zusätzlich auf 30% setzt). */
+.wc-block-next-previous-buttons__button[aria-disabled="true"] {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.wc-block-next-previous-buttons__button[aria-disabled="true"] .wc-block-next-previous-buttons__icon {
+    opacity: 1;
+}
+
+:is(.cb-carousel-block, .slider)>.swiper-button-prev {
     grid-column: 2;
 }
 
-.cb-carousel-block>.cb-button-next {
+:is(.cb-carousel-block, .slider)>.swiper-button-next {
     grid-column: 4;
 }
 
+/* Swiper-Grösse des Pfeil-Symbols: wie im Slider-Block 11px, die Grösse des
+   runden Knopfs ergibt sich aus Symbol + Innenabstand. */
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next) .swiper-navigation-icon {
+    width: 11px;
+    height: 11px;
+}
+
 /* Swiper-Defaults neutralisieren – sonst bleiben die Elemente absolut positioniert */
-.cb-carousel-block>.cb-pagination,
-.cb-carousel-block>.cb-button-prev,
-.cb-carousel-block>.cb-button-next {
+:is(.cb-carousel-block, .slider)>.swiper-pagination,
+:is(.cb-carousel-block, .slider)>.swiper-button-prev,
+:is(.cb-carousel-block, .slider)>.swiper-button-next {
     position: relative;
     inset: auto;
     width: auto;
@@ -370,9 +523,29 @@ header.wp-block-template-part {
 }
 
 /* Swiper hängt per ::after noch seine Icon-Font dran */
-.cb-carousel-block>.cb-button-prev::after,
-.cb-carousel-block>.cb-button-next::after {
+:is(.cb-carousel-block, .slider)>.swiper-button-prev::after,
+:is(.cb-carousel-block, .slider)>.swiper-button-next::after {
     content: none;
+}
+
+/* Eigene Slider: Bedienelemente UNTER den Folien statt darüber. Im Slider-Block
+   liegen sie auf einem grossen Bild; bei kleineren Inhalten (z. B. Grusskarten
+   mit Preis darunter) würden sie den Inhalt verdecken. */
+.slider {
+    grid-template-rows: auto auto;
+}
+
+/* Unten 0.25rem Luft: die Ringe (::before, inset -3px) ragen über die Knöpfe
+   hinaus und würden sonst vom overflow: hidden abgeschnitten. Die Punkte
+   behalten wie im Slider-Block links und rechts 1rem Abstand. */
+.slider>:is(.swiper-pagination, .swiper-button-prev, .swiper-button-next) {
+    grid-row: 2;
+    align-self: center;
+    margin: 0.75rem 0 0.25rem !important;
+}
+
+.slider>.swiper-pagination {
+    margin: 0.75rem 1rem 0.25rem !important;
 }
 
 section.highlight .swiper-slide .wp-block-columns {
@@ -393,6 +566,21 @@ section.highlight .swiper-slide .wp-block-columns {
     flex-shrink: 0;
     width: auto;
     /* Breite setzt Swiper inline */
+}
+
+.wc-block-product-gallery-large-image__inner-blocks {
+    width: calc(100% - 2rem);
+    height: calc(100% - 1rem);
+    inset: 0;
+    margin: auto;
+}
+
+.wc-block-product-gallery-large-image {
+    margin-bottom:0.6rem !important;
+}
+
+.woocommerce.wc-block-breadcrumbs {
+    margin-bottom: 3rem;
 }
 
 section.cta {
@@ -677,8 +865,8 @@ section.store .wp-block-image img {
 }
 
 section.product.single {
-    margin-block-start: 1.5rem;
-    margin-block-end: 3rem;
+    margin-block-start: 4rem;
+    margin-block-end: 4rem;
 }
 
 section.product.single h1 {
@@ -698,13 +886,15 @@ section.product.single .wp-block-post-excerpt__excerpt {
     margin-block-end: 1.5rem;
 }
 
+.woocommerce-Price-amount,
+.woocommerce-Price-currencySymbol,
 section.product.single .wc-block-components-product-price {
     font-family: var(--wp--preset--font-family--neue-montreal-mono);
     font-weight: 300;
     letter-spacing: 0.0125em;
     line-height: 1.33;
     color: var(--wp--preset--color--main-1-pistachio-dark);
-    font-size: var(--wp--preset--font-size--normal);
+    font-size: var(--wp--preset--font-size--medium);
     margin-block-end: 1.5rem;
 }
 
@@ -718,8 +908,16 @@ section.product.single .wc-block-breadcrumbs {
 }
 
 
-section.product.single button.single_add_to_cart_button {
- 
+.wc-block-components-notice-banner {
+	font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-weight: 300;
+    letter-spacing: 0.0125em;
+    line-height: 1.33;
+}
+
+
+section.product.single .single-wrapper {
+    gap: 1.5rem;
 }
 
 footer {
