@@ -27,11 +27,26 @@ if (! defined('ABSPATH')) {
  */
 
 require_once __DIR__ . '/includes/class-integration.php';
+require_once __DIR__ . '/includes/class-state.php';
 require_once __DIR__ . '/includes/class-store-api.php';
 require_once __DIR__ . '/includes/class-checkout-blocks-integration.php';
 
 function greeting_card_block_greeting_card_block_block_init()
 {
+	// Gemeinsamer Store aller Grusskarten-Blöcke (src/shared/store.js). Muss
+	// VOR den Blöcken registriert sein: deren block.json nennt ihn unter
+	// "viewScriptModule" mit dieser ID, und WordPress löst die ID beim
+	// Registrieren des Blocks auf.
+	$store_asset_file = __DIR__ . '/build/shared/store.asset.php';
+	$store_asset      = file_exists($store_asset_file) ? require $store_asset_file : ['dependencies' => [], 'version' => false];
+
+	wp_register_script_module(
+		'greeting-card-block/store',
+		plugins_url('build/shared/store.js', __FILE__),
+		$store_asset['dependencies'],
+		$store_asset['version']
+	);
+
 	wp_register_block_types_from_metadata_collection(__DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php');
 }
 add_action('init', 'greeting_card_block_greeting_card_block_block_init');

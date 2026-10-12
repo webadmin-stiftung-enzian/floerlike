@@ -24,6 +24,9 @@ return array(
 		'editorStyle' => 'file:./index.css',
 		'style' => 'file:./style-index.css',
 		'render' => 'file:./render.php',
-		'viewScriptModule' => 'file:./view.js'
+		'viewScriptModule' => array(
+			'greeting-card-block/store',
+			'file:./view.js'
+		)
 	)
 );

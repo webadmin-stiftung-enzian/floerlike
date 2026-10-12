@@ -11,11 +11,16 @@
 		"html": false,
 		"interactivity": true
 	},
-	"usesContext": ["postId"],
+	"usesContext": [
+		"postId"
+	],
 	"textdomain": "greeting-card-block",
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
 	"style": "file:./style-index.css",
 	"render": "file:./render.php",
-	"viewScriptModule": "file:./view.js"
+	"viewScriptModule": [
+		"greeting-card-block/store",
+		"file:./view.js"
+	]
 }
