@@ -1,0 +1,18 @@
+{
+	"$comment": "Welche Blöcke zum Grusskarten-Kauf gehören und welche davon wesentlich sind. EINE Quelle für PHP (includes/class-purchase-status.php) und den Editor (src/blocks/card-purchase/edit.js), damit Seite und Editor nie unterschiedlich entscheiden. Siehe Spezifikation v4, Kapitel 5.1.",
+	"frame": "greeting-card-block/card-purchase",
+	"purchase": [ "greeting-card-block/add-to-cart" ],
+	"variable": [ "greeting-card-block/variant-selector" ],
+	"cards": [
+		"greeting-card-block/card-toggle",
+		"greeting-card-block/card-picker",
+		"greeting-card-block/card-message"
+	],
+	"template": [
+		"greeting-card-block/variant-selector",
+		"greeting-card-block/card-toggle",
+		"greeting-card-block/card-picker",
+		"greeting-card-block/card-message",
+		"greeting-card-block/add-to-cart"
+	]
+}

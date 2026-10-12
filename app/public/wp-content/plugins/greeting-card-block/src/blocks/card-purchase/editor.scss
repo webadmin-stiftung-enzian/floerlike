@@ -1,0 +1,35 @@
+/**
+ * Rahmen "Grusskarten-Kauf" im Editor.
+ *
+ * Gestrichelter Rand, damit man im Template sieht, wo der Kaufbereich beginnt
+ * und endet -- Blöcke ausserhalb davon wirken nicht mit.
+ */
+.wp-block-greeting-card-block-card-purchase {
+	outline: 1px dashed rgba(0, 0, 0, 0.25);
+	outline-offset: 4px;
+}
+
+.greeting-card-purchase__notice {
+	margin: 0 0 1rem;
+}
+
+/* Fehlt etwas Wesentliches, werden die betroffenen Blöcke ausgegraut. Sie
+   bleiben auswählbar, verschiebbar und löschbar -- ausgegraut heisst "wirkt
+   gerade nicht", nicht "gesperrt" (Spezifikation v4, 5.3). */
+.wp-block-greeting-card-block-card-purchase.is-purchase-disabled {
+	.wp-block-greeting-card-block-variant-selector,
+	.wp-block-greeting-card-block-card-toggle,
+	.wp-block-greeting-card-block-card-picker,
+	.wp-block-greeting-card-block-card-message,
+	.wp-block-greeting-card-block-add-to-cart {
+		opacity: 0.4;
+	}
+}
+
+.wp-block-greeting-card-block-card-purchase.is-cards-disabled {
+	.wp-block-greeting-card-block-card-toggle,
+	.wp-block-greeting-card-block-card-picker,
+	.wp-block-greeting-card-block-card-message {
+		opacity: 0.4;
+	}
+}

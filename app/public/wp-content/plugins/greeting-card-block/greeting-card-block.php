@@ -27,6 +27,7 @@ if (! defined('ABSPATH')) {
  */
 
 require_once __DIR__ . '/includes/class-integration.php';
+require_once __DIR__ . '/includes/class-purchase-status.php';
 require_once __DIR__ . '/includes/class-state.php';
 require_once __DIR__ . '/includes/class-store-api.php';
 require_once __DIR__ . '/includes/class-checkout-blocks-integration.php';
@@ -47,6 +48,27 @@ function greeting_card_block_greeting_card_block_block_init()
 		$store_asset['version']
 	);
 
-	wp_register_block_types_from_metadata_collection(__DIR__ . '/build', __DIR__ . '/build/blocks-manifest.php');
+	// Alle Blöcke liegen in build/blocks/<name>/. Das Manifest benennt jeden
+	// Block nach seinem Ordnernamen, WordPress setzt den Pfad als
+	// <Basisordner>/<Ordnername> zusammen -- daher build/blocks als Basis.
+	wp_register_block_types_from_metadata_collection(__DIR__ . '/build/blocks', __DIR__ . '/build/blocks-manifest.php');
 }
 add_action('init', 'greeting_card_block_greeting_card_block_block_init');
+
+/**
+ * Eigene Kategorie im Block-Einfügen-Menü, damit der Rahmen und seine Blöcke
+ * zusammen auffindbar sind.
+ */
+add_filter('block_categories_all', function ($categories) {
+	if (in_array('greeting-card', array_column($categories, 'slug'), true)) {
+		return $categories;
+	}
+
+	$categories[] = [
+		'slug'  => 'greeting-card',
+		'title' => __('Grusskarte & Kauf', 'greeting-card-block'),
+		'icon'  => null,
+	];
+
+	return $categories;
+});

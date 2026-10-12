@@ -1,6 +1,44 @@
 <?php
 // This file is generated. Do not modify it manually.
 return array(
+	'card-purchase' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'greeting-card-block/card-purchase',
+		'version' => '0.4.0',
+		'title' => 'Grusskarten-Kauf',
+		'category' => 'greeting-card',
+		'description' => 'Kaufbereich mit Variantenauswahl, optionaler Grusskarte und Warenkorb-Knopf. Beim Einfügen werden alle nötigen Blöcke angelegt; dazwischen sind beliebige Blöcke erlaubt.',
+		'keywords' => array(
+			'grusskarte',
+			'warenkorb',
+			'kaufen',
+			'variante'
+		),
+		'textdomain' => 'greeting-card-block',
+		'usesContext' => array(
+			'postId'
+		),
+		'supports' => array(
+			'html' => false,
+			'multiple' => false,
+			'align' => array(
+				'wide',
+				'full'
+			),
+			'layout' => array(
+				'allowSizingOnChildren' => true
+			),
+			'spacing' => array(
+				'margin' => true,
+				'padding' => true,
+				'blockGap' => true
+			)
+		),
+		'editorScript' => 'file:./index.js',
+		'editorStyle' => 'file:./index.css',
+		'render' => 'file:./render.php'
+	),
 	'greeting-card-bundle' => array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,

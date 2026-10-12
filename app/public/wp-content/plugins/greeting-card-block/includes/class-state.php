@@ -28,7 +28,10 @@ if (! defined('ABSPATH')) {
  *     variationSelector: array|null,
  *     selectedAttributes: array,
  *     nativePriceSync: bool,
- *     isAvailable: bool
+ *     isAvailable: bool,
+ *     canPurchase: bool,
+ *     cardsEnabled: bool,
+ *     status: array|null
  * }
  */
 function gcb_prepare_state(WC_Product $product)
@@ -61,6 +64,13 @@ function gcb_prepare_state(WC_Product $product)
         $is_available = $product->is_purchasable() && $product->is_in_stock();
     }
 
+    // Vollständigkeit des Rahmens "Grusskarten-Kauf" (class-purchase-status.php).
+    // Ausserhalb eines Rahmens (bisheriger Einzelblock) gilt der Satz als
+    // vollständig: Karten gibt es dann, sobald das Produkt welche hat.
+    $status        = gcb_get_purchase_status($product);
+    $can_purchase  = $status ? $status['canPurchase'] : true;
+    $cards_enabled = $status ? $status['cardsEnabled'] : ! empty($cards);
+
     wp_interactivity_state('greeting-card-bundle', [
         'productId'          => $product_id,
         'cards'              => $cards,
@@ -81,6 +91,8 @@ function gcb_prepare_state(WC_Product $product)
         'variationSelector'  => $variation_selector,
         'selectedAttributes' => $selected,
         'nativePriceSync'    => $native_price_sync,
+        'canPurchase'        => $can_purchase,
+        'cardsEnabled'       => $cards_enabled,
 
         // Serverseitige Gegenstücke zu den gleichnamigen Gettern in
         // src/shared/store.js.
@@ -135,6 +147,9 @@ function gcb_prepare_state(WC_Product $product)
         'selectedAttributes' => $selected,
         'nativePriceSync'    => $native_price_sync,
         'isAvailable'        => $is_available,
+        'canPurchase'        => $can_purchase,
+        'cardsEnabled'       => $cards_enabled,
+        'status'             => $status,
     ];
 
     return $prepared[$product_id];
