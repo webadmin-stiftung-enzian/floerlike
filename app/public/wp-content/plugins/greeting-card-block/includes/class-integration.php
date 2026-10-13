@@ -411,20 +411,24 @@ add_action('woocommerce_checkout_create_order_line_item', function ($item, $cart
  *
  * Deshalb klammern wir NUR diesen einen Callback per Output-Buffering ein
  * (Prioritäten 29/31 – knapp davor/danach) und verwerfen seine Ausgabe genau
- * dann, wenn unser Block für das aktuelle Produkt zuständig ist. Titel, Preis,
- * Bewertung, Kurzbeschreibung, Meta und Sharing (die anderen an denselben Hook
- * gebundenen Callbacks) bleiben unangetastet.
+ * dann, wenn auf der Seite stattdessen mit unseren Blöcken gekauft werden
+ * kann (gcb_should_hide_native_form(), class-purchase-status.php). Titel,
+ * Preis, Bewertung, Kurzbeschreibung, Meta und Sharing (die anderen an
+ * denselben Hook gebundenen Callbacks) bleiben unangetastet.
+ *
+ * Beide Hälften fragen dieselbe, zwischengespeicherte Funktion -- ob_start()
+ * und ob_end_clean() treffen also garantiert dieselbe Entscheidung.
  */
 add_action('woocommerce_single_product_summary', function () {
     global $product;
-    if (gcb_handles_product($product)) {
+    if (gcb_should_hide_native_form($product)) {
         ob_start();
     }
 }, 29);
 
 add_action('woocommerce_single_product_summary', function () {
     global $product;
-    if (gcb_handles_product($product)) {
+    if (gcb_should_hide_native_form($product)) {
         ob_end_clean();
     }
 }, 31);
@@ -438,24 +442,33 @@ add_action('woocommerce_single_product_summary', function () {
  * erzeugt). Beide Mechanismen zusammen decken beide Template-Varianten ab,
  * ohne sich gegenseitig zu stören.
  */
-add_filter('render_block', function ($content, $block) {
+add_filter('render_block', function ($content, $block, $instance = null) {
     $targets = ['woocommerce/add-to-cart-form', 'woocommerce/add-to-cart-with-options'];
     if (! in_array($block['blockName'] ?? '', $targets, true)) {
         return $content;
     }
 
-    return gcb_handles_product(get_the_ID()) ? '' : $content;
-}, 10, 2);
+    // Das Produkt aus dem Block-Kontext, nicht get_the_ID(): Steht die Form im
+    // Block "Einzelnes Produkt" auf einer normalen Seite, ist get_the_ID() die
+    // Seite. Der Kontext dagegen enthält das Produkt -- auf der Produktseite
+    // ebenso wie dort.
+    $product_id = $instance instanceof WP_Block && ! empty($instance->context['postId'])
+        ? (int) $instance->context['postId']
+        : get_the_ID();
+
+    return gcb_should_hide_native_form($product_id) ? '' : $content;
+}, 10, 3);
 
 /**
  * 4c. Product Bundles' eigene Bundle-Sells-Auswahl unterdrücken.
  *
  * WC_PB_BS_Display hängt sich an `woocommerce_before_add_to_cart_form` und
  * blendet die verknüpften Karten als eigene Checkbox-Liste in die native Form
- * ein. Auf unseren Produkten unterdrücken wir die native Form zwar ohnehin
- * (4a/4b), aber falls sie doch einmal durchkommt, gäbe es sonst zwei
- * Kartenauswahlen nebeneinander — eine davon ohne Grusstext und ohne unsere
- * Logik.
+ * ein. Bewusst an gcb_handles_product() gebunden, NICHT an
+ * gcb_should_hide_native_form(): Erscheint die native Form als Rückfall
+ * (unser Kaufbereich fehlt oder ist unvollständig), soll sie OHNE Karten
+ * kommen -- die Liste von Product Bundles würde Karten ohne Grusstext und ohne
+ * Verknüpfung zum Produkt in den Warenkorb legen (Spezifikation v4, 5.2).
  *
  * Das Entfernen läuft an derselben Priorität 5 desselben Hooks, also bevor der
  * Callback von Product Bundles (Standardpriorität 10) an die Reihe kommt.

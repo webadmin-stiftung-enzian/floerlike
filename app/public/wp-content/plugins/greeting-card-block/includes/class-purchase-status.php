@@ -46,14 +46,70 @@ function gcb_purchase_definition()
 }
 
 /**
- * Alle Blocknamen in einem Block-Baum, beliebig tief (Gruppen, Spalten …).
+ * Blöcke, auf die ein Block nur verweist, statt sie selbst zu enthalten.
  *
- * Synchronisierte Vorlagen (core/block) werden aufgelöst: Steht ein Teil des
- * Satzes in einer solchen Vorlage, zählt er trotzdem. $seen verhindert eine
- * Endlosschleife, falls eine Vorlage sich selbst enthält.
+ * Drei Fälle, in denen der eigentliche Inhalt woanders steht:
+ *   core/block          synchronisierte Vorlage (gespeichert als wp_block)
+ *   core/template-part  Template-Teil (z. B. ein ausgelagerter Kaufbereich)
+ *   core/pattern        registriertes Muster des Themes oder eines Plugins
+ *
+ * $seen verhindert Endlosschleifen, falls ein Verweis (auf Umwegen) sich
+ * selbst enthält.
+ *
+ * @param array $block Ein geparster Block.
+ * @param array $seen  Bereits aufgelöste Verweise.
+ * @return array Geparste Blöcke des Verweisziels, leer wenn keins.
+ */
+function gcb_resolve_block_reference(array $block, array &$seen)
+{
+    $name  = $block['blockName'] ?? '';
+    $attrs = $block['attrs'] ?? [];
+
+    if ('core/block' === $name && ! empty($attrs['ref'])) {
+        $key = 'block:' . (int) $attrs['ref'];
+        if (isset($seen[$key])) {
+            return [];
+        }
+        $seen[$key] = true;
+        $post       = get_post((int) $attrs['ref']);
+
+        return ($post && 'wp_block' === $post->post_type) ? parse_blocks($post->post_content) : [];
+    }
+
+    if ('core/template-part' === $name && ! empty($attrs['slug'])) {
+        $id  = ($attrs['theme'] ?? get_stylesheet()) . '//' . $attrs['slug'];
+        $key = 'part:' . $id;
+        if (isset($seen[$key])) {
+            return [];
+        }
+        $seen[$key] = true;
+        $part       = get_block_template($id, 'wp_template_part');
+
+        return ($part && ! empty($part->content)) ? parse_blocks($part->content) : [];
+    }
+
+    if ('core/pattern' === $name && ! empty($attrs['slug'])) {
+        $key = 'pattern:' . $attrs['slug'];
+        if (isset($seen[$key])) {
+            return [];
+        }
+        $seen[$key] = true;
+        $pattern    = WP_Block_Patterns_Registry::get_instance()->get_registered($attrs['slug']);
+
+        return ($pattern && ! empty($pattern['content'])) ? parse_blocks($pattern['content']) : [];
+    }
+
+    return [];
+}
+
+/**
+ * Alle Blocknamen in einem Block-Baum, beliebig tief (Gruppen, Spalten …),
+ * Verweise aufgelöst (gcb_resolve_block_reference): Steht ein Teil des
+ * Satzes in einer synchronisierten Vorlage oder einem Muster, zählt er
+ * trotzdem.
  *
  * @param array $blocks Geparste Blöcke (parse_blocks() bzw. innerBlocks).
- * @param array $seen   Bereits aufgelöste Vorlagen-IDs.
+ * @param array $seen   Bereits aufgelöste Verweise.
  * @return string[]
  */
 function gcb_collect_block_names(array $blocks, array &$seen = [])
@@ -71,13 +127,9 @@ function gcb_collect_block_names(array $blocks, array &$seen = [])
             $names = array_merge($names, gcb_collect_block_names($block['innerBlocks'], $seen));
         }
 
-        $ref = $block['attrs']['ref'] ?? 0;
-        if ('core/block' === $block['blockName'] && $ref && ! isset($seen[$ref])) {
-            $seen[$ref] = true;
-            $pattern    = get_post($ref);
-            if ($pattern && 'wp_block' === $pattern->post_type) {
-                $names = array_merge($names, gcb_collect_block_names(parse_blocks($pattern->post_content), $seen));
-            }
+        $referenced = gcb_resolve_block_reference($block, $seen);
+        if ($referenced) {
+            $names = array_merge($names, gcb_collect_block_names($referenced, $seen));
         }
     }
 
@@ -214,4 +266,122 @@ function gcb_block_titles(array $names)
     }
 
     return implode(', ', $titles);
+}
+
+/* ---------------------------------------------------------------------------
+   Native WooCommerce-Form: wann ausblenden? (Spezifikation v4, Kapitel 8)
+   ---------------------------------------------------------------------------
+   Die Form darf nur verschwinden, wenn auf der Seite tatsächlich etwas steht,
+   mit dem man stattdessen kaufen kann. Sonst hätte ein Produkt gar keinen
+   Kaufen-Knopf -- z. B. wenn im Template der Rahmen fehlt oder in ihm
+   "In den Warenkorb" gelöscht wurde.
+
+   Die Form kann im Template VOR unserem Rahmen stehen und wird dann zuerst
+   gerendert. Auf das Rendern des Rahmens zu warten geht also nicht; stattdessen
+   wird vorab der Inhalt der Seite durchsucht. Im Zweifel -- nichts gefunden --
+   wird NICHT ausgeblendet: lieber zwei Kaufen-Knöpfe als keiner. */
+
+/**
+ * Durchsucht einen Block-Baum nach Kauf-Oberflächen, die für das Produkt
+ * kaufen können: einem Rahmen mit vollständigem Kauf-Satz oder dem bisherigen
+ * Einzelblock (bis zu dessen Ablösung).
+ *
+ * @param array      $blocks  Geparste Blöcke.
+ * @param WC_Product $product
+ * @param array      $seen    Bereits aufgelöste Verweise.
+ * @return bool
+ */
+function gcb_tree_can_purchase(array $blocks, WC_Product $product, array &$seen = [])
+{
+    $frame = gcb_purchase_definition()['frame'];
+
+    foreach ($blocks as $block) {
+        $name = $block['blockName'] ?? '';
+
+        // Bisheriger Einzelblock: für sich ein vollständiger Kaufbereich.
+        if ('greeting-card-block/greeting-card-bundle' === $name) {
+            return true;
+        }
+
+        if ($frame === $name) {
+            $names = gcb_collect_block_names($block['innerBlocks'] ?? []);
+            if (gcb_evaluate_purchase($names, $product)['canPurchase']) {
+                return true;
+            }
+            // Ein unvollständiger Rahmen zählt nicht -- weitersuchen.
+            continue;
+        }
+
+        if (! empty($block['innerBlocks']) && gcb_tree_can_purchase($block['innerBlocks'], $product, $seen)) {
+            return true;
+        }
+
+        $referenced = gcb_resolve_block_reference($block, $seen);
+        if ($referenced && gcb_tree_can_purchase($referenced, $product, $seen)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Steht auf der aktuellen Seite eine Kauf-Oberfläche, die dieses Produkt
+ * kaufen kann?
+ *
+ * Durchsucht werden das Template, das gerade gerendert wird
+ * ($_wp_current_template_content, von WordPress gesetzt), und der Inhalt des
+ * aufgerufenen Beitrags (z. B. eine Landingpage mit dem Block "Einzelnes
+ * Produkt"). Ergebnis je Produkt zwischengespeichert -- mehrere Abfragen pro
+ * Seitenaufruf kosten nichts.
+ *
+ * @param WC_Product $product
+ * @return bool
+ */
+function gcb_page_can_purchase(WC_Product $product)
+{
+    static $cache = [];
+
+    $id = $product->get_id();
+    if (isset($cache[$id])) {
+        return $cache[$id];
+    }
+
+    $sources = [];
+
+    if (! empty($GLOBALS['_wp_current_template_content'])) {
+        $sources[] = $GLOBALS['_wp_current_template_content'];
+    }
+
+    $queried = get_queried_object();
+    if ($queried instanceof WP_Post && has_blocks($queried->post_content)) {
+        $sources[] = $queried->post_content;
+    }
+
+    $seen = [];
+    foreach ($sources as $source) {
+        if (gcb_tree_can_purchase(parse_blocks($source), $product, $seen)) {
+            return $cache[$id] = true;
+        }
+    }
+
+    return $cache[$id] = false;
+}
+
+/**
+ * Soll die native WooCommerce-Form für dieses Produkt ausgeblendet werden?
+ *
+ * Nur, wenn unsere Blöcke für das Produkt zuständig sind (einfach/variabel)
+ * UND auf der Seite tatsächlich damit gekauft werden kann.
+ *
+ * @param WC_Product|int|null $product
+ * @return bool
+ */
+function gcb_should_hide_native_form($product)
+{
+    if (! $product instanceof WC_Product) {
+        $product = $product ? wc_get_product($product) : null;
+    }
+
+    return gcb_handles_product($product) && gcb_page_can_purchase($product);
 }
