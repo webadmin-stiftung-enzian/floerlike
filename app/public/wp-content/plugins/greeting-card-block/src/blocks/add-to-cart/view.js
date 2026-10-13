@@ -34,6 +34,62 @@ function createGroupId() {
 	return `gcb${ uuid.replace( /[^a-z0-9]/gi, '' ).toLowerCase() }`;
 }
 
+/**
+ * Bis zum nächsten Bild warten. Die Interactivity API aktualisiert das DOM
+ * nicht sofort, wenn sich der State ändert -- erst danach sind die
+ * Fehlermeldungen sichtbar und lassen sich finden.
+ *
+ * @return {Promise<void>} Erfüllt, sobald der Browser neu gezeichnet hat.
+ */
+const nextFrame = () =>
+	new Promise( ( resolve ) =>
+		window.requestAnimationFrame( () => resolve() )
+	);
+
+/**
+ * Zum ersten Kauf-Block mit Fehler scrollen und dessen Eingabe fokussieren.
+ *
+ * Die Blöcke können frei im Rahmen verteilt sein -- die Meldung steht beim
+ * jeweiligen Block, womöglich weit weg vom Knopf und ausserhalb des
+ * sichtbaren Bereichs. "Erster" heisst: zuerst in der Reihenfolge der Seite,
+ * so wie man das Formular von oben nach unten ausfüllt.
+ *
+ * Gescrollt wird so, dass der Block in der Mitte steht -- dann verdeckt ihn
+ * auch ein fest stehender Seitenkopf nicht. Wer in den Systemeinstellungen
+ * "Bewegung reduzieren" gewählt hat, bekommt einen Sprung statt einer
+ * Animation. Die Meldungen selbst tragen role="alert" und werden von
+ * Screenreadern ohnehin vorgelesen.
+ */
+function focusFirstError() {
+	const error = [
+		...document.querySelectorAll(
+			'[data-wp-interactive="greeting-card-bundle"] .is-error, [data-wp-interactive="greeting-card-bundle"] .has-error'
+		),
+	].find( ( element ) => ! element.hidden && element.offsetParent !== null );
+
+	if ( ! error ) {
+		return;
+	}
+
+	const block = error.closest(
+		'[data-wp-interactive="greeting-card-bundle"]'
+	);
+	const control = block?.querySelector(
+		'input:not([disabled]):not([type="hidden"]), textarea, select'
+	);
+	const reduceMotion = window.matchMedia(
+		'(prefers-reduced-motion: reduce)'
+	).matches;
+
+	( block || error ).scrollIntoView( {
+		behavior: reduceMotion ? 'auto' : 'smooth',
+		block: 'center',
+	} );
+	// preventScroll: das Scrollen übernimmt scrollIntoView oben, sonst würde
+	// der Fokus die Seite ein zweites Mal (und ohne Zentrierung) bewegen.
+	control?.focus( { preventScroll: true } );
+}
+
 const { state } = store( 'greeting-card-bundle', {
 	actions: {
 		/**
@@ -54,6 +110,8 @@ const { state } = store( 'greeting-card-bundle', {
 			state.errorMessage = '';
 
 			if ( ! state.isValid ) {
+				await nextFrame();
+				focusFirstError();
 				return;
 			}
 
