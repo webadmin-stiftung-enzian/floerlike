@@ -1,78 +1,119 @@
-# Setup-Checkliste: Grusskarte zu einem Produkt
+# Einrichtung: Grusskarte zu einem Produkt
 
-Diese Schritte passieren **im WooCommerce-Admin**, nicht im Code. Ohne sie
-rendert der Block still gar nichts (`render.php` bricht ab, wenn dem Produkt
-keine Grusskarten zugeordnet sind).
+Diese Schritte passieren **im WordPress-Admin**, nicht im Code. Wie alles
+technisch zusammenhängt, erklärt [ARCHITEKTUR.md](ARCHITEKTUR.md).
 
-Seit v0.3.0 braucht es **kein Produkt vom Typ „Bundle“ mehr**. Der Strauss ist
-ein ganz normales (variables oder einfaches) Produkt, die Karten hängen über
-das Feld **Bundle-sells** daran. Pro Strauss gibt es damit wieder genau ein
-Produkt statt zweier.
+Der Strauss ist ein ganz normales **einfaches oder variables Produkt**. Die
+Karten hängen über das Feld **Bundle-sells** daran. Ein Produkt vom Typ
+„Bundle“ braucht es nicht.
 
 WooCommerce Product Bundles wird nur noch für dieses **Admin-Feld** gebraucht.
-Seine eigene Warenkorb-Logik kommt bewusst nicht zum Einsatz: sie funktioniert
+Seine eigene Warenkorb-Logik kommt bewusst nicht zum Einsatz: Sie funktioniert
 nur über die klassische Add-to-Cart-Form und erzeugt im Warenkorb keine echte
 Eltern-Kind-Beziehung. Beides übernimmt dieses Plugin selbst.
 
-## Schritte
+## 1. Produkte anlegen
 
-1. **Grusskarten als Simple Products anlegen.** Produktbild = Kartenmotiv,
+1. **Grusskarten als einfache Produkte anlegen.** Produktbild = Kartenmotiv,
    Preis setzen. Katalog-Sichtbarkeit optional auf „Verborgen“.
-   Die frühere Pflicht-Kategorie `grusskarte` wird nicht mehr ausgewertet —
-   massgeblich ist allein die Verknüpfung aus Schritt 3.
 
 2. **Strauss als normales Produkt anlegen.** Hat er Grössen oder Farben, ist er
-   ein **variables Produkt** mit Attributen und Variationen wie gewohnt. Der
-   Preis pro Variante wird direkt dort gepflegt.
+   ein **variables Produkt** mit Attributen und Variationen wie gewohnt.
+   - In jede Variation gehört der **Endpreis** (klein 35, mittel 45 …), kein
+     Aufschlag.
+   - Das Feld **„Beschreibung“** einer Variation erscheint im Knopf unter dem
+     Wert, z. B. „ca. 35 cm Ø“ (abschaltbar).
 
 3. **Karten verknüpfen:** Produktdaten → **Linked Products** → **Bundle-sells**.
    Dort die gewünschten Karten eintragen (nur einfache Produkte möglich).
-   - **Bundle-sells title:** Beschriftung der Checkbox auf der Produktseite,
-     z. B. „Grusskarten“. Bleibt das Feld leer, steht dort „Möchten Sie eine
-     Grusskarte hinzufügen?“.
-   - **Bundle-sells discount:** leer lassen. Der Rabattweg von Product Bundles
-     wird nicht verwendet.
+   - **Bundle-sells title** und **discount:** leer lassen. Die Beschriftung der
+     Checkbox stellst du im Block ein (Schritt 2), Rabatte über Product
+     Bundles werden nicht verwendet.
+   - Ohne Karten funktioniert der Kauf trotzdem, nur ohne Kartenoption.
 
-4. **Block im Single-Product-Template platzieren** (Site Editor → Templates →
-   Single Product). Der Block heisst **„Grusskarte + Produkt in den Warenkorb“**.
+## 2. Blöcke ins Template setzen
 
-   Wichtig: Der **native** Add-to-Cart-Block bleibt im Template stehen. Er wird
-   pro Produkt automatisch unterdrückt, sobald unser Block zuständig ist (siehe
-   `gcb_is_card_parent()` in `includes/class-integration.php`). Würde man ihn
-   entfernen, verlören alle anderen Produkte ihren Kaufen-Button, weil dasselbe
-   Template für den ganzen Shop gilt.
+1. Site Editor → **Templates → Einzelnes Produkt** öffnen.
+2. Den Block **„Grusskarten-Kauf“** einfügen (Kategorie „Grusskarte & Kauf“).
+   Er legt automatisch alle fünf Blöcke an:
 
-5. **Testen:**
-   - Strauss ohne Karte kaufen: eine Position im Warenkorb.
-   - Strauss mit Karte kaufen: zwei Positionen, die Karte eingerückt darunter,
-     mit dem Grusstext als Zusatzinformation.
-   - Menge des Straussens ändern: die Karte zieht nach.
-   - Strauss entfernen: die Karte verschwindet mit.
+   | Block | Aufgabe |
+   |---|---|
+   | Variantenauswahl | Grösse o. Ä. als Knöpfe |
+   | Grusskarte hinzufügen | Checkbox |
+   | Grusskarten-Auswahl | Slider mit den Karten |
+   | Grusstext | Textfeld |
+   | In den Warenkorb | Knopf |
 
-## Wie die Verbindung technisch entsteht
+3. **Anordnen:** Innerhalb des Rahmens lassen sich die Blöcke frei
+   verschieben. Beliebige andere Blöcke (Überschriften, Absätze, Gruppen,
+   Spalten, der Preis-Block …) dürfen dazwischen stehen. Die Kauf-Blöcke können
+   den Rahmen aber nicht verlassen und stehen je nur einmal darin.
 
-Der Block schickt beide Positionen in **einem** Request an
-`/wc/store/v1/batch` und gibt beiden dieselbe, im Browser erzeugte Gruppen-ID
-mit (`gcb_group`). Serverseitig landet sie als `_gcb_group` in den
-`cart_item_data`; `_gcb_role` unterscheidet Produkt und Karte.
+4. **Vorschau:** Die Blöcke zeigen im Editor ihre echte Ausgabe. Mit welchem
+   Produkt, stellst du am Rahmen unter **Vorschau → Vorschau-Produkt** ein.
+   Leer = automatisch ein variables Produkt mit Grusskarten.
 
-Alles Weitere leitet sich daraus ab:
+5. **Den WooCommerce-Block „In den Warenkorb“ bzw. „Add to Cart with Options“
+   im Template stehen lassen.** Er wird automatisch ausgeblendet, sobald man
+   über unseren Rahmen kaufen kann. Würde man ihn entfernen, hätten Bundles,
+   gruppierte und externe Produkte keinen Knopf mehr, weil dasselbe Template
+   für den ganzen Shop gilt.
 
-| Aufgabe | Ort |
+## 3. Einstellungen
+
+Jeder Block hat eigene Einstellungen in der Seitenleiste rechts:
+
+| Block | Einstellungen |
 |---|---|
-| Daten annehmen, Grusstext prüfen und kürzen | `woocommerce_store_api_add_to_cart_data` |
-| Karte mitentfernen / wiederherstellen | `woocommerce_cart_item_removed`, `..._restored` |
-| Menge angleichen, verwaiste Karten aufräumen | `woocommerce_before_calculate_totals` |
-| Mengenauswahl der Karte sperren | `woocommerce_store_api_product_quantity_editable` |
-| Einrückung im Warenkorb-Block | `includes/class-store-api.php` + `assets/js/checkout-blocks.js` |
-| Grusstext in der Bestellung | `woocommerce_checkout_create_order_line_item` |
+| Grusskarten-Kauf | Vorschau-Produkt, Blockabstand (Standard 1.5rem), Innenabstand, Breite |
+| Variantenauswahl | Beschreibung in den Knöpfen, eigene Preiszeile (sinnvoll, wenn kein Preis-Block auf der Seite steht) |
+| Grusskarte hinzufügen | Beschriftung |
+| Grusskarten-Auswahl | sichtbare Karten Desktop / Mobil, Preis auf Karten, Pfeile, Punkte |
+| Grusstext | Beschriftung, Platzhalter, Höchstlänge (bis 300) |
+| In den Warenkorb | Beschriftung, Stil (Kontur / Gefüllt), Warenkorb-Symbol |
 
-Der Warenkorb-Schlüssel der Elternposition wird nie übertragen, sondern bei
-Bedarf serverseitig aus der Gruppe aufgelöst (`gcb_find_parent_key()`).
+Das Aussehen von Knöpfen und Slider kommt aus dem Theme (`main.css`).
+
+## 4. Wenn ein Block fehlt
+
+Wird ein Kauf-Block gelöscht, zeigt der Rahmen im Editor einen Hinweis mit
+**„Wiederherstellen“**, und die betroffenen Blöcke werden im Inhalt und in der
+Listenansicht ausgegraut. Auf der Seite gilt:
+
+| Es fehlt … | dann … |
+|---|---|
+| Checkbox, Kartenauswahl oder Grusstext | keine Grusskarten, Kauf ohne Karte geht |
+| „In den Warenkorb“ (oder bei variablen Produkten die Variantenauswahl) | der Rahmen zeigt nichts, die normale WooCommerce-Form erscheint |
+
+Kund:innen sehen nie einen halbfertigen Kaufbereich. Wer das Template
+bearbeiten darf, sieht auf der Seite einen Hinweis, was fehlt.
+
+## 5. Testen
+
+- Strauss ohne Karte kaufen: eine Position im Warenkorb.
+- Karte angehakt, aber keine Karte gewählt oder kein Text: Kauf wird verhindert,
+  die Seite springt zum ersten Fehler.
+- Strauss mit Karte kaufen: zwei Positionen, die Karte eingerückt darunter,
+  mit dem Grusstext als Zusatzinformation.
+- Menge des Strausses ändern: die Karte zieht nach.
+- Strauss entfernen: die Karte verschwindet mit.
+- Grösse wechseln: der Preis-Block springt auf den Preis der Variante.
+
+## 6. Nach Code-Änderungen
+
+Wer etwas in `src/` ändert, muss im Plugin-Ordner bauen:
+
+```sh
+npm install   # einmalig
+npm run build # oder während der Arbeit: npm start
+```
+
+WordPress lädt nur, was in `build/` liegt.
 
 ## Ohne Product Bundles
 
 Ist die Extension nicht aktiv, liest das Plugin die gespeicherte Kartenliste
 direkt aus der Produkt-Meta `_wc_pb_bundle_sell_ids`. Bestehende Produkte
-funktionieren im Frontend also weiter, nur bearbeiten lässt sich die Liste im
+funktionieren auf der Seite also weiter, nur bearbeiten lässt sich die Liste im
 Admin dann nicht mehr. Ein Hinweis im Plugins-Bildschirm weist darauf hin.

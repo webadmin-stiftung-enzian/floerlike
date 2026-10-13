@@ -115,28 +115,6 @@ function gcb_is_card_parent($product)
 }
 
 /**
- * 0c. Überschrift der Kartenauswahl — im Admin unter "Bundle-sells title"
- * gepflegt, mit eigenem Standardtext als Rückfall.
- *
- * @param WC_Product|int|null $product
- * @return string
- */
-function gcb_get_cards_title($product)
-{
-    if (! $product instanceof WC_Product) {
-        $product = $product ? wc_get_product($product) : null;
-    }
-
-    $title = $product instanceof WC_Product
-        ? trim((string) $product->get_meta('_wc_pb_bundle_sells_title', true))
-        : '';
-
-    return '' !== $title
-        ? $title
-        : __('Möchten Sie eine Grusskarte hinzufügen?', 'greeting-card-block');
-}
-
-/**
  * 1. Gruppen-ID, Rolle und Grusstext aus dem add-item-Request einsammeln.
  *
  * WICHTIG: Der Store-API-`add-item`-Request akzeptiert beliebige zusätzliche

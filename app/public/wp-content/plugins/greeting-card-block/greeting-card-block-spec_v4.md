@@ -1,6 +1,6 @@
 # Spezifikation v4: Grusskarten-Kauf als Multi-Block-Plugin
 
-**Status:** abgestimmt, bereit zur Umsetzung (Überarbeitung 2: Rahmenblock nach dem Vorbild der Abfrage-Schleife). Getroffene Entscheidungen in [Kapitel 14](#14-entscheidungen).
+**Status:** umgesetzt in Plugin 0.4.0 (Rahmenblock nach dem Vorbild der Abfrage-Schleife, Stufen 1–9 auf dem Branch `feature/multi-block`). Getroffene Entscheidungen in [Kapitel 14](#14-entscheidungen).
 **Ausgangsstand:** Plugin 0.3.0 mit einem einzigen Block `greeting-card-block/greeting-card-bundle` (siehe [ARCHITEKTUR.md](ARCHITEKTUR.md)).
 
 ---
