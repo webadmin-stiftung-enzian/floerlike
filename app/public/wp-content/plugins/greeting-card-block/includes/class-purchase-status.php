@@ -153,6 +153,36 @@ add_filter('render_block', function ($content, $block) {
 }, 10, 2);
 
 /**
+ * Standard-Blockabstand des Rahmens auch auf der Seite anwenden.
+ *
+ * Das Theme setzt den Abstand im Fliess-Layout auf 0; der Rahmen bringt
+ * deshalb einen eigenen Standard mit (block.json: attributes.style.default).
+ * Im Editor greift er, auf der Seite aber nicht: WordPress berechnet das
+ * Layout aus den GESPEICHERTEN Attributen (wp_render_layout_support_flag liest
+ * $block['attrs']), und Standardwerte werden nicht gespeichert. Ohne diesen
+ * Filter klebten die Kauf-Blöcke auf der Seite aneinander, im Editor nicht.
+ *
+ * render_block_data läuft vor der Layout-Berechnung. Wer im Editor einen
+ * eigenen Blockabstand einstellt, behält ihn -- ergänzt wird nur, was fehlt.
+ */
+add_filter('render_block_data', function ($parsed_block) {
+    $frame = gcb_purchase_definition()['frame'];
+
+    if (($parsed_block['blockName'] ?? '') !== $frame || isset($parsed_block['attrs']['style']['spacing']['blockGap'])) {
+        return $parsed_block;
+    }
+
+    $type    = WP_Block_Type_Registry::get_instance()->get_registered($frame);
+    $default = $type->attributes['style']['default']['spacing']['blockGap'] ?? null;
+
+    if ($default) {
+        $parsed_block['attrs']['style']['spacing']['blockGap'] = $default;
+    }
+
+    return $parsed_block;
+});
+
+/**
  * Vollständigkeit für das Produkt der Seite -- nur innerhalb eines Rahmens.
  *
  * @param WC_Product $product

@@ -29,10 +29,16 @@ if (! $data['cardsEnabled'] || ! $data['isAvailable']) {
     return;
 }
 
-// Höchstlänge aus dem State (class-state.php) -- dieselbe Zahl, mit der auch
-// der Zähler und view.js rechnen. Der Server kürzt unabhängig davon hart auf
-// 300 (class-integration.php).
-$max_length = (int) (wp_interactivity_state('greeting-card-bundle')['maxLength'] ?? 300);
+// Einstellungen des Blocks (Seitenleiste im Editor).
+$label       = trim((string) ($attributes['label'] ?? ''));
+$label       = '' !== $label ? $label : __('Nachricht auf der Grusskarte:', 'greeting-card-block');
+$placeholder = (string) ($attributes['placeholder'] ?? '');
+
+// Höchstlänge: eingestellt, aber nie über 300 -- mehr nimmt der Server nicht
+// an (class-integration.php kürzt hart auf 300). Sie geht in den State, damit
+// Zähler und Eingabe im Browser (store.js, view.js) mit derselben Zahl rechnen.
+$max_length = max(1, min(300, (int) ($attributes['maxLength'] ?? 300)));
+wp_interactivity_state('greeting-card-bundle', ['maxLength' => $max_length]);
 
 // Auf der Seite erst sichtbar, wenn eine Karte gewünscht ist. In der
 // Editor-Vorschau immer sichtbar, damit man den Block sieht und anordnen kann.
@@ -43,13 +49,14 @@ $visibility = gcb_is_editor_preview() ? '' : 'data-wp-bind--hidden="!state.wants
     <?php echo get_block_wrapper_attributes(['class' => 'greeting-card-bundle__message']); ?>
     data-wp-interactive="greeting-card-bundle"
     <?php echo $visibility; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- feste Zeichenkette ?>>
-    <label for="greetingCardMessage"><?php esc_html_e('Nachricht auf der Grusskarte:', 'greeting-card-block'); ?></label>
+    <label for="greetingCardMessage"><?php echo esc_html($label); ?></label>
     <div class="greeting-card-bundle__message-wrapper">
         <textarea
             id="greetingCardMessage"
             name="greeting_card_message"
             rows="4"
             cols="50"
+            <?php if ('' !== $placeholder) : ?>placeholder="<?php echo esc_attr($placeholder); ?>"<?php endif; ?>
             maxlength="<?php echo esc_attr($max_length); ?>"
             data-wp-on--input="actions.updateText"
             data-wp-class--has-error="state.showTextError"></textarea>

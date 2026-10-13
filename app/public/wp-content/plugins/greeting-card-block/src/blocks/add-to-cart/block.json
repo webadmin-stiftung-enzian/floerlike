@@ -11,6 +11,24 @@
 		"kaufen",
 		"button"
 	],
+	"attributes": {
+		"label": {
+			"type": "string",
+			"default": ""
+		},
+		"buttonStyle": {
+			"type": "string",
+			"enum": [
+				"outline",
+				"solid"
+			],
+			"default": "outline"
+		},
+		"showIcon": {
+			"type": "boolean",
+			"default": true
+		}
+	},
 	"ancestor": [
 		"greeting-card-block/card-purchase"
 	],

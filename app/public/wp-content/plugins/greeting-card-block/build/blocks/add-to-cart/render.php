@@ -43,6 +43,15 @@ if (! $data['isAvailable']) {
     return;
 }
 
+// Einstellungen des Blocks (Seitenleiste im Editor).
+$label        = trim((string) ($attributes['label'] ?? ''));
+$label        = '' !== $label ? $label : __('In den Warenkorb', 'greeting-card-block');
+$button_style = 'solid' === ($attributes['buttonStyle'] ?? 'outline') ? 'solid' : 'outline';
+$classes      = 'greeting-card-bundle__submit button ' . $button_style;
+if ($attributes['showIcon'] ?? true) {
+    $classes .= ' has-icon';
+}
+
 ?>
 <div
     <?php echo get_block_wrapper_attributes(); ?>
@@ -57,10 +66,10 @@ if (! $data['isAvailable']) {
 
     <button
         type="button"
-        class="greeting-card-bundle__submit button outline"
+        class="<?php echo esc_attr($classes); ?>"
         data-wp-on--click="actions.addToCart"
         data-wp-bind--disabled="state.isAdding">
-        <span data-wp-bind--hidden="state.isAdding"><?php esc_html_e('In den Warenkorb', 'greeting-card-block'); ?></span>
+        <span data-wp-bind--hidden="state.isAdding"><?php echo esc_html($label); ?></span>
         <span data-wp-bind--hidden="!state.isAdding"><?php esc_html_e('Wird hinzugefügt …', 'greeting-card-block'); ?></span>
     </button>
 </div>

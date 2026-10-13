@@ -14,6 +14,24 @@ return array(
 			'kaufen',
 			'button'
 		),
+		'attributes' => array(
+			'label' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'buttonStyle' => array(
+				'type' => 'string',
+				'enum' => array(
+					'outline',
+					'solid'
+				),
+				'default' => 'outline'
+			),
+			'showIcon' => array(
+				'type' => 'boolean',
+				'default' => true
+			)
+		),
 		'ancestor' => array(
 			'greeting-card-block/card-purchase'
 		),
@@ -49,6 +67,20 @@ return array(
 			'text',
 			'nachricht'
 		),
+		'attributes' => array(
+			'label' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'placeholder' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'maxLength' => array(
+				'type' => 'number',
+				'default' => 300
+			)
+		),
 		'ancestor' => array(
 			'greeting-card-block/card-purchase'
 		),
@@ -83,6 +115,28 @@ return array(
 			'grusskarte',
 			'slider',
 			'karte'
+		),
+		'attributes' => array(
+			'slidesPerView' => array(
+				'type' => 'number',
+				'default' => 1
+			),
+			'slidesPerViewMobile' => array(
+				'type' => 'number',
+				'default' => 1
+			),
+			'showPrice' => array(
+				'type' => 'boolean',
+				'default' => true
+			),
+			'showNavigation' => array(
+				'type' => 'boolean',
+				'default' => true
+			),
+			'showPagination' => array(
+				'type' => 'boolean',
+				'default' => true
+			)
 		),
 		'ancestor' => array(
 			'greeting-card-block/card-purchase'
@@ -126,6 +180,14 @@ return array(
 			'previewProductId' => array(
 				'type' => 'number',
 				'default' => 0
+			),
+			'style' => array(
+				'type' => 'object',
+				'default' => array(
+					'spacing' => array(
+						'blockGap' => '1.5rem'
+					)
+				)
 			)
 		),
 		'providesContext' => array(
@@ -166,6 +228,12 @@ return array(
 		'keywords' => array(
 			'grusskarte',
 			'checkbox'
+		),
+		'attributes' => array(
+			'label' => array(
+				'type' => 'string',
+				'default' => ''
+			)
 		),
 		'ancestor' => array(
 			'greeting-card-block/card-purchase'
@@ -229,6 +297,16 @@ return array(
 			'variante',
 			'grösse',
 			'auswahl'
+		),
+		'attributes' => array(
+			'showDescription' => array(
+				'type' => 'boolean',
+				'default' => true
+			),
+			'showOwnPrice' => array(
+				'type' => 'boolean',
+				'default' => false
+			)
 		),
 		'ancestor' => array(
 			'greeting-card-block/card-purchase'

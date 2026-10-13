@@ -11,6 +11,16 @@
     "grösse",
     "auswahl"
   ],
+  "attributes": {
+    "showDescription": {
+      "type": "boolean",
+      "default": true
+    },
+    "showOwnPrice": {
+      "type": "boolean",
+      "default": false
+    }
+  },
   "ancestor": [
     "greeting-card-block/card-purchase"
   ],

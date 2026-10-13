@@ -6,7 +6,7 @@
  * SVG wäre ein abgeschlossenes Bild, das keine Farbe von der Seite annimmt.
  */
 
-.greeting-card-bundle__submit > span:before {
+.greeting-card-bundle__submit.has-icon > span::before {
 	content: '';
 	display: inline-block;
 	width: 1.125rem;

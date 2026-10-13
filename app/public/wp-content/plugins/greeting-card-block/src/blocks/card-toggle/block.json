@@ -10,6 +10,12 @@
 		"grusskarte",
 		"checkbox"
 	],
+	"attributes": {
+		"label": {
+			"type": "string",
+			"default": ""
+		}
+	},
 	"ancestor": [
 		"greeting-card-block/card-purchase"
 	],

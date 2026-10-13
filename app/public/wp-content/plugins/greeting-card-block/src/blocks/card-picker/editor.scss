@@ -1,0 +1,22 @@
+/**
+ * Block "Grusskarten-Auswahl" im Editor.
+ *
+ * In der Vorschau läuft kein Swiper, der Slider steht im Ruhezustand. Swiper
+ * setzt die Kartenbreiten auf der Seite selbst; hier übernimmt das CSS mit der
+ * Anzahl aus den Einstellungen (--gcb-slides-per-view, von render.php gesetzt).
+ * Gleicher Abstand wie spaceBetween in view.js.
+ */
+.gcb-preview .greeting-card-bundle__cards-slider {
+	--gcb-slide-gap: 16px;
+
+	.swiper-wrapper {
+		gap: var(--gcb-slide-gap);
+	}
+
+	.swiper-slide {
+		width: calc(
+			(100% - (var(--gcb-slides-per-view, 1) - 1) * var(--gcb-slide-gap)) /
+				var(--gcb-slides-per-view, 1)
+		);
+	}
+}

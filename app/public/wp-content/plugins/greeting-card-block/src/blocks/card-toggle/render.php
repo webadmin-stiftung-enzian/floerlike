@@ -44,5 +44,10 @@ $is_preview = gcb_is_editor_preview();
         name="wantsGreetingCard"
         data-wp-on--change="actions.toggleWantsCard"
         <?php echo $is_preview ? 'checked' : 'data-wp-bind--checked="state.wantsCard"'; ?> />
-    <label for="wantsGreetingCard"><?php esc_html_e('Möchten Sie eine Grusskarte hinzufügen?', 'greeting-card-block'); ?></label>
+    <label for="wantsGreetingCard"><?php
+        // Beschriftung aus den Einstellungen, sonst der Standardtext (muss mit
+        // edit.js übereinstimmen).
+        $label = trim((string) ($attributes['label'] ?? ''));
+        echo esc_html('' !== $label ? $label : __('Möchten Sie eine Grusskarte hinzufügen?', 'greeting-card-block'));
+    ?></label>
 </div>

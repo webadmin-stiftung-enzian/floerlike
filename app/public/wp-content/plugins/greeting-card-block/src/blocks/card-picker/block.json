@@ -11,6 +11,28 @@
 		"slider",
 		"karte"
 	],
+	"attributes": {
+		"slidesPerView": {
+			"type": "number",
+			"default": 1
+		},
+		"slidesPerViewMobile": {
+			"type": "number",
+			"default": 1
+		},
+		"showPrice": {
+			"type": "boolean",
+			"default": true
+		},
+		"showNavigation": {
+			"type": "boolean",
+			"default": true
+		},
+		"showPagination": {
+			"type": "boolean",
+			"default": true
+		}
+	},
 	"ancestor": [
 		"greeting-card-block/card-purchase"
 	],

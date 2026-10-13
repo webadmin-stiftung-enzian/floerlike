@@ -35,6 +35,10 @@ if (! $variation_selector || ! $data['isAvailable']) {
     return;
 }
 
+// Einstellungen des Blocks (Seitenleiste im Editor).
+$show_description = (bool) ($attributes['showDescription'] ?? true);
+$show_own_price   = ! $data['nativePriceSync'] || ! empty($attributes['showOwnPrice']);
+
 ?>
 <div
     <?php echo get_block_wrapper_attributes(['class' => 'greeting-card-bundle__variations']); ?>
@@ -79,7 +83,7 @@ if (! $variation_selector || ! $data['isAvailable']) {
                         ?>
                         <span class="greeting-card-bundle__option-text">
                             <span class="greeting-card-bundle__option-label"><?php echo esc_html($option['label']); ?></span>
-                            <?php if ('' !== $option['description']) : ?>
+                            <?php if ($show_description && '' !== $option['description']) : ?>
                                 <span class="greeting-card-bundle__option-description"><?php echo esc_html($option['description']); ?></span>
                             <?php endif; ?>
                         </span>
@@ -89,8 +93,11 @@ if (! $variation_selector || ! $data['isAvailable']) {
         </fieldset>
     <?php endforeach; ?>
 
-    <?php if (! $data['nativePriceSync']) : ?>
-        <?php // Rückfall: der native Preis-Block kann nicht mitspringen (class-state.php). ?>
+    <?php if ($show_own_price) : ?>
+        <?php
+        // Eigene Preiszeile: eingestellt, oder als Rückfall, wenn der native
+        // Preis-Block nicht mitspringen kann (class-state.php).
+        ?>
         <p
             class="greeting-card-bundle__variation-price"
             data-wp-text="state.matchedVariationPriceText"></p>

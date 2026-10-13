@@ -40,6 +40,20 @@ $visibility = $is_preview ? '' : 'data-wp-bind--hidden="!state.wantsCard" hidden
 // genauso aussieht wie die Seite, wird es dort vom Server mitgeliefert.
 $arrow_svg = '<svg class="swiper-navigation-icon" width="11" height="20" viewBox="0 0 11 20" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M0.38296 20.0762C0.111788 19.805 0.111788 19.3654 0.38296 19.0942L9.19758 10.2796L0.38296 1.46497C0.111788 1.19379 0.111788 0.754138 0.38296 0.482966C0.654131 0.211794 1.09379 0.211794 1.36496 0.482966L10.4341 9.55214C10.8359 9.9539 10.8359 10.6053 10.4341 11.007L1.36496 20.0762C1.09379 20.3474 0.654131 20.3474 0.38296 20.0762Z" fill="currentColor"/></svg>';
 
+// Einstellungen des Blocks (Seitenleiste im Editor). Gleiche Grenzen wie die
+// Regler in edit.js.
+$per_view        = max(1, min(6, (int) ($attributes['slidesPerView'] ?? 1)));
+$per_view_mobile = max(1, min(3, (int) ($attributes['slidesPerViewMobile'] ?? 1)));
+$show_price      = (bool) ($attributes['showPrice'] ?? true);
+$show_navigation = (bool) ($attributes['showNavigation'] ?? true);
+$show_pagination = (bool) ($attributes['showPagination'] ?? true);
+$card_count      = count($data['cards']);
+
+// Für die Editor-Vorschau: so viele Punkte, wie Swiper auf der Seite erzeugt
+// (eine Position je möglicher Startkarte), und "weiter" gesperrt, wenn alle
+// Karten auf einmal sichtbar sind.
+$preview_bullets = max(1, $card_count - $per_view + 1);
+
 ?>
 <div
     <?php echo get_block_wrapper_attributes(); ?>
@@ -53,7 +67,21 @@ $arrow_svg = '<svg class="swiper-navigation-icon" width="11" height="20" viewBox
         // "slider" statt "cb-carousel-block" -- sonst würde das Carousel-Plugin
         // diesen Slider ein zweites Mal starten.
         ?>
-        <div class="greeting-card-bundle__cards-slider slider" data-wp-init="callbacks.initSwiper">
+        <div
+            class="greeting-card-bundle__cards-slider slider"
+            <?php
+            // Anzahl sichtbarer Karten für Swiper (view.js liest sie aus dem
+            // Kontext). In der Editor-Vorschau zusätzlich als CSS-Variable,
+            // weil dort kein Swiper läuft und CSS die Breiten setzt.
+            echo wp_interactivity_data_wp_context([
+                'slidesPerView'       => $per_view,
+                'slidesPerViewMobile' => $per_view_mobile,
+            ]);
+            if ($is_preview) {
+                printf(' style="--gcb-slides-per-view: %d"', (int) $per_view);
+            }
+            ?>
+            data-wp-init="callbacks.initSwiper">
             <div class="swiper">
                 <div class="swiper-wrapper">
                     <?php foreach ($data['cards'] as $card) : ?>
@@ -72,28 +100,42 @@ $arrow_svg = '<svg class="swiper-navigation-icon" width="11" height="20" viewBox
                                 <img
                                     src="<?php echo esc_url($card['image']); ?>"
                                     alt="<?php echo esc_attr($card['name']); ?>" />
-                                <span class="greeting-card-bundle__card-price"><?php echo wp_kses_post(wc_price($card['price'])); ?></span>
+                                <?php if ($show_price) : ?>
+                                    <span class="greeting-card-bundle__card-price"><?php echo wp_kses_post(wc_price($card['price'])); ?></span>
+                                <?php endif; ?>
                             </label>
                         </div>
                     <?php endforeach; ?>
                 </div>
             </div>
-            <?php if ($is_preview) : ?>
-                <?php
-                // Editor-Vorschau: Punkte und Pfeile so, wie Swiper sie auf der
-                // Seite erzeugt (erste Karte aktiv, "zurück" gesperrt).
-                ?>
-                <div class="swiper-pagination swiper-pagination-bullets swiper-pagination-horizontal">
-                    <?php foreach ($data['cards'] as $index => $card) : ?>
-                        <span class="swiper-pagination-bullet<?php echo 0 === $index ? ' swiper-pagination-bullet-active' : ''; ?>"></span>
-                    <?php endforeach; ?>
-                </div>
-                <div class="swiper-button-prev swiper-button-disabled"><?php echo $arrow_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- feste Zeichenkette ?></div>
-                <div class="swiper-button-next<?php echo count($data['cards']) < 2 ? ' swiper-button-disabled' : ''; ?>"><?php echo $arrow_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- feste Zeichenkette ?></div>
-            <?php else : ?>
-                <div class="swiper-pagination"></div>
-                <div class="swiper-button-prev"></div>
-                <div class="swiper-button-next"></div>
+            <?php if ($show_pagination) : ?>
+                <?php if ($is_preview) : ?>
+                    <?php
+                    // Editor-Vorschau: Punkte so, wie Swiper sie auf der Seite
+                    // erzeugt (erste Position aktiv).
+                    ?>
+                    <div class="swiper-pagination swiper-pagination-bullets swiper-pagination-horizontal">
+                        <?php for ($i = 0; $i < $preview_bullets; $i++) : ?>
+                            <span class="swiper-pagination-bullet<?php echo 0 === $i ? ' swiper-pagination-bullet-active' : ''; ?>"></span>
+                        <?php endfor; ?>
+                    </div>
+                <?php else : ?>
+                    <div class="swiper-pagination"></div>
+                <?php endif; ?>
+            <?php endif; ?>
+            <?php if ($show_navigation) : ?>
+                <?php if ($is_preview) : ?>
+                    <?php
+                    // Editor-Vorschau: Pfeile mit Symbol, "zurück" gesperrt wie
+                    // auf der Seite beim Laden; "weiter" gesperrt, wenn alle
+                    // Karten auf einmal zu sehen sind.
+                    ?>
+                    <div class="swiper-button-prev swiper-button-disabled"><?php echo $arrow_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- feste Zeichenkette ?></div>
+                    <div class="swiper-button-next<?php echo $card_count <= $per_view ? ' swiper-button-disabled' : ''; ?>"><?php echo $arrow_svg; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- feste Zeichenkette ?></div>
+                <?php else : ?>
+                    <div class="swiper-button-prev"></div>
+                    <div class="swiper-button-next"></div>
+                <?php endif; ?>
             <?php endif; ?>
         </div>
         <div

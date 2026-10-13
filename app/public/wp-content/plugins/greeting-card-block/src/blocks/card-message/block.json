@@ -11,6 +11,20 @@
 		"text",
 		"nachricht"
 	],
+	"attributes": {
+		"label": {
+			"type": "string",
+			"default": ""
+		},
+		"placeholder": {
+			"type": "string",
+			"default": ""
+		},
+		"maxLength": {
+			"type": "number",
+			"default": 300
+		}
+	},
 	"ancestor": [
 		"greeting-card-block/card-purchase"
 	],

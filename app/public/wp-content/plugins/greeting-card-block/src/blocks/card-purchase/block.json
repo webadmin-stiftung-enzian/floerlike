@@ -17,6 +17,14 @@
 		"previewProductId": {
 			"type": "number",
 			"default": 0
+		},
+		"style": {
+			"type": "object",
+			"default": {
+				"spacing": {
+					"blockGap": "1.5rem"
+				}
+			}
 		}
 	},
 	"providesContext": {
