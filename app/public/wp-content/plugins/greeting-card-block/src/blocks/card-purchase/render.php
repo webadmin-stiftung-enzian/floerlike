@@ -16,7 +16,9 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-$product = wc_get_product(absint($block->context['postId'] ?? get_the_ID()));
+// Produkt der Seite -- bzw. in der Editor-Vorschau das Vorschau-Produkt
+// (includes/class-preview.php).
+$product = gcb_block_product($block);
 
 // Bundles, gruppierte und externe Produkte: dafür ist der Rahmen nicht
 // zuständig, die native WooCommerce-Form bleibt (siehe class-integration.php).

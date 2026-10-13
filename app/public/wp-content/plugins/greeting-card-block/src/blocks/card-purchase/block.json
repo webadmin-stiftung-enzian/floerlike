@@ -13,6 +13,15 @@
 		"variante"
 	],
 	"textdomain": "greeting-card-block",
+	"attributes": {
+		"previewProductId": {
+			"type": "number",
+			"default": 0
+		}
+	},
+	"providesContext": {
+		"greeting-card-block/previewProductId": "previewProductId"
+	},
 	"usesContext": [
 		"postId"
 	],

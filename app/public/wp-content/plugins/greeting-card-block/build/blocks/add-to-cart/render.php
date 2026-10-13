@@ -17,7 +17,9 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-$product = wc_get_product(absint($block->context['postId'] ?? get_the_ID()));
+// Produkt der Seite -- bzw. in der Editor-Vorschau das Vorschau-Produkt
+// (includes/class-preview.php).
+$product = gcb_block_product($block);
 
 if (! gcb_handles_product($product)) {
     return;

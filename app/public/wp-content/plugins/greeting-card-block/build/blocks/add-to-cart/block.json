@@ -16,7 +16,8 @@
   ],
   "textdomain": "greeting-card-block",
   "usesContext": [
-    "postId"
+    "postId",
+    "greeting-card-block/previewProductId"
   ],
   "supports": {
     "html": false,

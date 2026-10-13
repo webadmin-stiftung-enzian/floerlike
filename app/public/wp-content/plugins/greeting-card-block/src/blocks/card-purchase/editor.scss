@@ -15,23 +15,36 @@
 
 /* Fehlt etwas Wesentliches, werden die betroffenen Blöcke ausgegraut. Sie
    bleiben auswählbar, verschiebbar und löschbar -- ausgegraut heisst "wirkt
-   gerade nicht", nicht "gesperrt" (Spezifikation v4, 5.3). */
+   gerade nicht", nicht "gesperrt" (Spezifikation v4, 5.3). Die Zeilen in der
+   Listenansicht graut edit.js aus (useListViewDimming).
+
+   Angesprochen über data-type, das der Editor nur an die äussere Block-Hülle
+   setzt. Die Blockklasse (.wp-block-greeting-card-block-…) steht in der
+   Vorschau zweimal ineinander -- an der Hülle und an der Ausgabe von
+   render.php --, die Deckkraft würde sich sonst multiplizieren. */
 .wp-block-greeting-card-block-card-purchase.is-purchase-disabled {
-	.wp-block-greeting-card-block-variant-selector,
-	.wp-block-greeting-card-block-card-toggle,
-	.wp-block-greeting-card-block-card-picker,
-	.wp-block-greeting-card-block-card-message,
-	.wp-block-greeting-card-block-add-to-cart {
+	[data-type="greeting-card-block/variant-selector"],
+	[data-type="greeting-card-block/card-toggle"],
+	[data-type="greeting-card-block/card-picker"],
+	[data-type="greeting-card-block/card-message"],
+	[data-type="greeting-card-block/add-to-cart"] {
 		opacity: 0.4;
 	}
 }
 
 .wp-block-greeting-card-block-card-purchase.is-cards-disabled {
-	.wp-block-greeting-card-block-card-toggle,
-	.wp-block-greeting-card-block-card-picker,
-	.wp-block-greeting-card-block-card-message {
+	[data-type="greeting-card-block/card-toggle"],
+	[data-type="greeting-card-block/card-picker"],
+	[data-type="greeting-card-block/card-message"] {
 		opacity: 0.4;
 	}
+}
+
+/* Vorschau der Kauf-Blöcke (src/shared/placeholder.js): nur ansehen, nicht
+   bedienen. Ein Klick soll den Block auswählen und nicht z. B. einen
+   Variantenknopf umschalten. */
+.gcb-preview {
+	pointer-events: none;
 }
 
 /* Platzhalter der Kauf-Blöcke (src/shared/placeholder.js). Steht hier, weil

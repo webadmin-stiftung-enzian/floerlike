@@ -19,7 +19,8 @@ return array(
 		),
 		'textdomain' => 'greeting-card-block',
 		'usesContext' => array(
-			'postId'
+			'postId',
+			'greeting-card-block/previewProductId'
 		),
 		'supports' => array(
 			'html' => false,
@@ -53,7 +54,8 @@ return array(
 		),
 		'textdomain' => 'greeting-card-block',
 		'usesContext' => array(
-			'postId'
+			'postId',
+			'greeting-card-block/previewProductId'
 		),
 		'supports' => array(
 			'html' => false,
@@ -87,7 +89,8 @@ return array(
 		),
 		'textdomain' => 'greeting-card-block',
 		'usesContext' => array(
-			'postId'
+			'postId',
+			'greeting-card-block/previewProductId'
 		),
 		'supports' => array(
 			'html' => false,
@@ -96,6 +99,7 @@ return array(
 			'interactivity' => true
 		),
 		'editorScript' => 'file:./index.js',
+		'editorStyle' => 'file:./index.css',
 		'style' => 'file:./style-index.css',
 		'render' => 'file:./render.php',
 		'viewScriptModule' => array(
@@ -118,6 +122,15 @@ return array(
 			'variante'
 		),
 		'textdomain' => 'greeting-card-block',
+		'attributes' => array(
+			'previewProductId' => array(
+				'type' => 'number',
+				'default' => 0
+			)
+		),
+		'providesContext' => array(
+			'greeting-card-block/previewProductId' => 'previewProductId'
+		),
 		'usesContext' => array(
 			'postId'
 		),
@@ -159,7 +172,8 @@ return array(
 		),
 		'textdomain' => 'greeting-card-block',
 		'usesContext' => array(
-			'postId'
+			'postId',
+			'greeting-card-block/previewProductId'
 		),
 		'supports' => array(
 			'html' => false,
@@ -221,7 +235,8 @@ return array(
 		),
 		'textdomain' => 'greeting-card-block',
 		'usesContext' => array(
-			'postId'
+			'postId',
+			'greeting-card-block/previewProductId'
 		),
 		'supports' => array(
 			'html' => false,

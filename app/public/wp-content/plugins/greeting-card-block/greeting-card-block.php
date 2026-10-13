@@ -29,6 +29,7 @@ if (! defined('ABSPATH')) {
 require_once __DIR__ . '/includes/class-integration.php';
 require_once __DIR__ . '/includes/class-purchase-status.php';
 require_once __DIR__ . '/includes/class-state.php';
+require_once __DIR__ . '/includes/class-preview.php';
 require_once __DIR__ . '/includes/class-store-api.php';
 require_once __DIR__ . '/includes/class-checkout-blocks-integration.php';
 

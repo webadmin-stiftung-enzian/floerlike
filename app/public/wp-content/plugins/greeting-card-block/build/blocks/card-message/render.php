@@ -15,7 +15,9 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-$product = wc_get_product(absint($block->context['postId'] ?? get_the_ID()));
+// Produkt der Seite -- bzw. in der Editor-Vorschau das Vorschau-Produkt
+// (includes/class-preview.php).
+$product = gcb_block_product($block);
 
 if (! gcb_handles_product($product)) {
     return;
@@ -32,12 +34,15 @@ if (! $data['cardsEnabled'] || ! $data['isAvailable']) {
 // 300 (class-integration.php).
 $max_length = (int) (wp_interactivity_state('greeting-card-bundle')['maxLength'] ?? 300);
 
+// Auf der Seite erst sichtbar, wenn eine Karte gewünscht ist. In der
+// Editor-Vorschau immer sichtbar, damit man den Block sieht und anordnen kann.
+$visibility = gcb_is_editor_preview() ? '' : 'data-wp-bind--hidden="!state.wantsCard" hidden';
+
 ?>
 <div
     <?php echo get_block_wrapper_attributes(['class' => 'greeting-card-bundle__message']); ?>
     data-wp-interactive="greeting-card-bundle"
-    data-wp-bind--hidden="!state.wantsCard"
-    hidden>
+    <?php echo $visibility; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- feste Zeichenkette ?>>
     <label for="greetingCardMessage"><?php esc_html_e('Nachricht auf der Grusskarte:', 'greeting-card-block'); ?></label>
     <div class="greeting-card-bundle__message-wrapper">
         <textarea

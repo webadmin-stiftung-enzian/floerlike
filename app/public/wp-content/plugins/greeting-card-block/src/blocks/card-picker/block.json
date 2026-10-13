@@ -16,7 +16,8 @@
 	],
 	"textdomain": "greeting-card-block",
 	"usesContext": [
-		"postId"
+		"postId",
+		"greeting-card-block/previewProductId"
 	],
 	"supports": {
 		"html": false,
@@ -25,6 +26,7 @@
 		"interactivity": true
 	},
 	"editorScript": "file:./index.js",
+	"editorStyle": "file:./index.css",
 	"style": "file:./style-index.css",
 	"render": "file:./render.php",
 	"viewScriptModule": [

@@ -13,7 +13,9 @@ if (! defined('ABSPATH')) {
     exit;
 }
 
-$product = wc_get_product(absint($block->context['postId'] ?? get_the_ID()));
+// Produkt der Seite -- bzw. in der Editor-Vorschau das Vorschau-Produkt
+// (includes/class-preview.php).
+$product = gcb_block_product($block);
 
 if (! gcb_handles_product($product)) {
     return;
@@ -27,6 +29,11 @@ if (! $data['cardsEnabled'] || ! $data['isAvailable']) {
     return;
 }
 
+// In der Editor-Vorschau angehakt: Kartenauswahl und Grusstext sind dort
+// ebenfalls sichtbar (damit man sie anordnen kann), und die Checkbox soll dazu
+// passen. Ohne die Bindung, sonst würde der Server den Haken wieder entfernen.
+$is_preview = gcb_is_editor_preview();
+
 ?>
 <div
     <?php echo get_block_wrapper_attributes(['class' => 'greeting-card-bundle__checkbox']); ?>
@@ -36,6 +43,6 @@ if (! $data['cardsEnabled'] || ! $data['isAvailable']) {
         id="wantsGreetingCard"
         name="wantsGreetingCard"
         data-wp-on--change="actions.toggleWantsCard"
-        data-wp-bind--checked="state.wantsCard" />
+        <?php echo $is_preview ? 'checked' : 'data-wp-bind--checked="state.wantsCard"'; ?> />
     <label for="wantsGreetingCard"><?php esc_html_e('Möchten Sie eine Grusskarte hinzufügen?', 'greeting-card-block'); ?></label>
 </div>
