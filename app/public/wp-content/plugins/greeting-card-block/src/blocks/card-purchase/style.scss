@@ -1,0 +1,106 @@
+/**
+ * Gemeinsame Styles aller Kauf-Blöcke.
+ *
+ * Stehen beim Rahmen, weil die Kauf-Blöcke nur innerhalb des Rahmens stehen
+ * dürfen (ancestor) -- wo einer von ihnen ist, wird dieses CSS also immer
+ * mitgeladen. Blockeigene Styles stehen in der style.scss des jeweiligen Blocks.
+ *
+ * Das Aussehen von Buttons und Slider kommt aus dem Theme (main.css: .button,
+ * .slider). Hier steht nur Verhalten und ein schlichter Rückfall.
+ */
+
+/* ---------------------------------------------------------------------------
+   [hidden] durchsetzen
+   ---------------------------------------------------------------------------
+   WooCommerce setzt .wc-block-components-notice-banner auf display:flex; das
+   überschreibt das [hidden]-Attribut (Browser-Standard display:none). Damit
+   data-wp-bind--hidden zuverlässig ausblendet -- bei Fehlermeldungen ebenso
+   wie bei ganzen Blöcken (Kartenauswahl und Grusstext, solange keine Karte
+   gewünscht ist) --, hier per !important erzwingen.
+
+   Anker ist das data-wp-interactive-Attribut, nicht eine Blockklasse: es steht
+   an jedem Kauf-Block, unabhängig davon, welche Klassen WordPress vergibt. */
+[data-wp-interactive="greeting-card-bundle"][hidden],
+[data-wp-interactive="greeting-card-bundle"] [hidden] {
+	display: none !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Unsichtbar, aber fokussier- und vorlesbar
+   ---------------------------------------------------------------------------
+   Für die Radio-Buttons in den Varianten- und Kartenknöpfen und für
+   Überschriften, die nur Screenreader brauchen. Kein display:none -- sonst
+   fällt das Element auch aus Tastaturbedienung und Screenreader. */
+.greeting-card-bundle__visually-hidden {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	border: 0;
+	overflow: hidden;
+	clip: rect(0 0 0 0);
+	clip-path: inset(50%);
+	white-space: nowrap;
+}
+
+/* ---------------------------------------------------------------------------
+   Buttons: Ersatz-Optik
+   ---------------------------------------------------------------------------
+   Das Aussehen aller Buttons (Variantenknöpfe, Karten, "In den Warenkorb")
+   kommt aus den Theme-Klassen "button solid" / "button outline" in main.css.
+   Hier nur ein schlichter Rückfall, damit ohne dieses Theme trotzdem etwas
+   Bedienbares zu sehen ist: schwarz, eckig, weisse Schrift bzw. schwarze
+   Kontur.
+
+   :where() setzt die Spezifität auf null. Jede Regel des Themes gewinnt damit
+   automatisch, egal in welcher Reihenfolge die Dateien geladen werden; diese
+   Werte greifen nur dort, wo das Theme nichts festlegt. Deshalb hier keine
+   Eigenschaften setzen, die das Theme bewusst NICHT setzt -- sie würden sonst
+   auch mit Theme sichtbar. */
+:where([data-wp-interactive="greeting-card-bundle"]) :where(.button) {
+	position: relative;
+	display: inline-block;
+	padding: 0.5rem 1rem;
+	border: 1px solid #000;
+	border-radius: 0;
+	background-color: #000;
+	color: #fff;
+	font: inherit;
+	line-height: 1.4;
+	text-align: center;
+	text-decoration: none;
+	cursor: pointer;
+}
+
+:where([data-wp-interactive="greeting-card-bundle"]) :where(.button.outline) {
+	background-color: transparent;
+	color: #000;
+}
+
+:where([data-wp-interactive="greeting-card-bundle"]) :where(.button.is-selected) {
+	background-color: #000;
+	color: #fff;
+}
+
+:where([data-wp-interactive="greeting-card-bundle"]) :where(.button:hover, .button:focus-visible) {
+	text-decoration: underline;
+}
+
+:where([data-wp-interactive="greeting-card-bundle"]) :where(.button:focus-visible, .button:has(:focus-visible)) {
+	outline: 2px solid #000;
+	outline-offset: 2px;
+}
+
+:where([data-wp-interactive="greeting-card-bundle"]) :where(.button[disabled], .button.is-disabled) {
+	opacity: 0.4;
+	cursor: not-allowed;
+}
+
+/* Validierungsfehler: rote Umrandung um die Fehlerquelle (Kartenauswahl,
+   Grusstext). */
+[data-wp-interactive="greeting-card-bundle"] .has-error {
+	outline: 2px solid #cc1818;
+	outline-offset: 2px;
+	border-radius: 4px;
+}

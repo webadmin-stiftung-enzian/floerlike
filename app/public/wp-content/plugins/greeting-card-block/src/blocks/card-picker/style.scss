@@ -1,0 +1,39 @@
+/**
+ * Block "Grusskarten-Auswahl": nur Anordnung der Folien. Pfeile, Punkte und
+ * das Raster drum herum kommen über die Theme-Klasse "slider" aus main.css --
+ * gleiche Optik wie der Slider-Block. Die Karten selbst über "button outline
+ * tile".
+ *
+ * Alles unter .greeting-card-bundle__cards-slider, damit andere Slider auf
+ * derselben Seite nicht mitverändert werden.
+ */
+
+/* Fieldset ohne Browser-Rahmen. */
+.greeting-card-bundle__cards {
+	position: relative;
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+
+.greeting-card-bundle__cards-slider {
+	.swiper {
+		width: 100%;
+		/* Platz für Fokusring und Rand der gewählten Karte -- .swiper schneidet
+		   alles ab, was über seinen Rand hinausragt. */
+		padding: 4px;
+	}
+
+	.swiper-slide {
+		display: flex;
+		justify-content: center;
+	}
+
+	img {
+		display: block;
+		max-width: 100%;
+		max-height: 200px;
+		object-fit: contain;
+	}
+}

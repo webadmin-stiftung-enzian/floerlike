@@ -33,3 +33,27 @@
 		opacity: 0.4;
 	}
 }
+
+/* Platzhalter der Kauf-Blöcke (src/shared/placeholder.js). Steht hier, weil
+   die Editor-Styles des Rahmens im Editor immer geladen sind. */
+.gcb-placeholder {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+	padding: 0.75rem 1rem;
+	border: 1px dashed rgba(0, 0, 0, 0.3);
+	border-radius: 4px;
+	font-size: 13px;
+	line-height: 1.4;
+}
+
+.gcb-placeholder__icon svg {
+	display: block;
+	width: 24px;
+	height: 24px;
+}
+
+.gcb-placeholder__text {
+	display: flex;
+	flex-direction: column;
+}

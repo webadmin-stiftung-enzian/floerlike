@@ -1,0 +1,16 @@
+/**
+ * Block "Grusskarte hinzufügen".
+ */
+
+.greeting-card-bundle__checkbox label {
+	display: inline-block;
+	margin-left: 0.5rem;
+	cursor: pointer;
+	user-select: none;
+	font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
+	color: var(--wp--preset--color--main-1-pistachio-dark);
+	font-size: var(--wp--preset--font-size--normal);
+	font-weight: 300;
+	line-height: 1.4;
+	letter-spacing: 0.02em;
+}

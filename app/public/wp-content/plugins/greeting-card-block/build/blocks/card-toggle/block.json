@@ -1,0 +1,33 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "greeting-card-block/card-toggle",
+  "version": "0.4.0",
+  "title": "Grusskarte hinzufügen",
+  "category": "greeting-card",
+  "description": "Checkbox, mit der Kund:innen eine Grusskarte dazunehmen.",
+  "keywords": [
+    "grusskarte",
+    "checkbox"
+  ],
+  "ancestor": [
+    "greeting-card-block/card-purchase"
+  ],
+  "textdomain": "greeting-card-block",
+  "usesContext": [
+    "postId"
+  ],
+  "supports": {
+    "html": false,
+    "multiple": false,
+    "reusable": false,
+    "interactivity": true
+  },
+  "editorScript": "file:./index.js",
+  "style": "file:./style-index.css",
+  "render": "file:./render.php",
+  "viewScriptModule": [
+    "greeting-card-block/store",
+    "file:./view.js"
+  ]
+}

@@ -6,13 +6,23 @@
 	"title": "Grusskarten-Kauf",
 	"category": "greeting-card",
 	"description": "Kaufbereich mit Variantenauswahl, optionaler Grusskarte und Warenkorb-Knopf. Beim Einfügen werden alle nötigen Blöcke angelegt; dazwischen sind beliebige Blöcke erlaubt.",
-	"keywords": [ "grusskarte", "warenkorb", "kaufen", "variante" ],
+	"keywords": [
+		"grusskarte",
+		"warenkorb",
+		"kaufen",
+		"variante"
+	],
 	"textdomain": "greeting-card-block",
-	"usesContext": [ "postId" ],
+	"usesContext": [
+		"postId"
+	],
 	"supports": {
 		"html": false,
 		"multiple": false,
-		"align": [ "wide", "full" ],
+		"align": [
+			"wide",
+			"full"
+		],
 		"layout": {
 			"allowSizingOnChildren": true
 		},
@@ -24,5 +34,6 @@
 	},
 	"editorScript": "file:./index.js",
 	"editorStyle": "file:./index.css",
+	"style": "file:./style-index.css",
 	"render": "file:./render.php"
 }

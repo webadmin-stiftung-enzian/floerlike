@@ -1,0 +1,1 @@
+import{store as t}from"@wordpress/interactivity";const{state:e}=t("greeting-card-bundle",{actions:{updateText(t){e.text=t.target.value.substring(0,e.maxLength)}}});

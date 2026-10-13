@@ -1,0 +1,1 @@
+import{store as t}from"@wordpress/interactivity";const{state:e}=t("greeting-card-bundle",{actions:{toggleWantsCard(t){e.wantsCard=t.target.checked}}});

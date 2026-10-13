@@ -1,6 +1,108 @@
 <?php
 // This file is generated. Do not modify it manually.
 return array(
+	'add-to-cart' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'greeting-card-block/add-to-cart',
+		'version' => '0.4.0',
+		'title' => 'In den Warenkorb',
+		'category' => 'greeting-card',
+		'description' => 'Knopf, der das Produkt – und die Grusskarte, falls gewünscht – in den Warenkorb legt.',
+		'keywords' => array(
+			'warenkorb',
+			'kaufen',
+			'button'
+		),
+		'ancestor' => array(
+			'greeting-card-block/card-purchase'
+		),
+		'textdomain' => 'greeting-card-block',
+		'usesContext' => array(
+			'postId'
+		),
+		'supports' => array(
+			'html' => false,
+			'multiple' => false,
+			'reusable' => false,
+			'interactivity' => true
+		),
+		'editorScript' => 'file:./index.js',
+		'style' => 'file:./style-index.css',
+		'render' => 'file:./render.php',
+		'viewScriptModule' => array(
+			'greeting-card-block/store',
+			'file:./view.js'
+		)
+	),
+	'card-message' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'greeting-card-block/card-message',
+		'version' => '0.4.0',
+		'title' => 'Grusstext',
+		'category' => 'greeting-card',
+		'description' => 'Textfeld für die Nachricht auf der Grusskarte.',
+		'keywords' => array(
+			'grusskarte',
+			'text',
+			'nachricht'
+		),
+		'ancestor' => array(
+			'greeting-card-block/card-purchase'
+		),
+		'textdomain' => 'greeting-card-block',
+		'usesContext' => array(
+			'postId'
+		),
+		'supports' => array(
+			'html' => false,
+			'multiple' => false,
+			'reusable' => false,
+			'interactivity' => true
+		),
+		'editorScript' => 'file:./index.js',
+		'style' => 'file:./style-index.css',
+		'render' => 'file:./render.php',
+		'viewScriptModule' => array(
+			'greeting-card-block/store',
+			'file:./view.js'
+		)
+	),
+	'card-picker' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'greeting-card-block/card-picker',
+		'version' => '0.4.0',
+		'title' => 'Grusskarten-Auswahl',
+		'category' => 'greeting-card',
+		'description' => 'Slider mit den verknüpften Grusskarten.',
+		'keywords' => array(
+			'grusskarte',
+			'slider',
+			'karte'
+		),
+		'ancestor' => array(
+			'greeting-card-block/card-purchase'
+		),
+		'textdomain' => 'greeting-card-block',
+		'usesContext' => array(
+			'postId'
+		),
+		'supports' => array(
+			'html' => false,
+			'multiple' => false,
+			'reusable' => false,
+			'interactivity' => true
+		),
+		'editorScript' => 'file:./index.js',
+		'style' => 'file:./style-index.css',
+		'render' => 'file:./render.php',
+		'viewScriptModule' => array(
+			'greeting-card-block/store',
+			'file:./view.js'
+		)
+	),
 	'card-purchase' => array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
@@ -37,7 +139,41 @@ return array(
 		),
 		'editorScript' => 'file:./index.js',
 		'editorStyle' => 'file:./index.css',
+		'style' => 'file:./style-index.css',
 		'render' => 'file:./render.php'
+	),
+	'card-toggle' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'greeting-card-block/card-toggle',
+		'version' => '0.4.0',
+		'title' => 'Grusskarte hinzufügen',
+		'category' => 'greeting-card',
+		'description' => 'Checkbox, mit der Kund:innen eine Grusskarte dazunehmen.',
+		'keywords' => array(
+			'grusskarte',
+			'checkbox'
+		),
+		'ancestor' => array(
+			'greeting-card-block/card-purchase'
+		),
+		'textdomain' => 'greeting-card-block',
+		'usesContext' => array(
+			'postId'
+		),
+		'supports' => array(
+			'html' => false,
+			'multiple' => false,
+			'reusable' => false,
+			'interactivity' => true
+		),
+		'editorScript' => 'file:./index.js',
+		'style' => 'file:./style-index.css',
+		'render' => 'file:./render.php',
+		'viewScriptModule' => array(
+			'greeting-card-block/store',
+			'file:./view.js'
+		)
 	),
 	'greeting-card-bundle' => array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
@@ -60,6 +196,40 @@ return array(
 		'textdomain' => 'greeting-card-block',
 		'editorScript' => 'file:./index.js',
 		'editorStyle' => 'file:./index.css',
+		'style' => 'file:./style-index.css',
+		'render' => 'file:./render.php',
+		'viewScriptModule' => array(
+			'greeting-card-block/store',
+			'file:./view.js'
+		)
+	),
+	'variant-selector' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'greeting-card-block/variant-selector',
+		'version' => '0.4.0',
+		'title' => 'Variantenauswahl',
+		'category' => 'greeting-card',
+		'description' => 'Knöpfe für Grösse, Farbe o. Ä. des Produkts. Der Preis-Block springt mit der Auswahl um.',
+		'keywords' => array(
+			'variante',
+			'grösse',
+			'auswahl'
+		),
+		'ancestor' => array(
+			'greeting-card-block/card-purchase'
+		),
+		'textdomain' => 'greeting-card-block',
+		'usesContext' => array(
+			'postId'
+		),
+		'supports' => array(
+			'html' => false,
+			'multiple' => false,
+			'reusable' => false,
+			'interactivity' => true
+		),
+		'editorScript' => 'file:./index.js',
 		'style' => 'file:./style-index.css',
 		'render' => 'file:./render.php',
 		'viewScriptModule' => array(

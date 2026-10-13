@@ -1,0 +1,55 @@
+/**
+ * Block "Variantenauswahl": nur Anordnung. Die Optik der Knöpfe kommt über
+ * "button outline" aus dem Theme (main.css), der Rückfall aus dem Rahmen
+ * (card-purchase/style.scss).
+ */
+
+.greeting-card-bundle__variations {
+	display: flex;
+	flex-direction: column;
+	gap: 0.1rem;
+}
+
+/* Fieldset ohne Browser-Rahmen. */
+.greeting-card-bundle__variation-attribute {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	min-width: 0;
+}
+
+.greeting-card-bundle__variation-label {
+	margin-bottom: 0.5rem;
+	padding: 0;
+	color: var(--wp--preset--color--main-1-pistachio-dark, inherit);
+	font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
+	font-size: var(--wp--preset--font-size--normal);
+	font-weight: 300;
+	line-height: 1.4;
+	letter-spacing: 0.02em;
+}
+
+.greeting-card-bundle__options {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+/* Gleich breite Knöpfe, auch bei kurzen Werten wie "S". Die Beschriftung soll
+   sich beim Klicken nicht versehentlich markieren. */
+.greeting-card-bundle__option {
+	min-width: 4.5rem;
+	user-select: none;
+}
+
+/* Wert und Beschreibung der Variante untereinander ("klein" / "ca. 35 cm Ø").
+   Die Beschreibung etwas kleiner, damit der Wert die Hauptsache bleibt;
+   Farbe und Schrift erbt sie vom Button. */
+.greeting-card-bundle__option-label,
+.greeting-card-bundle__option-description {
+	display: block;
+}
+
+.greeting-card-bundle__option-description {
+	font-size: 0.8em;
+}

@@ -1,0 +1,52 @@
+/**
+ * Block "Grusstext".
+ */
+
+.greeting-card-bundle__message {
+	display: flex;
+	flex-direction: column;
+}
+
+.greeting-card-bundle__message label,
+.greeting-card-bundle__char-counter {
+	display: inline-block;
+	margin-left: 0.5rem;
+	user-select: none;
+	font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
+	color: var(--wp--preset--color--main-1-pistachio-dark);
+	font-size: var(--wp--preset--font-size--normal);
+	font-weight: 300;
+	line-height: 1.4;
+	letter-spacing: 0.02em;
+}
+
+.greeting-card-bundle__message label {
+	cursor: pointer;
+}
+
+.greeting-card-bundle__message-wrapper {
+	position: relative;
+	display: inline-block;
+	margin-bottom: 1.5rem;
+
+	textarea {
+		display: block;
+		font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
+		font-size: var(--wp--preset--font-size--s, 0.875rem);
+		padding: 0.5rem;
+		border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
+		border-radius: 0.25rem;
+		resize: none;
+		min-height: 200px;
+		background: transparent;
+	}
+}
+
+/* Zähler unten im Textfeld; klickt man darauf, soll der Klick ins Textfeld
+   gehen statt Text zu markieren. */
+.greeting-card-bundle__char-counter {
+	position: absolute;
+	bottom: 0.5rem;
+	font-size: 0.75rem;
+	pointer-events: none;
+}
