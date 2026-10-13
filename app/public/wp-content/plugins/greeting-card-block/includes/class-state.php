@@ -65,8 +65,9 @@ function gcb_prepare_state(WC_Product $product)
     }
 
     // Vollständigkeit des Rahmens "Grusskarten-Kauf" (class-purchase-status.php).
-    // Ausserhalb eines Rahmens (bisheriger Einzelblock) gilt der Satz als
-    // vollständig: Karten gibt es dann, sobald das Produkt welche hat.
+    // Ohne Rahmen -- nur in der Editor-Vorschau, die jeden Kauf-Block einzeln
+    // rendert -- gilt der Satz als vollständig: Karten gibt es dann, sobald das
+    // Produkt welche hat. Ob im Editor etwas fehlt, zeigt dort der Rahmen.
     $status        = gcb_get_purchase_status($product);
     $can_purchase  = $status ? $status['canPurchase'] : true;
     $cards_enabled = $status ? $status['cardsEnabled'] : ! empty($cards);

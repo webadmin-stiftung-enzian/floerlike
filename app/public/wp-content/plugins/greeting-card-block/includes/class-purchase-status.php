@@ -239,8 +239,9 @@ add_filter('render_block_data', function ($parsed_block) {
  *
  * @param WC_Product $product
  * @return array|null Ergebnis von gcb_evaluate_purchase(), oder null, wenn
- *                    gerade kein Rahmen gerendert wird (z. B. der bisherige
- *                    Einzelblock, der für sich vollständig ist).
+ *                    gerade kein Rahmen gerendert wird -- z. B. in der
+ *                    Editor-Vorschau, die jeden Kauf-Block einzeln rendert
+ *                    (class-preview.php).
  */
 function gcb_get_purchase_status(WC_Product $product)
 {
@@ -282,9 +283,8 @@ function gcb_block_titles(array $names)
    wird NICHT ausgeblendet: lieber zwei Kaufen-Knöpfe als keiner. */
 
 /**
- * Durchsucht einen Block-Baum nach Kauf-Oberflächen, die für das Produkt
- * kaufen können: einem Rahmen mit vollständigem Kauf-Satz oder dem bisherigen
- * Einzelblock (bis zu dessen Ablösung).
+ * Durchsucht einen Block-Baum nach einem Rahmen "Grusskarten-Kauf", der für
+ * das Produkt kaufen kann (vollständiger Kauf-Satz).
  *
  * @param array      $blocks  Geparste Blöcke.
  * @param WC_Product $product
@@ -297,11 +297,6 @@ function gcb_tree_can_purchase(array $blocks, WC_Product $product, array &$seen 
 
     foreach ($blocks as $block) {
         $name = $block['blockName'] ?? '';
-
-        // Bisheriger Einzelblock: für sich ein vollständiger Kaufbereich.
-        if ('greeting-card-block/greeting-card-bundle' === $name) {
-            return true;
-        }
 
         if ($frame === $name) {
             $names = gcb_collect_block_names($block['innerBlocks'] ?? []);
