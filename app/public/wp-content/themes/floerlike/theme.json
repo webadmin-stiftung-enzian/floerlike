@@ -379,48 +379,6 @@
 					"border": {
 						"color": "var(--wp--preset--color--main-1-pistachio-ultralight)"
 					}
-				},
-				"variations": {
-					"outline": {
-						"border": {
-							"color": "var(--wp--preset--color--main-1-pistachio-ultralight)",
-							"radius": "3rem",
-							"width": "1px",
-							"style": "solid"
-						},
-						"color": {
-							"text": "var(--wp--preset--color--main-1-pistachio-ultralight)",
-							"background": "transparent"
-						},
-						":hover": {
-							"color": {
-								"text": "var(--wp--preset--color--main-1-pistachio-dark)"
-							},
-							"border": {
-								"color": "var(--wp--preset--color--main-1-pistachio-dark)"
-							}
-						}
-					},
-					"outline-dark": {
-						"border": {
-							"color": "var(--wp--preset--color--main-1-pistachio-dark)",
-							"radius": "3rem",
-							"width": "1px",
-							"style": "solid"
-						},
-						"color": {
-							"text": "var(--wp--preset--color--main-1-pistachio-dark)",
-							"background": "transparent"
-						},
-						":hover": {
-							"color": {
-								"text": "var(--wp--preset--color--neutral-light)"
-							},
-							"border": {
-								"color": "var(--wp--preset--color--main-1-pistachio-ultralight)"
-							}
-						}
-					}
 				}
 			}
 		},

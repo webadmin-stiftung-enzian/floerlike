@@ -89,15 +89,33 @@ header.wp-block-template-part {
 /* ===========================================================================
    BUTTONS
 
-   Eine gemeinsame Mechanik für zwei Verwendungen:
+   Eine gemeinsame Optik für zwei Verwendungen -- diese Datei ist für beide
+   die einzige Quelle:
 
-   1. .wp-block-button__link — die Core-Buttons aus dem Editor. Ihre Farben,
-      Abstände, Radius und Schrift kommen weiterhin aus der theme.json
-      (styles.blocks.core/button samt variations), hier kommt nur die
-      Füll-Animation dazu.
+   1. .wp-block-button .wp-block-button__link — die Core-Buttons aus dem
+      Editor. Die Optik wählt man im Editor rechts unter "Stile" (registriert
+      in assets/js/editor-button-styles.js).
+      Warum mit .wp-block-button davor: Kern und theme.json schreiben ihre
+      Button-Regeln als ":root :where(…)". :root zählt wie eine Klasse, die
+      Regeln wären also genau so stark wie .wp-block-button__link allein --
+      dann gewinnt, was später geladen wird. Im Frontend ist das main.css,
+      im Editor aber die Kern-CSS. Mit zwei Klassen gewinnt main.css immer.
    2. .button — freie Klasse für eigenes Markup (Plugins, Template-Teile,
-      Custom-HTML-Blöcke). Sie bringt dieselbe Optik mit, aber eigenständig,
-      weil die theme.json nur Blöcke erreicht.
+      Custom-HTML-Blöcke).
+
+   Vier Varianten, je Untergrund eine gefüllte und eine mit Rand:
+
+     Stil im Editor   Block-Klasse            freie Klasse
+     Hell · Voll      (Standard, keine)       button solid
+     Hell · Rand      is-style-outline-dark   button outline
+     Dunkel · Voll    is-style-fill-on-dark   button solid on-dark
+     Dunkel · Rand    is-style-outline        button outline on-dark
+
+   "Hell"/"Dunkel" ist der Untergrund, auf dem der Button steht.
+
+   Die Block-Klassen der beiden Rand-Stile sind historisch ("outline" kommt
+   aus dem Kern, "outline-dark" meinte "dunkler Rand") und bleiben, damit
+   bestehende Buttons ihren Stil behalten.
 
    Alle Farben stehen als Tokens am Element, die Varianten setzen nur diese
    Tokens um:
@@ -108,8 +126,9 @@ header.wp-block-template-part {
 
    Verwendung -- .solid oder .outline gehört immer dazu:
      <a class="button solid">…</a>            gefüllt, für helle Flächen
-     <a class="button outline">…</a>          Kontur dunkel, für helle Flächen
-     <a class="button outline on-dark">…</a>  Kontur hell, für dunkle Flächen
+     <a class="button solid on-dark">…</a>    gefüllt, für dunkle Flächen
+     <a class="button outline">…</a>          Rand, für helle Flächen
+     <a class="button outline on-dark">…</a>  Rand, für dunkle Flächen
      <a class="button solid full">…</a>       volle Breite
      <button class="button solid" disabled>   ausgegraut, nicht klickbar
 
@@ -125,7 +144,7 @@ header.wp-block-template-part {
 
 .button.solid,
 .button.outline,
-.wp-block-button__link {
+.wp-block-button .wp-block-button__link {
     --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
     position: relative;
     /* eigener Stapelkontext: erst dadurch liegt ::after über dem Hintergrund
@@ -137,7 +156,7 @@ header.wp-block-template-part {
 
 .button.solid::after,
 .button.outline::after,
-.wp-block-button__link::after {
+.wp-block-button .wp-block-button__link::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -153,19 +172,10 @@ header.wp-block-template-part {
 .button.solid:focus-visible::after,
 .button.outline:hover::after,
 .button.outline:focus-visible::after,
-.wp-block-button__link:hover::after,
-.wp-block-button__link:focus-visible::after {
+.wp-block-button .wp-block-button__link:hover::after,
+.wp-block-button .wp-block-button__link:focus-visible::after {
     transform: translateX(0);
     opacity: 1;
-}
-
-/* Core-Buttons: nur die Füllfarbe je Stil, alles andere aus der theme.json. */
-.wp-block-button.is-style-outline .wp-block-button__link {
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-ultralight);
-}
-
-.wp-block-button.is-style-outline-dark .wp-block-button__link {
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
 }
 
 /* ---------------------------------------------------------------------------
@@ -174,7 +184,7 @@ header.wp-block-template-part {
 
 .button.solid,
 .button.outline, 
-.wp-block-button__link {
+.wp-block-button .wp-block-button__link {
     /* gemeinsame Form und Typografie beider Varianten */
     display: inline-flex;
     align-items: center;
@@ -203,8 +213,8 @@ header.wp-block-template-part {
 .button.solid:focus-visible,
 .button.outline:hover,
 .button.outline:focus-visible,
-.wp-block-button__link:hover,
-.wp-block-button__link:focus-visible {
+.wp-block-button .wp-block-button__link:hover,
+.wp-block-button .wp-block-button__link:focus-visible {
     color: var(--btn-text-hover);
     border-color: var(--btn-border-hover);
     text-decoration: none;
@@ -217,13 +227,15 @@ header.wp-block-template-part {
 .button.outline:focus-visible,
 .button.solid:has(:focus-visible),
 .button.outline:has(:focus-visible),
-.wp-block-button__link:focus-visible {
+.wp-block-button .wp-block-button__link:focus-visible {
     outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
     outline-offset: 2px;
 }
 
-/* Gefüllt, für helle Flächen: heller Grund, der beim Hover dunkel einfährt. */
-.button.solid {
+/* Hell · Voll: heller Grund mit dunklem Rand, beim Hover fährt Dunkel ein.
+   Zugleich der Standard für Core-Buttons ohne gewählten Stil. */
+.button.solid,
+.wp-block-button .wp-block-button__link {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
     --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
@@ -232,9 +244,21 @@ header.wp-block-template-part {
     --btn-border-hover: var(--wp--preset--color--main-1-pistachio-ultralight);
 }
 
-/* Kontur auf hellen Flächen -- entspricht dem Core-Stil "outline-dark". */
+/* Dunkel · Voll: heller Grund ohne sichtbaren Rand. Beim Hover fährt ein
+   mittleres Grün ein -- Dunkel würde mit der Fläche dahinter verschmelzen. */
+.button.solid.on-dark,
+.wp-block-button.is-style-fill-on-dark .wp-block-button__link {
+    --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-border: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-light);
+}
+
+/* Hell · Rand: dunkler Rand, beim Hover fährt Hellgrün ein. */
 .button.outline,
-.wp-block-button__link {
+.wp-block-button.is-style-outline-dark .wp-block-button__link {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-bg: transparent;
     --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
@@ -243,9 +267,9 @@ header.wp-block-template-part {
     --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
 }
 
-/* Umkehrung für dunkle Flächen -- entspricht dem Core-Stil "outline".
-   Kombinierbar mit .outline und .solid: class="button outline on-dark" */
-.button.on-dark {
+/* Dunkel · Rand: heller Rand, beim Hover fährt Hell ein. */
+.button.outline.on-dark,
+.wp-block-button.is-style-outline .wp-block-button__link {
     --btn-text: var(--wp--preset--color--main-1-pistachio-ultralight);
     --btn-bg: transparent;
     --btn-border: var(--wp--preset--color--main-1-pistachio-ultralight);
@@ -254,8 +278,11 @@ header.wp-block-template-part {
     --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
 }
 
+/* Auf dunklen Flächen wäre der dunkle Fokusring unsichtbar. */
 .button.on-dark:focus-visible,
-.button.on-dark:has(:focus-visible) {
+.button.on-dark:has(:focus-visible),
+.wp-block-button.is-style-fill-on-dark .wp-block-button__link:focus-visible,
+.wp-block-button.is-style-outline .wp-block-button__link:focus-visible {
     outline-color: var(--wp--preset--color--main-1-pistachio-ultralight);
 }
 
@@ -311,7 +338,7 @@ header.wp-block-template-part {
 @supports (text-box: trim-both ex alphabetic) {
     .button.solid,
     .button.outline,
-    .wp-block-button__link {
+    .wp-block-button .wp-block-button__link {
         display: inline-block;
         text-box: trim-both ex alphabetic;
         /* padding-block: calc(0.5rem + (1lh - 1ex) / 2); */

@@ -45,15 +45,19 @@ add_action('init', function () {
         'name'  => 'swiper',
         'label' => 'Swiper Slider',
     ]);
+});
 
-    // Erst die Registrierung macht den Stil im Editor auswählbar; theme.json
-    // gibt ihm unter styles.blocks.core/button.variations nur sein Aussehen.
-    // Der Kern registriert für core/button von sich aus nur "fill" und
-    // "outline" -- "outline-dark" gäbe es ohne diese Zeilen nirgends.
-    register_block_style('core/button', [
-        'name'  => 'outline-dark',
-        'label' => 'Umriss dunkel',
-    ]);
+// Stile des Button-Blocks (Voll/Rand auf hell/dunkel). Registriert in JS,
+// weil sich nur dort die Kern-Stile "Füllen" und "Umriss" umbenennen lassen.
+add_action('enqueue_block_editor_assets', function () {
+    $file = 'assets/js/editor-button-styles.js';
+    wp_enqueue_script(
+        'floerlike-editor-button-styles',
+        get_theme_file_uri($file),
+        ['wp-blocks', 'wp-dom-ready'],
+        filemtime(get_theme_file_path($file)),
+        true
+    );
 });
 
 // Eigenes JS für den Swiper-Slider einbinden
