@@ -1,5 +1,6 @@
 /**
- * Grusskarte im Warenkorb-, Mini-Cart- und Checkout-Block einrücken.
+ * Grusskarte im Warenkorb- und Mini-Cart-Block einrücken. (Die Bestell-
+ * übersicht im Checkout-Block wendet den Filter cartItemClass nicht an.)
  *
  * Die Klassen setzt assets/js/checkout-blocks.js über den Checkout-Filter
  * `cartItemClass`. Bewusst zurückhaltend gehalten: eine Einrückung und eine
@@ -7,32 +8,48 @@
  * Block-Styles des Themes ins Gehege zu kommen.
  */
 
-.gcb-item--card {
+/* Die Klasse sitzt auf der Tabellenzeile (<tr>) -- eine Zeile nimmt aber
+   kein padding an. Eingerückt wird deshalb die erste Zelle mit dem Bild, und
+   daneben steht die Verbindungslinie. Das Bild wird dadurch etwas kleiner,
+   was die Karte zusätzlich als Beigabe kennzeichnet.
+
+   Der lange Selektor ist nötig: WooCommerce setzt die Zellen u. a. mit
+   ".wc-block-cart table.wc-block-cart-items td { padding: 0 }" zurück,
+   und diese Regel wäre sonst stärker. */
+table.wc-block-cart-items tr.wc-block-cart-items__row.gcb-item--card td.wc-block-cart-item__image {
 	position: relative;
 	padding-left: 1.5rem;
 }
 
-/* Verbindungslinie vom Produkt zur darunterliegenden Karte. */
-.gcb-item--card::before {
+/* Verbindungslinie vom Produkt darüber zur Karte, als kleines "└" links
+   neben dem Bild: senkrecht von etwas oberhalb des Bildes bis zu seiner
+   Mitte, dann waagrecht bis ans Bild. Sie hängt am Bild-Link, nicht an der
+   Zelle -- die Zelle ist so hoch wie die ganze Zeile, die Linie soll sich
+   aber nach dem Bild richten. */
+table.wc-block-cart-items tr.wc-block-cart-items__row.gcb-item--card td.wc-block-cart-item__image > a {
+	position: relative;
+	display: block;
+}
+
+table.wc-block-cart-items tr.wc-block-cart-items__row.gcb-item--card td.wc-block-cart-item__image > a::before,
+table.wc-block-cart-items tr.wc-block-cart-items__row.gcb-item--card td.wc-block-cart-item__image > a::after {
 	content: "";
 	position: absolute;
-	left: 0.5rem;
-	top: 0;
-	bottom: 50%;
-	width: 1px;
+	left: -1rem;
 	background: currentColor;
 	opacity: 0.25;
 }
 
-.gcb-item--card::after {
-	content: "";
-	position: absolute;
-	left: 0.5rem;
+table.wc-block-cart-items tr.wc-block-cart-items__row.gcb-item--card td.wc-block-cart-item__image > a::before {
+	top: -1rem;
+	height: calc(50% + 1rem);
+	width: 1px;
+}
+
+table.wc-block-cart-items tr.wc-block-cart-items__row.gcb-item--card td.wc-block-cart-item__image > a::after {
 	top: 50%;
-	width: 0.6rem;
+	width: 0.75rem;
 	height: 1px;
-	background: currentColor;
-	opacity: 0.25;
 }
 
 /* Die Menge der Karte folgt dem Produkt (siehe class-integration.php). Im
