@@ -60,6 +60,66 @@ add_action('enqueue_block_editor_assets', function () {
     );
 });
 
+// ---------------------------------------------------------------------------
+// Block "Produkt" (woocommerce/single-product) mit fester Variante.
+// Im Editor wählt man die Variante in der Seitenleiste und sieht sie dort
+// auch (assets/js/editor-product-variation.js). Gespeichert wird sie im
+// Attribut variationId, productId bleibt das variable Produkt.
+// ---------------------------------------------------------------------------
+
+add_action('enqueue_block_editor_assets', function () {
+    $file = 'assets/js/editor-product-variation.js';
+    wp_enqueue_script(
+        'floerlike-editor-product-variation',
+        get_theme_file_uri($file),
+        ['wp-hooks', 'wp-compose', 'wp-element', 'wp-block-editor', 'wp-components', 'wp-api-fetch'],
+        filemtime(get_theme_file_path($file)),
+        // Im <head>: der Attribut-Filter muss stehen, bevor WooCommerce den
+        // Block registriert.
+        false
+    );
+});
+
+// Das Attribut auch auf dem Server bekannt machen (z. B. für die REST-API).
+add_filter('register_block_type_args', function ($args, $name) {
+    if ('woocommerce/single-product' === $name) {
+        $args['attributes']['variationId'] = ['type' => 'number'];
+    }
+    return $args;
+}, 10, 2);
+
+// Vor dem Rendern productId gegen die Variante tauschen. WooCommerce reicht
+// productId als Kontext an Titel, Preis, Bild und Knopf weiter, und alle
+// kommen mit einer Varianten-ID zurecht. render_block_data läuft vor diesem
+// Weiterreichen.
+//
+// Nur wenn die Variante wirklich zu diesem Produkt gehört und aktiviert ist
+// (Status "publish"). Sonst bleibt es beim Produkt mit Preisspanne, statt
+// dass der Block leer bleibt.
+add_filter('render_block_data', function ($parsed_block) {
+    if (
+        'woocommerce/single-product' !== ($parsed_block['blockName'] ?? '')
+        || empty($parsed_block['attrs']['variationId'])
+        || ! function_exists('wc_get_product')
+    ) {
+        return $parsed_block;
+    }
+
+    $variation = wc_get_product(absint($parsed_block['attrs']['variationId']));
+    $parent_id = absint($parsed_block['attrs']['productId'] ?? 0);
+
+    if (
+        $variation
+        && $variation->is_type('variation')
+        && $variation->get_parent_id() === $parent_id
+        && 'publish' === $variation->get_status()
+    ) {
+        $parsed_block['attrs']['productId'] = $variation->get_id();
+    }
+
+    return $parsed_block;
+});
+
 // Eigenes JS für den Swiper-Slider einbinden
 function floerlike_enqueue_slider_assets()
 {
