@@ -898,7 +898,7 @@ section.product.single {
 
 section.product.single h1 {
     color: var(--wp--preset--color--main-1-pistachio-dark);
-    font-size: var(--wp--preset--font-size--large);
+    font-size: var(--wp--preset--font-size--xl);
     font-weight: 300;
     line-height: 1.2;
     margin-block-end: 1.5rem;
@@ -921,7 +921,7 @@ section.product.single .wc-block-components-product-price {
     letter-spacing: 0.0125em;
     line-height: 1.33;
     color: var(--wp--preset--color--main-1-pistachio-dark);
-    font-size: var(--wp--preset--font-size--medium);
+    font-size: var(--wp--preset--font-size--m);
     margin-block-end: 1.5rem;
 }
 
