@@ -21,6 +21,8 @@ Eltern-Kind-Beziehung. Beides übernimmt dieses Plugin selbst.
    ein **variables Produkt** mit Attributen und Variationen wie gewohnt.
    - In jede Variation gehört der **Endpreis** (klein 35, mittel 45 …), kein
      Aufschlag.
+   - Die **Reihenfolge der Variationen** (per Ziehen im Tab „Variationen“)
+     ist die Reihenfolge der Knöpfe: oben = links.
    - Das Feld **„Beschreibung“** einer Variation erscheint im Knopf unter dem
      Wert, z. B. „ca. 35 cm Ø“ (abschaltbar).
 

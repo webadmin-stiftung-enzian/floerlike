@@ -285,6 +285,25 @@ function gcb_build_variation_selector(WC_Product $product)
         ));
     }
 
+    // Reihenfolge der Knöpfe = Reihenfolge der Variationen im Produkt (Tab
+    // "Variationen", per Ziehen sortierbar). get_available_variations() liefert
+    // sie bereits nach menu_order sortiert; jeder Wert rückt an die Stelle
+    // seiner ersten Variante. Werte ohne eigene Variante ("beliebig") folgen
+    // danach in der bisherigen Reihenfolge -- usort ist ab PHP 8 stabil.
+    foreach ($variation_attributes as $index => $attribute) {
+        $position = array_flip(array_unique(array_filter(
+            array_column(array_column($variations, 'attributes'), $attribute['name']),
+            'strlen'
+        )));
+
+        usort(
+            $variation_attributes[$index]['options'],
+            static function ($a, $b) use ($position) {
+                return ($position[$a['value']] ?? PHP_INT_MAX) <=> ($position[$b['value']] ?? PHP_INT_MAX);
+            }
+        );
+    }
+
     // Beschreibung pro Knopf: die Beschreibung der Variante(n), die genau
     // diesen Wert haben. Bei einem einzigen Attribut (z. B. nur "Grösse")
     // gehört zu jedem Wert genau eine Variante -- eindeutig. Bei mehreren

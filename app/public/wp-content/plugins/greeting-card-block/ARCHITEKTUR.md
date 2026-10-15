@@ -813,6 +813,13 @@ Im Browser prüft `isOptionAvailable` bei jedem Knopf: *Gibt es mit diesem Wert 
 zusammen mit dem, was bei anderen Attributen schon gewählt ist – eine
 kaufbare Variante?* Wenn nein, wird der Knopf ausgegraut und gesperrt.
 
+Die **Reihenfolge** der Knöpfe folgt der Reihenfolge der Variationen im
+Produkt (Tab „Variationen“, per Ziehen sortierbar): von oben nach unten im
+Admin = von links nach rechts auf der Seite. WooCommerce speichert sie als
+`menu_order` und liefert die Varianten schon so sortiert. Jeder Wert rückt an
+die Stelle seiner ersten Variante. Ohne diese Sortierung käme die Reihenfolge
+zufällig aus der Datenbank.
+
 Die **Beschreibung** einer Variante (Feld „Beschreibung“ in den Variationen)
 erscheint im Knopf unter dem Wert („klein / ca. 35 cm Ø“). Bei mehreren
 Attributen nur, wenn sie eindeutig ist.
