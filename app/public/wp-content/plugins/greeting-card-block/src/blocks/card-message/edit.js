@@ -24,6 +24,21 @@ export default function Edit( { attributes, setAttributes, context } ) {
 					<TextControl
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize
+						label={ __( 'Titel', 'greeting-card-block' ) }
+						help={ __(
+							'Leer lassen für den Standardtitel.',
+							'greeting-card-block'
+						) }
+						placeholder={ __(
+							'Grusstext eingeben',
+							'greeting-card-block'
+						) }
+						value={ attributes.titel }
+						onChange={ ( titel ) => setAttributes( { titel } ) }
+					/>
+					<TextControl
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize
 						label={ __( 'Beschriftung', 'greeting-card-block' ) }
 						help={ __(
 							'Leer lassen für den Standardtext.',

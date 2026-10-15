@@ -4,6 +4,10 @@
  * (card-purchase/style.scss).
  */
 
+.greeting-card-bundle__option.button.outline {
+	border-radius: 0.5rem;
+}
+
 .greeting-card-bundle__variations {
 	display: flex;
 	flex-direction: column;
@@ -48,6 +52,10 @@
 .greeting-card-bundle__option-label,
 .greeting-card-bundle__option-description {
 	display: block;
+}
+
+.greeting-card-bundle__option-label {
+	margin-bottom: 0.25rem;
 }
 
 .greeting-card-bundle__option-description {

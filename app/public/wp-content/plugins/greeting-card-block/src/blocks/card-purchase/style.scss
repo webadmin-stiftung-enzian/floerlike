@@ -26,6 +26,21 @@
 }
 
 /* ---------------------------------------------------------------------------
+   Überschrift über Kartenauswahl und Grusstext
+   ---------------------------------------------------------------------------
+   Text einstellbar je Block ("Titel" in der Seitenleiste). Hier, weil beide
+   Blöcke sie nutzen und die Styles des Rahmens immer geladen sind. */
+.greeting-card-bundle__title {
+	font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
+	color: var(--wp--preset--color--main-1-pistachio-dark);
+	font-size: var(--wp--preset--font-size--l);
+	font-weight: 300;
+	line-height: 1.4;
+	letter-spacing: 0.02em;
+	margin-bottom: 0.5rem;
+}
+
+/* ---------------------------------------------------------------------------
    Unsichtbar, aber fokussier- und vorlesbar
    ---------------------------------------------------------------------------
    Für die Radio-Buttons in den Varianten- und Kartenknöpfen und für

@@ -12,6 +12,10 @@
 		"nachricht"
 	],
 	"attributes": {
+		"titel": {
+			"type": "string",
+			"default": ""
+		},
 		"label": {
 			"type": "string",
 			"default": ""

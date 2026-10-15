@@ -3,7 +3,12 @@
  */
 import { __ } from '@wordpress/i18n';
 import { InspectorControls } from '@wordpress/block-editor';
-import { PanelBody, RangeControl, ToggleControl } from '@wordpress/components';
+import {
+	PanelBody,
+	RangeControl,
+	ToggleControl,
+	TextControl,
+} from '@wordpress/components';
 
 import { BlockPreview } from '../../shared/placeholder';
 import metadata from './block.json';
@@ -15,6 +20,21 @@ export default function Edit( { attributes, setAttributes, context } ) {
 				<PanelBody
 					title={ __( 'Sichtbare Karten', 'greeting-card-block' ) }
 				>
+					<TextControl
+						__nextHasNoMarginBottom
+						__next40pxDefaultSize
+						label={ __( 'Titel', 'greeting-card-block' ) }
+						help={ __(
+							'Leer lassen für den Standardtitel.',
+							'greeting-card-block'
+						) }
+						placeholder={ __(
+							'Grusskarte auswählen',
+							'greeting-card-block'
+						) }
+						value={ attributes.titel }
+						onChange={ ( titel ) => setAttributes( { titel } ) }
+					/>
 					<RangeControl
 						__nextHasNoMarginBottom
 						__next40pxDefaultSize

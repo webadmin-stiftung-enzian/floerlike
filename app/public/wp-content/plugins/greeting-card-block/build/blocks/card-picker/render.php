@@ -48,6 +48,8 @@ $show_price      = (bool) ($attributes['showPrice'] ?? true);
 $show_navigation = (bool) ($attributes['showNavigation'] ?? true);
 $show_pagination = (bool) ($attributes['showPagination'] ?? true);
 $card_count      = count($data['cards']);
+$titel           = trim((string) ($attributes['titel'] ?? ''));
+$titel           = '' !== $titel ? $titel : __('Grusskarte auswählen', 'greeting-card-block');
 
 // Für die Editor-Vorschau: so viele Punkte, wie Swiper auf der Seite erzeugt
 // (eine Position je möglicher Startkarte), und "weiter" gesperrt, wenn alle
@@ -59,6 +61,7 @@ $preview_bullets = max(1, $card_count - $per_view + 1);
     <?php echo get_block_wrapper_attributes(); ?>
     data-wp-interactive="greeting-card-bundle"
     <?php echo $visibility; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- feste Zeichenkette ?>>
+    <h2 class="greeting-card-bundle__title"><?php echo esc_html($titel); ?></h2>
     <fieldset class="greeting-card-bundle__cards" data-wp-class--has-error="state.showCardError">
         <legend class="greeting-card-bundle__visually-hidden"><?php esc_html_e('Grusskarte wählen', 'greeting-card-block'); ?></legend>
         <?php

@@ -68,6 +68,10 @@ return array(
 			'nachricht'
 		),
 		'attributes' => array(
+			'titel' => array(
+				'type' => 'string',
+				'default' => ''
+			),
 			'label' => array(
 				'type' => 'string',
 				'default' => ''
@@ -117,6 +121,10 @@ return array(
 			'karte'
 		),
 		'attributes' => array(
+			'titel' => array(
+				'type' => 'string',
+				'default' => ''
+			),
 			'slidesPerView' => array(
 				'type' => 'number',
 				'default' => 1

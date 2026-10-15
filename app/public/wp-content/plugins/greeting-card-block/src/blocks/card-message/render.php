@@ -30,6 +30,8 @@ if (! $data['cardsEnabled'] || ! $data['isAvailable']) {
 }
 
 // Einstellungen des Blocks (Seitenleiste im Editor).
+$titel       = trim((string) ($attributes['titel'] ?? ''));
+$titel       = '' !== $titel ? $titel : __('Grusstext eingeben', 'greeting-card-block');
 $label       = trim((string) ($attributes['label'] ?? ''));
 $label       = '' !== $label ? $label : __('Nachricht auf der Grusskarte:', 'greeting-card-block');
 $placeholder = (string) ($attributes['placeholder'] ?? '');
@@ -49,6 +51,7 @@ $visibility = gcb_is_editor_preview() ? '' : 'data-wp-bind--hidden="!state.wants
     <?php echo get_block_wrapper_attributes(['class' => 'greeting-card-bundle__message']); ?>
     data-wp-interactive="greeting-card-bundle"
     <?php echo $visibility; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped -- feste Zeichenkette ?>>
+    <h2 class="greeting-card-bundle__title"><?php echo esc_html($titel); ?></h2>
     <label for="greetingCardMessage"><?php echo esc_html($label); ?></label>
     <div class="greeting-card-bundle__message-wrapper">
         <textarea

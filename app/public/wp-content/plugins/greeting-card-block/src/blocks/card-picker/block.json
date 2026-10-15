@@ -12,6 +12,10 @@
 		"karte"
 	],
 	"attributes": {
+		"titel": {
+			"type": "string",
+			"default": ""
+		},
 		"slidesPerView": {
 			"type": "number",
 			"default": 1
