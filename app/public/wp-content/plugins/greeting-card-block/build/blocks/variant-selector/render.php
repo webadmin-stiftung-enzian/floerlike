@@ -36,7 +36,7 @@ if (! $variation_selector || ! $data['isAvailable']) {
 }
 
 // Einstellungen des Blocks (Seitenleiste im Editor).
-$show_description = (bool) ($attributes['showDescription'] ?? true);
+$show_diameter    = (bool) ($attributes['showDiameter'] ?? true);
 $show_own_price   = ! $data['nativePriceSync'] || ! empty($attributes['showOwnPrice']);
 
 ?>
@@ -77,14 +77,14 @@ $show_own_price   = ! $data['nativePriceSync'] || ! empty($attributes['showOwnPr
                             data-wp-bind--checked="state.isOptionSelected"
                             data-wp-bind--disabled="!state.isOptionAvailable" />
                         <?php
-                        // Wert und darunter die Beschreibung der Variante (z. B.
+                        // Wert und darunter der Durchmesser der Variante (z. B.
                         // "ca. 35 cm Ø") -- zwei Elemente statt <br>, CSS stellt sie
-                        // untereinander. Die Beschreibung kommt aus dem Admin: esc_html().
+                        // untereinander. Der Durchmesser kommt aus dem Admin: esc_html().
                         ?>
                         <span class="greeting-card-bundle__option-text">
                             <span class="greeting-card-bundle__option-label"><?php echo esc_html($option['label']); ?></span>
-                            <?php if ($show_description && '' !== $option['description']) : ?>
-                                <span class="greeting-card-bundle__option-description"><?php echo esc_html($option['description']); ?></span>
+                            <?php if ($show_diameter && '' !== $option['diameter']) : ?>
+                                <span class="greeting-card-bundle__option-diameter"><?php echo esc_html($option['diameter']); ?></span>
                             <?php endif; ?>
                         </span>
                     </label>

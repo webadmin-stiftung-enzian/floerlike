@@ -12,7 +12,7 @@
 		"auswahl"
 	],
 	"attributes": {
-		"showDescription": {
+		"showDiameter": {
 			"type": "boolean",
 			"default": true
 		},

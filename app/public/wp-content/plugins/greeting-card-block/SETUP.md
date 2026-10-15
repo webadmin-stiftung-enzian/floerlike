@@ -23,8 +23,9 @@ Eltern-Kind-Beziehung. Beides übernimmt dieses Plugin selbst.
      Aufschlag.
    - Die **Reihenfolge der Variationen** (per Ziehen im Tab „Variationen“)
      ist die Reihenfolge der Knöpfe: oben = links.
-   - Das Feld **„Beschreibung“** einer Variation erscheint im Knopf unter dem
-     Wert, z. B. „ca. 35 cm Ø“ (abschaltbar).
+   - Das Feld **„Durchmesser“** (direkt unter „Abmessungen“) erscheint im
+     Knopf unter dem Wert, z. B. „ca. 35 cm Ø“ (abschaltbar). Freitext, so
+     wie er dort steht.
 
 3. **Karten verknüpfen:** Produktdaten → **Linked Products** → **Bundle-sells**.
    Dort die gewünschten Karten eintragen (nur einfache Produkte möglich).
@@ -69,7 +70,7 @@ Jeder Block hat eigene Einstellungen in der Seitenleiste rechts:
 | Block | Einstellungen |
 |---|---|
 | Grusskarten-Kauf | Vorschau-Produkt, Blockabstand (Standard 1.5rem), Innenabstand, Breite |
-| Variantenauswahl | Beschreibung in den Knöpfen, eigene Preiszeile (sinnvoll, wenn kein Preis-Block auf der Seite steht) |
+| Variantenauswahl | Durchmesser in den Knöpfen, eigene Preiszeile (sinnvoll, wenn kein Preis-Block auf der Seite steht) |
 | Grusskarte hinzufügen | Beschriftung |
 | Grusskarten-Auswahl | sichtbare Karten Desktop / Mobil, Preis auf Karten, Pfeile, Punkte |
 | Grusstext | Beschriftung, Platzhalter, Höchstlänge (bis 300) |

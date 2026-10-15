@@ -279,7 +279,7 @@ return array(
 			'auswahl'
 		),
 		'attributes' => array(
-			'showDescription' => array(
+			'showDiameter' => array(
 				'type' => 'boolean',
 				'default' => true
 			),

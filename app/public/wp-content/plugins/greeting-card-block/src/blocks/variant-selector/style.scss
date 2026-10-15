@@ -46,11 +46,11 @@
 	user-select: none;
 }
 
-/* Wert und Beschreibung der Variante untereinander ("klein" / "ca. 35 cm Ø").
-   Die Beschreibung etwas kleiner, damit der Wert die Hauptsache bleibt;
-   Farbe und Schrift erbt sie vom Button. */
+/* Wert und Durchmesser der Variante untereinander ("klein" / "ca. 35 cm Ø").
+   Der Durchmesser etwas kleiner, damit der Wert die Hauptsache bleibt;
+   Farbe und Schrift erbt er vom Button. */
 .greeting-card-bundle__option-label,
-.greeting-card-bundle__option-description {
+.greeting-card-bundle__option-diameter {
 	display: block;
 }
 
@@ -58,6 +58,6 @@
 	margin-bottom: 0.25rem;
 }
 
-.greeting-card-bundle__option-description {
+.greeting-card-bundle__option-diameter {
 	font-size: 0.8em;
 }

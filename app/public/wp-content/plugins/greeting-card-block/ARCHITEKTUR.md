@@ -172,6 +172,7 @@ greeting-card-block/
 │   ├── class-purchase-status.php        ← Vollständigkeit des Rahmens, wann die WooCommerce-Form verschwindet
 │   ├── class-state.php                  ← bereitet die Produktdaten für alle Blöcke auf
 │   ├── class-preview.php                ← Editor-Vorschau: welches Produkt gezeigt wird
+│   ├── class-variation-fields.php       ← Feld „Durchmesser“ an jeder Variation
 │   ├── class-integration.php            ← Warenkorb-Logik (Hooks), Kartenliste, Weiche zur WooCommerce-Form
 │   ├── class-store-api.php              ← Zusatzdaten in der Store-API-Antwort
 │   └── class-checkout-blocks-integration.php ← lädt JS/CSS in Warenkorb- und Kassen-Block
@@ -569,7 +570,7 @@ Produkte. Die Variantenauswahl gilt dort deshalb immer als wesentlich.
 | Block | Einstellungen in der Seitenleiste |
 |---|---|
 | Grusskarten-Kauf | Vorschau-Produkt, Blockabstand, Innenabstand, Breite |
-| Variantenauswahl | Beschreibung in den Knöpfen, eigene Preiszeile |
+| Variantenauswahl | Durchmesser in den Knöpfen, eigene Preiszeile |
 | Grusskarte hinzufügen | Beschriftung |
 | Grusskarten-Auswahl | sichtbare Karten Desktop (1–6) und Mobil < 600px (1–3), Preis, Pfeile, Punkte |
 | Grusstext | Beschriftung, Platzhalter, Höchstlänge (1–300) |
@@ -820,9 +821,14 @@ Admin = von links nach rechts auf der Seite. WooCommerce speichert sie als
 die Stelle seiner ersten Variante. Ohne diese Sortierung käme die Reihenfolge
 zufällig aus der Datenbank.
 
-Die **Beschreibung** einer Variante (Feld „Beschreibung“ in den Variationen)
-erscheint im Knopf unter dem Wert („klein / ca. 35 cm Ø“). Bei mehreren
-Attributen nur, wenn sie eindeutig ist.
+Der **Durchmesser** einer Variante erscheint im Knopf unter dem Wert
+(„klein / ca. 35 cm Ø“). Er ist ein eigenes Textfeld, das
+`class-variation-fields.php` in jede Variation einsetzt (Hook
+`woocommerce_variation_options_dimensions`, direkt unter
+„Abmessungen“) und als Meta-Feld `_gcb_diameter` speichert (Hook
+`woocommerce_admin_process_variation_object`). Die Beschreibung bleibt so
+frei für echten Text. Bei mehreren Attributen erscheint der Durchmesser nur,
+wenn er eindeutig ist.
 
 ### Warum Radio-Buttons, die wie Knöpfe aussehen?
 

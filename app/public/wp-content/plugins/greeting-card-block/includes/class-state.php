@@ -223,7 +223,7 @@ function gcb_build_variation_selector(WC_Product $product)
     }
 
     $variations             = [];
-    $variation_descriptions = [];
+    $variation_diameters    = [];
     foreach ($product->get_available_variations() as $variation_data) {
         // WC liefert Attribut-Keys als "attribute_{name}" -- Präfix entfernen,
         // damit sie zu den Keys in $variation_attributes/selectedAttributes passen.
@@ -232,13 +232,12 @@ function gcb_build_variation_selector(WC_Product $product)
             $variation_attrs[substr($key, strlen('attribute_'))] = $value;
         }
 
-        // Beschreibung der Variante (Feld "Beschreibung" in den Variationen).
-        // WooCommerce liefert sie als HTML ("<p>ca. 35 cm Ø</p>"); im Knopf
-        // brauchen wir reinen Text -- ein <p> ist in einem <label> nicht
-        // erlaubt. Nur fürs Rendern, nicht im State fürs JavaScript.
-        $variation_descriptions[] = [
-            'attributes'  => $variation_attrs,
-            'description' => trim(wp_strip_all_tags($variation_data['variation_description'] ?? '')),
+        // Durchmesser der Variante (eigenes Feld unter "Beschreibung", siehe
+        // class-variation-fields.php). Nur fürs Rendern, nicht im State fürs
+        // JavaScript.
+        $variation_diameters[] = [
+            'attributes' => $variation_attrs,
+            'diameter'   => gcb_get_variation_diameter($variation_data['variation_id']),
         ];
 
         $variations[] = [
@@ -304,23 +303,23 @@ function gcb_build_variation_selector(WC_Product $product)
         );
     }
 
-    // Beschreibung pro Knopf: die Beschreibung der Variante(n), die genau
+    // Durchmesser pro Knopf: der Durchmesser der Variante(n), die genau
     // diesen Wert haben. Bei einem einzigen Attribut (z. B. nur "Grösse")
     // gehört zu jedem Wert genau eine Variante -- eindeutig. Bei mehreren
     // Attributen kann ein Wert zu mehreren Varianten mit unterschiedlichen
-    // Beschreibungen gehören; dann bleibt der Knopf ohne Beschreibung, statt
-    // eine willkürlich auszuwählen.
+    // Angaben gehören; dann bleibt der Knopf ohne Durchmesser, statt einen
+    // willkürlich auszuwählen.
     foreach ($variation_attributes as $index => $attribute) {
         foreach ($attribute['options'] as $option_index => $option) {
             $texts = [];
-            foreach ($variation_descriptions as $variation) {
+            foreach ($variation_diameters as $variation) {
                 if (($variation['attributes'][$attribute['name']] ?? null) === $option['value']) {
-                    $texts[] = $variation['description'];
+                    $texts[] = $variation['diameter'];
                 }
             }
 
             $texts = array_unique($texts);
-            $variation_attributes[$index]['options'][$option_index]['description'] =
+            $variation_attributes[$index]['options'][$option_index]['diameter'] =
                 1 === count($texts) ? reset($texts) : '';
         }
     }

@@ -18,16 +18,16 @@ export default function Edit( { attributes, setAttributes, context } ) {
 					<ToggleControl
 						__nextHasNoMarginBottom
 						label={ __(
-							'Beschreibung in den Knöpfen anzeigen',
+							'Durchmesser anzeigen',
 							'greeting-card-block'
 						) }
 						help={ __(
-							'Zeigt unter dem Wert die Beschreibung der Variante, z. B. „ca. 35 cm Ø“.',
+							'Zeigt unter dem Wert den Durchmesser der Variante, z. B. „ca. 35 cm Ø“ (Feld „Durchmesser“ in den Variationen).',
 							'greeting-card-block'
 						) }
-						checked={ attributes.showDescription }
-						onChange={ ( showDescription ) =>
-							setAttributes( { showDescription } )
+						checked={ attributes.showDiameter }
+						onChange={ ( showDiameter ) =>
+							setAttributes( { showDiameter } )
 						}
 					/>
 					<ToggleControl
