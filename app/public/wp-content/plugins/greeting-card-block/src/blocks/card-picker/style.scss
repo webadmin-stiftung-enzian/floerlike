@@ -8,6 +8,28 @@
  * derselben Seite nicht mitverändert werden.
  */
 
+@use "sass:meta";
+
+/* Swipers eigene CSS -- eingeschlossen in die Kartenauswahl, für Seite und
+   Editor (style.scss gilt in beiden). Sie spricht allgemeine Klassen an
+   (.swiper, .swiper-button-next …), die auch der Block "Carousel" (Plugin
+   Carousel Block, eigene Swiper-Kopie) benutzt; global geladen würde sie
+   dessen Pfeile mitverändern. Früher kam sie unbemerkt aus der globalen
+   Swiper-Kopie des Themes.
+
+   :where() hält die Spezifität so niedrig wie im Original -- die
+   Theme-Regeln (main.css, "SLIDER") gewinnen immer. Die zwei Variablen setzt
+   Swiper sonst an :root (eingeschlossen träfe das nie). Werte aus swiper
+   12.2; gleiches Verfahren im Plugin product-showcase-block. */
+:where(.greeting-card-bundle__cards-slider) {
+	--swiper-theme-color: #007aff;
+	--swiper-navigation-size: 44px;
+
+	@include meta.load-css("../../../node_modules/swiper/swiper");
+	@include meta.load-css("../../../node_modules/swiper/modules/navigation");
+	@include meta.load-css("../../../node_modules/swiper/modules/pagination");
+}
+
 /* Fieldset ohne Browser-Rahmen. */
 .greeting-card-bundle__cards {
 	position: relative;
@@ -15,6 +37,69 @@
 	padding: 0;
 	border: 0;
 	min-width: 0;
+}
+
+/* Pfeile links und rechts an den Karten, vertikal auf Höhe der Bildmitte,
+   zur Hälfte über den Karten; die Punkte mittig darunter. Das Theme legt bei
+   eigenen Slidern (.slider) alle Bedienelemente in eine Reihe unter die
+   Folien -- hier nur für die Kartenauswahl anders. !important nur bei
+   margin: das Theme setzt es dort auch.
+
+   Der Slider spannt über alle drei Spalten und rückt links und rechts um eine
+   halbe Pfeilbreite (plus die 4px Ringabstand) ein -- so liegt jeder Pfeil
+   halb neben, halb über den Karten. Pfeilbreite wie im Theme: 11px Symbol
+   plus 1rem Innenabstand rundum. */
+.greeting-card-bundle__cards-slider.slider {
+	--gcb-arrow-size: calc(11px + 2rem);
+	grid-template-columns: auto 1fr auto;
+	grid-template-rows: auto auto;
+
+	/* width: auto statt der 100% weiter unten -- 100% plus der Einrückung
+	   wäre breiter als der Platz und ragte über den rechten Pfeil hinaus. */
+	> .swiper {
+		grid-row: 1;
+		grid-column: 1 / -1;
+		width: auto;
+		min-width: 0;
+		margin-inline: calc(var(--gcb-arrow-size) / 2 + 4px);
+	}
+
+	> .swiper-button-prev,
+	> .swiper-button-next {
+		grid-row: 1;
+		align-self: center;
+		/* Seitlich 4px: der Ring um den Knopf (inset -3px) würde sonst vom
+		   overflow: hidden des Sliders abgeschnitten. */
+		margin: 0 4px !important;
+	}
+
+	/* translate: none -- das Theme rückt Pfeile, die unter den Folien stehen,
+	   je 4px zu den Punkten hin. Hier stehen sie seitlich. */
+	> .swiper-button-prev {
+		grid-column: 1;
+		translate: none;
+	}
+
+	> .swiper-button-next {
+		grid-column: 3;
+		translate: none;
+	}
+
+	/* Swiper gibt den Punkten volle Breite -- zentriert wird darin. */
+	> .swiper-pagination {
+		grid-row: 2;
+		grid-column: 2;
+		justify-content: center !important;
+	}
+
+	/* Mit Preis unter dem Bild liegt die Bildmitte höher als die Mitte der
+	   Karte -- um die halbe Höhe der Preiszeile samt Abstand (0.5rem gap der
+	   Kachel + rund 1.5rem Zeile). Ein Aussenabstand unten in voller Höhe
+	   hebt den zentrierten Pfeil genau so weit. */
+	&:has(.greeting-card-bundle__card-price) > .swiper-button-prev,
+	&:has(.greeting-card-bundle__card-price) > .swiper-button-next {
+		margin-bottom: 2rem !important;
+	}
 }
 
 .greeting-card-bundle__cards-slider {
@@ -28,6 +113,19 @@
 	.swiper-slide {
 		display: flex;
 		justify-content: center;
+	}
+
+	/* Rahmen nur um die gewählte Karte. Durchsichtig statt entfernt, damit
+	   die Karte beim Auswählen nicht um den Rahmen wächst und der Slider
+	   springt. margin: das Theme gibt <label> unten Abstand -- der würde den
+	   Slider verlängern und die Pfeile unter die Bildmitte rutschen lassen. */
+	.greeting-card-bundle__card.button.outline.tile {
+		margin: 0;
+		border-color: transparent;
+	}
+
+	.greeting-card-bundle__card.button.outline.tile.is-selected {
+		border-color: var(--btn-border);
 	}
 
 	img {

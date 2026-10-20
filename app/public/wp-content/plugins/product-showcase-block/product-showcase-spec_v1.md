@@ -136,10 +136,10 @@ Kein eigener Block, sondern eine **Erweiterung der Produktsammlung**
 
 | Einstellung | Standard |
 |---|---|
-| Sichtbare Produkte Desktop / Tablet / Handy | 4 / 2 / 1 |
+| Sichtbare Produkte Desktop / Tablet / Handy | „Spalten“ der Produktsammlung / höchstens 2 / 1 – wie vor dem Umzug |
 | **Letzte Karte anschneiden** | aus (siehe Kapitel 6) |
 | Pfeile anzeigen | an, immer sichtbar |
-| Punkte anzeigen | aus |
+| Punkte anzeigen | an – wie vor dem Umzug |
 
 „Produkte pro Seite“ der Produktsammlung bedeutet hier: Produkte im Slider
 insgesamt. Ein Hinweis im Panel sagt das.
@@ -267,8 +267,9 @@ Klassen der Produkte) einmal das Schaufenster mit und ohne Filter ansehen.
 ## 10. Optik und Barrierefreiheit
 
 - Filter-Knöpfe: `button outline` aus `main.css`, kleinere Schrift.
-- Slider-Pfeile wie im Entwurf **links unter dem Slider** – entspricht der
-  bestehenden `.slider`-Anordnung im Theme.
+- Slider-Pfeile und Punkte **mittig unter dem Slider** – die bestehende
+  `.slider`-Anordnung im Theme. Der Entwurf zeigt sie links; das wäre eine
+  kleine Anpassung nur für die Produkt-Slider (Entscheidung offen).
 - Filter als Gruppe mit Überschrift, Knöpfe mit `aria-pressed`.
 - Nach einem Filterklick eine unsichtbare Ansage (`aria-live`): „12 Produkte
   in 2 Kategorien“.

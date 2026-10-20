@@ -1,0 +1,23 @@
+{
+	"name": "product-showcase-block",
+	"version": "0.1.0",
+	"description": "Shop-Seite mit Zeilen je Produktkategorie als Slider und einem Filter aus Schlagwörtern",
+	"license": "GPL-2.0-or-later",
+	"scripts": {
+		"clean": "rimraf build",
+		"build": "npm run clean && wp-scripts build --webpack-copy-php --experimental-modules",
+		"format": "wp-scripts format",
+		"lint:css": "wp-scripts lint-style",
+		"lint:js": "wp-scripts lint-js",
+		"start": "npm run clean && wp-scripts start --webpack-copy-php --experimental-modules"
+	},
+	"dependencies": {
+		"@wordpress/block-editor": "latest",
+		"@wordpress/blocks": "latest",
+		"@wordpress/i18n": "latest",
+		"swiper": "^12.2.0"
+	},
+	"devDependencies": {
+		"@wordpress/scripts": "^32.3.0"
+	}
+}

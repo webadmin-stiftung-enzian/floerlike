@@ -1,0 +1,70 @@
+/**
+ * Produktsammlung mit Stil "Swiper Slider": nur was Swiper zum Funktionieren
+ * braucht. Die Optik von Pfeilen und Punkten kommt aus dem Theme (main.css,
+ * "SLIDER", Klasse .slider) -- fehlt das Theme, bleibt Swipers eigene Optik.
+ */
+
+@use "sass:meta";
+
+/* Swipers eigene CSS -- eingeschlossen in .psb-slider.
+   Sie spricht allgemeine Klassen an (.swiper, .swiper-button-next …), die
+   auch der Block "Carousel" (Plugin Carousel Block, eigene Swiper-Kopie)
+   benutzt. Global geladen würde sie dessen Pfeile mitverändern -- je nachdem,
+   welche CSS zuletzt lädt. meta.load-css() setzt jede Regel unter
+   .psb-slider, damit gilt sie nur für unsere Slider.
+
+   :where() hält die Spezifität dabei so niedrig wie im Original: Die
+   Theme-Regeln (main.css, "SLIDER"), die Swipers Positionierung
+   zurücksetzen, gewinnen so immer -- unabhängig von der Ladereihenfolge.
+
+   Die zwei Variablen setzt Swiper sonst an :root; eingeschlossen würde
+   daraus ".psb-slider :root", das nie trifft -- deshalb hier am Slider.
+   Werte aus swiper 12.2 (swiper.css, modules/navigation.css); bei einem
+   Swiper-Update prüfen. */
+:where(.psb-slider) {
+	--swiper-theme-color: #007aff;
+	--swiper-navigation-size: 44px;
+
+	@include meta.load-css("../../node_modules/swiper/swiper");
+	@include meta.load-css("../../node_modules/swiper/modules/navigation");
+	@include meta.load-css("../../node_modules/swiper/modules/pagination");
+}
+
+/* Die Liste ist der Swiper-Wrapper: eine Reihe statt des Rasters der
+   Produktsammlung. !important, weil WooCommerce das Raster mit eigenen
+   Layout-Klassen und Inline-Variablen setzt. */
+.is-style-swiper .wc-block-product-template {
+	display: flex !important;
+	flex-direction: row !important;
+	flex-wrap: nowrap !important;
+	gap: 0 !important;
+	margin: 0;
+	padding: 0;
+	list-style: none;
+}
+
+/* Breite setzt Swiper inline. */
+.is-style-swiper .wc-block-product {
+	flex-shrink: 0;
+	width: auto;
+	max-width: none;
+}
+
+/* Vor dem Start (und ohne JavaScript) steht die Liste noch direkt im Block:
+   abschneiden statt seitlich aus der Seite ragen. Nach dem Start steckt sie
+   im .swiper, der das selbst übernimmt -- am Wrapper darf dann kein
+   overflow sitzen, sonst schnitte er die verschobenen Folien ab. */
+.is-style-swiper > .wc-block-product-template {
+	overflow: hidden;
+}
+
+/* width: 100% -- Swipers eigene CSS gibt .swiper "margin: 0 auto". Im Raster
+   des Theme-Sliders (.slider, main.css) wird ein Element mit automatischen
+   Seitenrändern nicht mehr auf sein Feld gestreckt, sondern so breit wie sein
+   Inhalt -- und die Breite des Inhalts setzt Swiper aus der eigenen Breite.
+   Beides schaukelt sich bis zur Höchstbreite des Browsers auf
+   (33 554 432 px). Die Grusskarten-Auswahl setzt dafür ebenfalls 100%. */
+.psb-slider > .swiper {
+	width: 100%;
+	min-width: 0;
+}

@@ -40,12 +40,9 @@ function floerlike_enqueue_assets()
 }
 add_action('wp_enqueue_scripts', 'floerlike_enqueue_assets');
 
-add_action('init', function () {
-    register_block_style('woocommerce/product-collection', [
-        'name'  => 'swiper',
-        'label' => 'Swiper Slider',
-    ]);
-});
+// Produktsammlung als Slider (Stil "Swiper Slider"): Block-Stil, Swiper und
+// Start liegen im Plugin product-showcase-block (includes/class-slider.php).
+// Das Theme liefert nur die Optik von Pfeilen und Punkten (main.css, SLIDER).
 
 // Stile des Button-Blocks (Voll/Rand auf hell/dunkel). Registriert in JS,
 // weil sich nur dort die Kern-Stile "Füllen" und "Umriss" umbenennen lassen.
@@ -119,35 +116,6 @@ add_filter('render_block_data', function ($parsed_block) {
 
     return $parsed_block;
 });
-
-// Eigenes JS für den Swiper-Slider einbinden
-function floerlike_enqueue_slider_assets()
-{
-    wp_enqueue_script(
-        'floerlike-product-slider',
-        get_theme_file_uri('assets/js/product-slider.js'),
-        ['swiper'],
-        filemtime(get_theme_file_path('assets/js/product-slider.js')),
-        true
-    );
-}
-
-add_action('wp_enqueue_scripts', function () {
-    $uri = get_stylesheet_directory_uri();
-    wp_enqueue_style('swiper', $uri . '/assets/swiper/swiper-bundle.min.css', [], '11.0');
-    wp_enqueue_script('swiper', $uri . '/assets/swiper/swiper-bundle.min.js', [], '11.0', true);
-    wp_enqueue_script('product-slider', $uri . '/assets/js/product-slider.js', ['swiper'], '1.0', true);
-});
-
-add_filter('render_block_woocommerce/product-collection', function ($content, $block) {
-    $class = $block['attrs']['className'] ?? '';
-    if (! str_contains($class, 'is-style-swiper')) {
-        return $content;
-    }
-    // Navigation/Pagination vor dem schließenden Wrapper-Div einfügen
-    $controls = '<div class="swiper-button-prev"></div><div class="swiper-button-next"></div><div class="swiper-pagination"></div>';
-    return preg_replace('/<\/div>\s*$/', $controls . '</div>', $content, 1);
-}, 10, 2);
 
 // Block bindings source for product permalink
 add_action('init', function () {

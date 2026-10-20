@@ -549,6 +549,21 @@ header.wp-block-template-part {
     top: 0 !important;
 }
 
+/* Pfeile je 4px näher an die Punkte. So sahen die Slider aus, solange das
+   Theme Swipers CSS global lud: deren "left/right: 4px" gewann damals über
+   das "inset: auto" oben, weil sie später geladen wurde. Jetzt ausdrücklich
+   hier -- das Aussehen hängt nicht mehr davon ab, welche Swiper-CSS auf der
+   Seite liegt (der Block "Carousel" bringt eine eigene mit, unsere Plugins
+   schliessen ihre in die eigenen Slider ein). translate statt left/right,
+   weil Swiper und das Carousel-Plugin diese Eigenschaften selbst setzen. */
+:is(.cb-carousel-block, .slider)>.swiper-button-prev {
+    translate: 4px 0;
+}
+
+:is(.cb-carousel-block, .slider)>.swiper-button-next {
+    translate: -4px 0;
+}
+
 /* Swiper hängt per ::after noch seine Icon-Font dran */
 :is(.cb-carousel-block, .slider)>.swiper-button-prev::after,
 :is(.cb-carousel-block, .slider)>.swiper-button-next::after {
@@ -577,22 +592,6 @@ header.wp-block-template-part {
 
 section.highlight .swiper-slide .wp-block-columns {
     margin-bottom: 0;
-}
-
-.is-style-swiper .wc-block-product-template {
-    display: flex !important;
-    flex-direction: row !important;
-    flex-wrap: nowrap !important;
-    gap: 0 !important;
-    margin: 0;
-    padding: 0;
-    list-style: none;
-}
-
-.is-style-swiper .wc-block-product {
-    flex-shrink: 0;
-    width: auto;
-    /* Breite setzt Swiper inline */
 }
 
 .wc-block-product-gallery-large-image__inner-blocks {

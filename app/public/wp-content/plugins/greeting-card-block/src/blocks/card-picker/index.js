@@ -9,11 +9,6 @@ import { registerBlockType } from '@wordpress/blocks';
 import { flowerIcon } from '../../shared/icon';
 import Edit from './edit';
 import metadata from './block.json';
-// Swiper-Styles auch im Editor (index.css = editorStyle): Die Vorschau zeigt den
-// Slider im Ruhezustand, ohne dass Swiper dort läuft.
-import 'swiper/css';
-import 'swiper/css/navigation';
-import 'swiper/css/pagination';
 import './editor.scss';
 import './style.scss';
 
