@@ -1,0 +1,45 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "product-showcase/showcase",
+	"version": "0.1.0",
+	"title": "Schaufenster",
+	"category": "product-showcase",
+	"icon": "store",
+	"description": "Shop-Seite mit einer Zeile je Produktkategorie. Beim Einfügen werden zwei Zeilen angelegt; dazwischen sind beliebige Blöcke erlaubt.",
+	"keywords": [
+		"shop",
+		"kategorie",
+		"slider",
+		"filter"
+	],
+	"textdomain": "product-showcase-block",
+	"attributes": {
+		"style": {
+			"type": "object",
+			"default": {
+				"spacing": {
+					"blockGap": "4rem"
+				}
+			}
+		}
+	},
+	"supports": {
+		"html": false,
+		"multiple": false,
+		"align": [
+			"wide",
+			"full"
+		],
+		"layout": {
+			"allowSizingOnChildren": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"blockGap": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php"
+}

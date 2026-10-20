@@ -7,7 +7,7 @@
  *   slider/view                Skriptmodul für die Seite (Swiper-Start)
  *
  * Wie im Grusskarten-Plugin nur ergänzt, nicht ersetzt: Block-Einstiege
- * (ab Stufe 3) findet wp-scripts weiterhin selbst über die block.json.
+ * (src/blocks/*) findet wp-scripts weiterhin selbst über die block.json.
  * Mit --experimental-modules gibt es zwei Konfigurationen:
  * [ für klassische Skripte, für Skriptmodule ].
  */

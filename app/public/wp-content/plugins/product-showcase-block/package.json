@@ -5,11 +5,11 @@
 	"license": "GPL-2.0-or-later",
 	"scripts": {
 		"clean": "rimraf build",
-		"build": "npm run clean && wp-scripts build --webpack-copy-php --experimental-modules",
+		"build": "npm run clean && wp-scripts build --webpack-copy-php --blocks-manifest --experimental-modules",
 		"format": "wp-scripts format",
 		"lint:css": "wp-scripts lint-style",
 		"lint:js": "wp-scripts lint-js",
-		"start": "npm run clean && wp-scripts start --webpack-copy-php --experimental-modules"
+		"start": "npm run clean && wp-scripts start --webpack-copy-php --blocks-manifest --experimental-modules"
 	},
 	"dependencies": {
 		"@wordpress/block-editor": "latest",

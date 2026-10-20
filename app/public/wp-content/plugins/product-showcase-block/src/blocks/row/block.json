@@ -1,0 +1,42 @@
+{
+	"$schema": "https://schemas.wp.org/trunk/block.json",
+	"apiVersion": 3,
+	"name": "product-showcase/row",
+	"version": "0.1.0",
+	"title": "Zeile",
+	"category": "product-showcase",
+	"icon": "slides",
+	"description": "Überschrift und Slider mit den Produkten einer Kategorie. Verschwindet samt Inhalt, wenn kein Produkt darin steht.",
+	"keywords": [
+		"kategorie",
+		"slider",
+		"produkte"
+	],
+	"textdomain": "product-showcase-block",
+	"ancestor": [
+		"product-showcase/showcase"
+	],
+	"attributes": {
+		"style": {
+			"type": "object",
+			"default": {
+				"spacing": {
+					"blockGap": "1.5rem"
+				}
+			}
+		}
+	},
+	"supports": {
+		"html": false,
+		"layout": {
+			"allowSizingOnChildren": true
+		},
+		"spacing": {
+			"margin": true,
+			"padding": true,
+			"blockGap": true
+		}
+	},
+	"editorScript": "file:./index.js",
+	"render": "file:./render.php"
+}
