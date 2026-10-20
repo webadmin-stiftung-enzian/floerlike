@@ -1,0 +1,10 @@
+/**
+ * Rahmen "Schaufenster".
+ *
+ * Zeilen ohne passendes Produkt bekommen beim Filtern das Attribut hidden.
+ * !important, weil Layout-Regeln (Theme, WordPress) Blöcken ein display
+ * geben können, das sonst über hidden gewönne.
+ */
+.wp-block-product-showcase-row[hidden] {
+	display: none !important;
+}

@@ -1,0 +1,59 @@
+/**
+ * Block "Filter": nur Anordnung und Grösse. Die Optik der Knöpfe kommt über
+ * "button outline" aus dem Theme (main.css); ohne Theme greift der schlichte
+ * Rückfall unten (:where, Spezifität null).
+ */
+
+/* Mit Blockklasse davor: die Absatz-Regel des Themes (theme.json, gleich
+   spezifisch, später geladen) setzte sonst ihre Schrift durch. */
+.wp-block-product-showcase-filter .psb-filter__label {
+	margin: 0 0 0.75rem;
+	font-family: var(--wp--preset--font-family--neue-montreal-mono, inherit);
+	font-size: var(--wp--preset--font-size--normal);
+	font-weight: 300;
+}
+
+.psb-filter__buttons {
+	display: flex;
+	flex-wrap: wrap;
+	gap: 0.5rem;
+}
+
+/* Kleiner als die normalen Knöpfe (Spezifikation, Kapitel 10). */
+.psb-filter__button.button.outline {
+	padding: 0.4rem 1rem;
+	font-size: var(--wp--preset--font-size--s);
+	user-select: none;
+}
+
+/* hidden: Knöpfe ohne Produkt im Schaufenster. Das Theme gibt .button ein
+   display, das sonst über das hidden-Attribut gewönne. */
+.wp-block-product-showcase-filter[hidden],
+.psb-filter__button[hidden] {
+	display: none !important;
+}
+
+/* Rückfall ohne Theme. */
+:where(.psb-filter__button) {
+	padding: 0.4rem 1rem;
+	border: 1px solid currentColor;
+	border-radius: 2rem;
+	background: transparent;
+	color: inherit;
+	font: inherit;
+	cursor: pointer;
+}
+
+:where(.psb-filter__button.is-selected) {
+	background: #000;
+	color: #fff;
+}
+
+/* Hinweis im Editor, solange es kein Filter-Schlagwort gibt. */
+.psb-filter__empty {
+	margin: 0;
+	padding: 0.75rem 1rem;
+	border: 1px dashed currentColor;
+	font-size: 13px;
+	opacity: 0.7;
+}

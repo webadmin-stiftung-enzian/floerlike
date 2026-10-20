@@ -1,6 +1,41 @@
 <?php
 // This file is generated. Do not modify it manually.
 return array(
+	'filter' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'product-showcase/filter',
+		'version' => '0.1.0',
+		'title' => 'Filter',
+		'category' => 'product-showcase',
+		'icon' => 'filter',
+		'description' => 'Knöpfe aus den Schlagwörtern mit „Im Filter zeigen“. Ein Klick zeigt nur Produkte mit diesem Schlagwort, ein zweiter hebt den Filter auf.',
+		'keywords' => array(
+			'filter',
+			'schlagwort',
+			'anlass'
+		),
+		'textdomain' => 'product-showcase-block',
+		'ancestor' => array(
+			'product-showcase/showcase'
+		),
+		'attributes' => array(
+			'label' => array(
+				'type' => 'string',
+				'default' => 'Filter zur feineren Auswahl'
+			)
+		),
+		'supports' => array(
+			'html' => false,
+			'multiple' => false,
+			'spacing' => array(
+				'margin' => true
+			)
+		),
+		'editorScript' => 'file:./index.js',
+		'style' => 'file:./style-index.css',
+		'render' => 'file:./render.php'
+	),
 	'row' => array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,
@@ -83,9 +118,12 @@ return array(
 				'margin' => true,
 				'padding' => true,
 				'blockGap' => true
-			)
+			),
+			'interactivity' => true
 		),
 		'editorScript' => 'file:./index.js',
-		'render' => 'file:./render.php'
+		'style' => 'file:./style-index.css',
+		'render' => 'file:./render.php',
+		'viewScriptModule' => 'file:./view.js'
 	)
 );

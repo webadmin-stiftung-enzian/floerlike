@@ -38,8 +38,11 @@
       "margin": true,
       "padding": true,
       "blockGap": true
-    }
+    },
+    "interactivity": true
   },
   "editorScript": "file:./index.js",
-  "render": "file:./render.php"
+  "style": "file:./style-index.css",
+  "render": "file:./render.php",
+  "viewScriptModule": "file:./view.js"
 }

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "product-showcase/filter",
+  "version": "0.1.0",
+  "title": "Filter",
+  "category": "product-showcase",
+  "icon": "filter",
+  "description": "Knöpfe aus den Schlagwörtern mit „Im Filter zeigen“. Ein Klick zeigt nur Produkte mit diesem Schlagwort, ein zweiter hebt den Filter auf.",
+  "keywords": [
+    "filter",
+    "schlagwort",
+    "anlass"
+  ],
+  "textdomain": "product-showcase-block",
+  "ancestor": [
+    "product-showcase/showcase"
+  ],
+  "attributes": {
+    "label": {
+      "type": "string",
+      "default": "Filter zur feineren Auswahl"
+    }
+  },
+  "supports": {
+    "html": false,
+    "multiple": false,
+    "spacing": {
+      "margin": true
+    }
+  },
+  "editorScript": "file:./index.js",
+  "style": "file:./style-index.css",
+  "render": "file:./render.php"
+}
