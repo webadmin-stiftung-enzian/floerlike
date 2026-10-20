@@ -34,7 +34,7 @@
     },
     "showPagination": {
       "type": "boolean",
-      "default": true
+      "default": false
     }
   },
   "ancestor": [

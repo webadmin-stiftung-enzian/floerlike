@@ -74,7 +74,7 @@ function psb_is_slider(array $attrs)
  *
  * Ohne eigene Einstellungen verhält sich ein Slider wie vor dem Umzug ins
  * Plugin: Desktop = "Spalten" der Produktsammlung, Tablet höchstens 2,
- * Handy 1, Pfeile und Punkte an.
+ * Handy 1, Pfeile an. Punkte aus -- wie im Entwurf.
  *
  * @param array $attrs Block-Attribute der Produktsammlung.
  * Der Anschnitt kommt getrennt als ganze Prozentzahl (peekPercent) und wird
@@ -104,7 +104,7 @@ function psb_slider_config(array $attrs)
         ],
         'peekPercent'   => $peek,
         'navigation'    => (bool) ($s['navigation'] ?? true),
-        'pagination'    => (bool) ($s['pagination'] ?? true),
+        'pagination'    => (bool) ($s['pagination'] ?? false),
     ];
 }
 

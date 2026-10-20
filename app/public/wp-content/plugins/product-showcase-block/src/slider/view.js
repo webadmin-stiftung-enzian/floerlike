@@ -10,7 +10,7 @@
  * Slider-Block, damit main.css ("SLIDER") alle gleich gestaltet:
  *
  *   <div class="wp-block-woocommerce-product-collection is-style-swiper">
- *     <div class="slider psb-slider">
+ *     <div class="slider slider--controls-start psb-slider">
  *       <div class="swiper">
  *         <ul class="wc-block-product-template">  ← Swiper-Wrapper
  *           <li class="wc-block-product">…</li>   ← Folien
@@ -53,12 +53,13 @@ const initSlider = ( block ) => {
 		slidesPerView = { mobile: 1, tablet: 2, desktop: 4 },
 		peekPercent = 0,
 		navigation = true,
-		pagination = true,
+		pagination = false,
 	} = config;
 
 	const peek = peekPercent / 100;
 
-	const slider = element( 'div', 'slider psb-slider' );
+	// slider--controls-start: Pfeile links unter den Folien (main.css).
+	const slider = element( 'div', 'slider slider--controls-start psb-slider' );
 	const container = element( 'div', 'swiper' );
 	list.before( slider );
 	container.append( list );

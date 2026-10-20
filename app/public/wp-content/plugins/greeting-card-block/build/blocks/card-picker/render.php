@@ -46,7 +46,7 @@ $per_view        = max(1, min(6, (int) ($attributes['slidesPerView'] ?? 1)));
 $per_view_mobile = max(1, min(3, (int) ($attributes['slidesPerViewMobile'] ?? 1)));
 $show_price      = (bool) ($attributes['showPrice'] ?? true);
 $show_navigation = (bool) ($attributes['showNavigation'] ?? true);
-$show_pagination = (bool) ($attributes['showPagination'] ?? true);
+$show_pagination = (bool) ($attributes['showPagination'] ?? false);
 $card_count      = count($data['cards']);
 $titel           = trim((string) ($attributes['titel'] ?? ''));
 $titel           = '' !== $titel ? $titel : __('Grusskarte auswählen', 'greeting-card-block');
@@ -71,7 +71,7 @@ $preview_bullets = max(1, $card_count - $per_view + 1);
         // diesen Slider ein zweites Mal starten.
         ?>
         <div
-            class="greeting-card-bundle__cards-slider slider"
+            class="greeting-card-bundle__cards-slider slider slider--controls-start"
             <?php
             // Anzahl sichtbarer Karten für Swiper (view.js liest sie aus dem
             // Kontext). In der Editor-Vorschau zusätzlich als CSS-Variable,

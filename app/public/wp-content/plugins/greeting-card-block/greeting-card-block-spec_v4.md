@@ -229,7 +229,7 @@ Slider mit Theme-Klasse `.slider` (main.css „SLIDER“), Karten als `label.but
 | Sichtbare Karten gleichzeitig (Desktop) | Zahl 1–6 | 1 |
 | Sichtbare Karten gleichzeitig (Mobil, < 600px) | Zahl 1–3 | 1 |
 | Preis anzeigen | Schalter | an |
-| Pfeile anzeigen / Punkte anzeigen | Schalter | an / an |
+| Pfeile anzeigen / Punkte anzeigen | Schalter | an / aus |
 
 Die Werte gehen als Swiper-Optionen (`slidesPerView`, `breakpoints`) in den Context des Blocks. Angeboten werden immer **alle** verknüpften Karten.
 

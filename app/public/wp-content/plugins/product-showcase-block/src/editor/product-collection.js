@@ -120,7 +120,7 @@ const SliderPanel = ( { attributes, setAttributes } ) => {
 				<ToggleControl
 					__nextHasNoMarginBottom
 					label={ __( 'Punkte anzeigen', 'product-showcase-block' ) }
-					checked={ slider.pagination ?? true }
+					checked={ slider.pagination ?? false }
 					onChange={ update( 'pagination' ) }
 				/>
 				<p>

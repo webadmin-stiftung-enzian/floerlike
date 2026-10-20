@@ -590,15 +590,56 @@ header.wp-block-template-part {
     margin: 0.75rem 1rem 0.25rem !important;
 }
 
+/* Slider mit Produkten (Produktsammlung, Kartenauswahl): beide Pfeile
+   nebeneinander links unter den Folien, Punkte -- falls eingeschaltet --
+   rechts daneben. Die Plugins setzen die Klasse an ihren .slider.
+   Links 4px: der Ring (::before, inset -3px) würde sonst vom overflow:
+   hidden abgeschnitten. translate: none -- der 4px-Versatz oben rückt
+   Pfeile zu mittigen Punkten hin, hier stehen sie am Rand. */
+.slider.slider--controls-start {
+    grid-template-columns: auto auto auto 1fr;
+}
+
+.slider--controls-start>.swiper-button-prev {
+    grid-column: 1;
+    margin-left: 4px !important;
+    translate: none;
+}
+
+.slider--controls-start>.swiper-button-next {
+    grid-column: 2;
+    translate: none;
+}
+
+.slider--controls-start>.swiper-pagination {
+    grid-column: 3;
+}
+
 section.highlight .swiper-slide .wp-block-columns {
     margin-bottom: 0;
 }
 
-.wc-block-product-gallery-large-image__inner-blocks {
-    width: calc(100% - 2rem);
-    height: calc(100% - 1rem);
-    inset: 0;
-    margin: auto;
+/* Galerie-Pfeile wie bei den Produkt-Slidern: nebeneinander links unter dem
+   grossen Bild statt links und rechts darüber. WooCommerce legt die
+   Innenblöcke des grossen Bilds absolut über das Bild; mit position: static
+   rücken sie in den Fluss darunter. Nur wenn die Pfeile darin stecken --
+   kämen weitere Innenblöcke dazu (z. B. ein Sale-Badge), stünden die mit
+   darunter. WooCommerce nutzt :where(), unsere Regeln gewinnen so.
+   Bis 600px blendet WooCommerce die Pfeile aus (dort wird gewischt) --
+   Abstände deshalb an den Pfeilen, damit dann nichts Leeres stehen bleibt. */
+.wc-block-product-gallery-large-image__inner-blocks:has(> .wc-block-next-previous-buttons) {
+    position: static;
+    width: auto;
+    height: auto;
+    margin: 0;
+}
+
+.wc-block-product-gallery-large-image__inner-blocks .wc-block-next-previous-buttons {
+    justify-content: flex-start;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+    /* Platz für den Ring (inset -3px), wie bei .slider. */
+    padding: 4px;
 }
 
 .wc-block-product-gallery-large-image {

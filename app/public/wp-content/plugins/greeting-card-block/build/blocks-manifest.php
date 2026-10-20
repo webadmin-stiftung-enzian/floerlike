@@ -143,7 +143,7 @@ return array(
 			),
 			'showPagination' => array(
 				'type' => 'boolean',
-				'default' => true
+				'default' => false
 			)
 		),
 		'ancestor' => array(
