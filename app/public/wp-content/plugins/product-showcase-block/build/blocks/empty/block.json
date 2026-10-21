@@ -1,0 +1,47 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "product-showcase/empty",
+  "version": "0.1.0",
+  "title": "Kein Treffer",
+  "category": "product-showcase",
+  "icon": "dismiss",
+  "description": "Erscheint nur, wenn beim gewählten Filter in keiner Zeile ein Produkt übrig bleibt. Inhalt frei, dazu ein Knopf, der den Filter aufhebt.",
+  "keywords": [
+    "leer",
+    "filter",
+    "hinweis"
+  ],
+  "textdomain": "product-showcase-block",
+  "ancestor": [
+    "product-showcase/showcase"
+  ],
+  "attributes": {
+    "resetLabel": {
+      "type": "string",
+      "default": "Filter aufheben"
+    },
+    "style": {
+      "type": "object",
+      "default": {
+        "spacing": {
+          "blockGap": "1rem"
+        }
+      }
+    }
+  },
+  "supports": {
+    "html": false,
+    "multiple": false,
+    "layout": {
+      "allowSizingOnChildren": true
+    },
+    "spacing": {
+      "margin": true,
+      "padding": true,
+      "blockGap": true
+    }
+  },
+  "editorScript": "file:./index.js",
+  "render": "file:./render.php"
+}

@@ -54,8 +54,11 @@ function updateUrl( tag ) {
  *
  * @param {HTMLElement} root        Rahmen.
  * @param {?string}     activeClass Klasse der passenden Produkte, null = alle.
+ * @return {{products: number, rows: number}} Sichtbare Produkte und Zeilen.
  */
 function applyFilter( root, activeClass ) {
+	const total = { products: 0, rows: 0 };
+
 	root.querySelectorAll( '.wp-block-product-showcase-row' ).forEach(
 		( row ) => {
 			let visible = 0;
@@ -106,6 +109,8 @@ function applyFilter( root, activeClass ) {
 			// versteckten Zeile hätte er keine Breite.
 			row.hidden = visible === 0;
 			if ( ! row.hidden ) {
+				total.products += visible;
+				total.rows += 1;
 				sliders.forEach( ( swiper ) => {
 					swiper.update();
 					swiper.slideTo( 0, 0 );
@@ -113,9 +118,39 @@ function applyFilter( root, activeClass ) {
 			}
 		}
 	);
+
+	return total;
 }
 
-store( 'product-showcase', {
+/**
+ * Text der Ansage für Screenreader, z. B. "12 Produkte in 2 Kategorien".
+ * Die Textbausteine kommen übersetzt vom Server (state.messages,
+ * includes/class-blocks.php) -- in Skriptmodulen gibt es kein wp.i18n.
+ *
+ * @param {Object}  messages Textbausteine.
+ * @param {Object}  total    Ergebnis von applyFilter().
+ * @param {boolean} filtered Ist ein Filter aktiv?
+ * @return {string} Ansage.
+ */
+function announcement( messages, total, filtered ) {
+	if ( ! total.products ) {
+		return messages.none;
+	}
+	const products = (
+		total.products === 1 ? messages.productOne : messages.productMany
+	).replace( '%d', total.products );
+	const rows = (
+		total.rows === 1 ? messages.rowOne : messages.rowMany
+	).replace( '%d', total.rows );
+	const result = `${ products } ${ rows }`;
+
+	return filtered ? result : `${ messages.reset } ${ result }`;
+}
+
+/** Rahmen, deren erster Lauf schon war -- beim Laden wird nichts angesagt. */
+const started = new WeakSet();
+
+const { state } = store( 'product-showcase', {
 	state: {
 		/**
 		 * Ist der Knopf (Kontext mit tag) der gewählte Filter?
@@ -140,6 +175,24 @@ store( 'product-showcase', {
 			context.activeClass = off ? null : context.tagClass;
 			updateUrl( context.activeTag );
 		},
+
+		/**
+		 * Knopf in "Kein Treffer": Filter aufheben. Der Fokus geht an den
+		 * ersten Filter-Knopf -- der Knopf hier verschwindet ja gleich mit
+		 * seinem Block.
+		 */
+		resetFilter() {
+			const context = getContext();
+			const { ref } = getElement();
+
+			context.activeTag = null;
+			context.activeClass = null;
+			updateUrl( null );
+
+			ref.closest( '.wp-block-product-showcase-showcase' )
+				?.querySelector( '.psb-filter__button:not([hidden])' )
+				?.focus();
+		},
 	},
 	callbacks: {
 		/**
@@ -149,7 +202,28 @@ store( 'product-showcase', {
 		applyFilter() {
 			const { activeClass } = getContext();
 			const { ref } = getElement();
-			applyFilter( ref, activeClass );
+			const total = applyFilter( ref, activeClass );
+
+			// "Kein Treffer" nur bei aktivem Filter ohne ein einziges Produkt.
+			ref.querySelectorAll( '.wp-block-product-showcase-empty' ).forEach(
+				( empty ) => {
+					empty.hidden = !! total.products || ! activeClass;
+				}
+			);
+
+			// Ansage erst ab dem ersten Klick, nicht beim Laden der Seite.
+			if ( ! started.has( ref ) ) {
+				started.add( ref );
+				return;
+			}
+			const live = ref.querySelector( '.psb-showcase__announce' );
+			if ( live ) {
+				live.textContent = announcement(
+					state.messages,
+					total,
+					!! activeClass
+				);
+			}
 		},
 	},
 } );

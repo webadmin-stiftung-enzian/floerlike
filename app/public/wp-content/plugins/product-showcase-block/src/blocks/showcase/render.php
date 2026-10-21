@@ -28,6 +28,9 @@ if ($requested) {
     $content = psb_apply_server_filter($content, psb_tag_class($requested));
 }
 
+// "Kein Treffer" zeigen, wenn der Filter aus der Adresse nichts übrig lässt.
+$content = psb_set_empty_visibility($content, $requested && ! psb_has_visible_row($content));
+
 ?>
 <div
     <?php echo get_block_wrapper_attributes(); ?>
@@ -44,4 +47,6 @@ if ($requested) {
     // unverändert ausgegeben.
     echo $content; // phpcs:ignore WordPress.Security.EscapeOutput.OutputNotEscaped
     ?>
+    <?php // Ansage nach einem Filterklick (view.js), nur für Screenreader. ?>
+    <p class="psb-showcase__announce" aria-live="polite"></p>
 </div>

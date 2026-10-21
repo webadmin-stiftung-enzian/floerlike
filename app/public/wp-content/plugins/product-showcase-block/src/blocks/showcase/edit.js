@@ -1,10 +1,9 @@
 /**
  * Editor-Ansicht des Rahmens "Schaufenster".
  *
- * Beim Einfügen legt er den Filter und zwei Zeilen an (Spezifikation,
- * Kapitel 5.1). Danach darf man frei umsortieren und beliebige Blöcke
- * dazwischensetzen, auch Gruppen und Spalten. "Kein Treffer" kommt in
- * Stufe 6 in die Vorlage.
+ * Beim Einfügen legt er Filter, zwei Zeilen und "Kein Treffer" an
+ * (Spezifikation, Kapitel 5.1). Danach darf man frei umsortieren und
+ * beliebige Blöcke dazwischensetzen, auch Gruppen und Spalten.
  */
 import { useBlockProps, useInnerBlocksProps } from '@wordpress/block-editor';
 
@@ -12,6 +11,7 @@ const TEMPLATE = [
 	[ 'product-showcase/filter' ],
 	[ 'product-showcase/row' ],
 	[ 'product-showcase/row' ],
+	[ 'product-showcase/empty' ],
 ];
 
 export default function Edit() {

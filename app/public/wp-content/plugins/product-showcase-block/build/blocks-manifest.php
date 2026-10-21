@@ -1,6 +1,53 @@
 <?php
 // This file is generated. Do not modify it manually.
 return array(
+	'empty' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'product-showcase/empty',
+		'version' => '0.1.0',
+		'title' => 'Kein Treffer',
+		'category' => 'product-showcase',
+		'icon' => 'dismiss',
+		'description' => 'Erscheint nur, wenn beim gewählten Filter in keiner Zeile ein Produkt übrig bleibt. Inhalt frei, dazu ein Knopf, der den Filter aufhebt.',
+		'keywords' => array(
+			'leer',
+			'filter',
+			'hinweis'
+		),
+		'textdomain' => 'product-showcase-block',
+		'ancestor' => array(
+			'product-showcase/showcase'
+		),
+		'attributes' => array(
+			'resetLabel' => array(
+				'type' => 'string',
+				'default' => 'Filter aufheben'
+			),
+			'style' => array(
+				'type' => 'object',
+				'default' => array(
+					'spacing' => array(
+						'blockGap' => '1rem'
+					)
+				)
+			)
+		),
+		'supports' => array(
+			'html' => false,
+			'multiple' => false,
+			'layout' => array(
+				'allowSizingOnChildren' => true
+			),
+			'spacing' => array(
+				'margin' => true,
+				'padding' => true,
+				'blockGap' => true
+			)
+		),
+		'editorScript' => 'file:./index.js',
+		'render' => 'file:./render.php'
+	),
 	'filter' => array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,

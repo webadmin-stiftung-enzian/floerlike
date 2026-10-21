@@ -7,6 +7,7 @@
  *   Schaufenster   product-showcase/showcase   (src/blocks/showcase)
  *   Zeile          product-showcase/row        (src/blocks/row)
  *   Filter         product-showcase/filter     (src/blocks/filter)
+ *   Kein Treffer   product-showcase/empty      (src/blocks/empty)
  *
  * @package ProductShowcaseBlock
  */
@@ -55,7 +56,7 @@ add_filter('block_categories_all', function ($categories) {
  */
 add_filter('render_block_data', function ($parsed_block) {
     $name = $parsed_block['blockName'] ?? '';
-    if (! in_array($name, ['product-showcase/showcase', 'product-showcase/row'], true)) {
+    if (! in_array($name, ['product-showcase/showcase', 'product-showcase/row', 'product-showcase/empty'], true)) {
         return $parsed_block;
     }
 
@@ -229,6 +230,19 @@ function psb_apply_server_filter($content, $tag_class)
  */
 add_action('init', function () {
     wp_interactivity_state('product-showcase', [
+        // Textbausteine der Ansage nach einem Filterklick (showcase/view.js).
+        'messages'  => [
+            /* translators: Ansage für Screenreader, Anfang: "1 Produkt" */
+            'productOne'  => __('1 Produkt', 'product-showcase-block'),
+            /* translators: Ansage für Screenreader, Anfang; %d: Anzahl */
+            'productMany' => __('%d Produkte', 'product-showcase-block'),
+            /* translators: Ansage für Screenreader, Ende: "in 1 Kategorie" */
+            'rowOne'      => __('in 1 Kategorie', 'product-showcase-block'),
+            /* translators: Ansage für Screenreader, Ende; %d: Anzahl */
+            'rowMany'     => __('in %d Kategorien', 'product-showcase-block'),
+            'none'        => __('Keine Produkte für diesen Filter.', 'product-showcase-block'),
+            'reset'       => __('Filter aufgehoben.', 'product-showcase-block'),
+        ],
         'isPressed' => static function () {
             $context = wp_interactivity_get_context();
 
@@ -236,3 +250,43 @@ add_action('init', function () {
         },
     ]);
 });
+
+/**
+ * Bleibt im Schaufenster eine Zeile sichtbar (ohne hidden)?
+ *
+ * @param string $content Markup der Innenblöcke des Rahmens.
+ * @return bool
+ */
+function psb_has_visible_row($content)
+{
+    $p = new WP_HTML_Tag_Processor($content);
+    while ($p->next_tag(['class_name' => 'wp-block-product-showcase-row'])) {
+        if (null === $p->get_attribute('hidden')) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
+ * "Kein Treffer" zeigen oder verstecken. Der Block kommt immer versteckt
+ * (empty/render.php); nur hier wird er sichtbar.
+ *
+ * @param string $content Markup der Innenblöcke des Rahmens.
+ * @param bool   $show    Sichtbar machen?
+ * @return string
+ */
+function psb_set_empty_visibility($content, $show)
+{
+    if (! $show) {
+        return $content;
+    }
+
+    $p = new WP_HTML_Tag_Processor($content);
+    while ($p->next_tag(['class_name' => 'wp-block-product-showcase-empty'])) {
+        $p->remove_attribute('hidden');
+    }
+
+    return $p->get_updated_html();
+}

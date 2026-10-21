@@ -3,10 +3,25 @@
  *
  * Zeilen ohne passendes Produkt bekommen beim Filtern das Attribut hidden,
  * mit ?filter= in der Adresse schon vom Server auch unpassende Produkte.
+ * "Kein Treffer" ist versteckt, bis ein Filter nichts übrig lässt.
  * !important, weil Layout-Regeln (Theme, WordPress) Blöcken ein display
  * geben können, das sonst über hidden gewönne.
  */
 .wp-block-product-showcase-row[hidden],
-.wp-block-product-showcase-row .wc-block-product[hidden] {
+.wp-block-product-showcase-row .wc-block-product[hidden],
+.wp-block-product-showcase-empty[hidden] {
 	display: none !important;
+}
+
+/* Ansage für Screenreader: vorhanden, aber nicht zu sehen. */
+.psb-showcase__announce {
+	position: absolute;
+	width: 1px;
+	height: 1px;
+	margin: -1px;
+	padding: 0;
+	overflow: hidden;
+	clip-path: inset(50%);
+	white-space: nowrap;
+	border: 0;
 }
