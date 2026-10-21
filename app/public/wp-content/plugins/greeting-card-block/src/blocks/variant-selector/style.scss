@@ -46,6 +46,12 @@
 	user-select: none;
 }
 
+.greeting-card-bundle__option-text span {
+	font-family: var(--wp--preset--font-family--neue-montreal-mono, inherit);
+	font-weight: 300;
+	letter-spacing: 0;
+}
+
 /* Wert und Durchmesser der Variante untereinander ("klein" / "ca. 35 cm Ø").
    Der Durchmesser etwas kleiner, damit der Wert die Hauptsache bleibt;
    Farbe und Schrift erbt er vom Button. */
