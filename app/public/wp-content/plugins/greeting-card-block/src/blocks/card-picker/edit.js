@@ -64,6 +64,19 @@ export default function Edit( { attributes, setAttributes, context } ) {
 							setAttributes( { slidesPerViewMobile } )
 						}
 					/>
+					<ToggleControl
+						__nextHasNoMarginBottom
+						label={ __(
+							'Letzte Karte anschneiden',
+							'greeting-card-block'
+						) }
+						help={ __(
+							'Am rechten Rand schaut ein Stück der nächsten Karte hervor – ein Hinweis, dass es weitergeht. Gleiche Einstellung wie beim Produkt-Slider.',
+							'greeting-card-block'
+						) }
+						checked={ attributes.peek }
+						onChange={ ( peek ) => setAttributes( { peek } ) }
+					/>
 				</PanelBody>
 				<PanelBody title={ __( 'Anzeige', 'greeting-card-block' ) }>
 					<ToggleControl

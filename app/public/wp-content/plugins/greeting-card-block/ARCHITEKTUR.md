@@ -572,7 +572,7 @@ Produkte. Die Variantenauswahl gilt dort deshalb immer als wesentlich.
 | Grusskarten-Kauf | Vorschau-Produkt, Blockabstand, Innenabstand, Breite |
 | Variantenauswahl | Durchmesser in den Knöpfen, eigene Preiszeile |
 | Grusskarte hinzufügen | Beschriftung |
-| Grusskarten-Auswahl | sichtbare Karten Desktop (1–6) und Mobil < 600px (1–3), Preis, Pfeile, Punkte |
+| Grusskarten-Auswahl | sichtbare Karten Desktop (1–6) und Mobil < 600px (1–3), letzte Karte anschneiden, Preis, Pfeile, Punkte |
 | Grusstext | Beschriftung, Platzhalter, Höchstlänge (1–300) |
 | In den Warenkorb | Beschriftung, Stil (Kontur/Gefüllt), Warenkorb-Symbol |
 

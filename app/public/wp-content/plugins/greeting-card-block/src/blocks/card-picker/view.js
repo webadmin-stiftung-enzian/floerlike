@@ -24,7 +24,13 @@ const { state } = store( 'greeting-card-bundle', {
 		initSwiper() {
 			const { ref } = getElement();
 			// Einstellungen des Blocks, von render.php in den Kontext gelegt.
-			const { slidesPerView = 1, slidesPerViewMobile = 1 } = getContext();
+			const {
+				slidesPerView = 1,
+				slidesPerViewMobile = 1,
+				peekPercent = 0,
+			} = getContext();
+			// "Letzte Karte anschneiden": z. B. 3 + 0.3 sichtbare Karten.
+			const peek = peekPercent / 100;
 
 			// Pfeile und Punkte lassen sich in den Einstellungen abschalten --
 			// dann fehlen die Elemente, und Swiper bekommt das Modul gar nicht
@@ -39,10 +45,10 @@ const { state } = store( 'greeting-card-bundle', {
 				modules: [],
 				loop: false,
 				// Schmale Bildschirme zuerst, ab 600px die Desktop-Anzahl.
-				slidesPerView: slidesPerViewMobile,
+				slidesPerView: slidesPerViewMobile + peek,
 				spaceBetween: 16,
 				breakpoints: {
-					600: { slidesPerView },
+					600: { slidesPerView: slidesPerView + peek },
 				},
 				// Kennzeichnet sichtbare Karten (swiper-slide-visible) -- nötig
 				// für die Tastatur-Navigation unten.

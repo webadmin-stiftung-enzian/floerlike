@@ -133,6 +133,10 @@ return array(
 				'type' => 'number',
 				'default' => 1
 			),
+			'peek' => array(
+				'type' => 'boolean',
+				'default' => false
+			),
 			'showPrice' => array(
 				'type' => 'boolean',
 				'default' => true

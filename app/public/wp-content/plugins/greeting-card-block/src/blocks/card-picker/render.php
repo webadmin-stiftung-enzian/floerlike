@@ -44,6 +44,11 @@ $arrow_svg = '<svg class="swiper-navigation-icon" width="11" height="20" viewBox
 // Regler in edit.js.
 $per_view        = max(1, min(6, (int) ($attributes['slidesPerView'] ?? 1)));
 $per_view_mobile = max(1, min(3, (int) ($attributes['slidesPerViewMobile'] ?? 1)));
+// "Letzte Karte anschneiden": Anteil der nächsten Karte in Prozent (3 → 3.3),
+// gleicher Wert wie beim Produkt-Slider (PSB_SLIDER_PEEK_PERCENT im Plugin
+// product-showcase-block). Als ganze Zahl, weil PHP Kommazahlen hier mit
+// 17 Stellen ins JSON schreibt (0.3 → 0.29999999999999999).
+$peek_percent    = ! empty($attributes['peek']) ? 30 : 0;
 $show_price      = (bool) ($attributes['showPrice'] ?? true);
 $show_navigation = (bool) ($attributes['showNavigation'] ?? true);
 $show_pagination = (bool) ($attributes['showPagination'] ?? false);
@@ -79,9 +84,10 @@ $preview_bullets = max(1, $card_count - $per_view + 1);
             echo wp_interactivity_data_wp_context([
                 'slidesPerView'       => $per_view,
                 'slidesPerViewMobile' => $per_view_mobile,
+                'peekPercent'         => $peek_percent,
             ]);
             if ($is_preview) {
-                printf(' style="--gcb-slides-per-view: %d"', (int) $per_view);
+                printf(' style="--gcb-slides-per-view: %s"', esc_attr($per_view + $peek_percent / 100));
             }
             ?>
             data-wp-init="callbacks.initSwiper">

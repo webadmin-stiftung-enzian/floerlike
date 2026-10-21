@@ -72,7 +72,7 @@ Jeder Block hat eigene Einstellungen in der Seitenleiste rechts:
 | Grusskarten-Kauf | Vorschau-Produkt, Blockabstand (Standard 1.5rem), Innenabstand, Breite |
 | Variantenauswahl | Durchmesser in den Knöpfen, eigene Preiszeile (sinnvoll, wenn kein Preis-Block auf der Seite steht) |
 | Grusskarte hinzufügen | Beschriftung |
-| Grusskarten-Auswahl | sichtbare Karten Desktop / Mobil, Preis auf Karten, Pfeile, Punkte |
+| Grusskarten-Auswahl | sichtbare Karten Desktop / Mobil, letzte Karte anschneiden, Preis auf Karten, Pfeile, Punkte |
 | Grusstext | Beschriftung, Platzhalter, Höchstlänge (bis 300) |
 | In den Warenkorb | Beschriftung, Stil (Kontur / Gefüllt), Warenkorb-Symbol |
 
