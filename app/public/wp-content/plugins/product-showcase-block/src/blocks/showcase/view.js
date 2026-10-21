@@ -13,6 +13,10 @@
  *
  * Gefiltert wird nur im Browser, ohne neue Abfrage: Der Server liefert jeder
  * Zeile alle Produkte ihrer Kategorie, ein Filter verkleinert die Menge nur.
+ *
+ * Der Filter steht in der Adresse (?filter=…), damit man den Link teilen
+ * kann. Steht er beim Laden schon dort, hat der Server die Seite bereits
+ * gefiltert (psb_apply_server_filter()).
  */
 import { store, getContext, getElement } from '@wordpress/interactivity';
 
@@ -25,6 +29,25 @@ import { store, getContext, getElement } from '@wordpress/interactivity';
 const allProducts = new WeakMap();
 
 const PRODUCT = '.wc-block-product';
+
+/** Name des Parameters, wie PSB_FILTER_PARAM in includes/class-blocks.php. */
+const PARAM = 'filter';
+
+/**
+ * Filter in die Adresse schreiben bzw. entfernen -- ohne neuen Eintrag im
+ * Verlauf: "Zurück" führt weiter zur vorigen Seite, nicht durch jeden Klick.
+ *
+ * @param {?string} tag Slug des Schlagworts, null = kein Filter.
+ */
+function updateUrl( tag ) {
+	const url = new URL( window.location.href );
+	if ( tag ) {
+		url.searchParams.set( PARAM, tag );
+	} else {
+		url.searchParams.delete( PARAM );
+	}
+	window.history.replaceState( window.history.state, '', url );
+}
 
 /**
  * Filter auf alle Zeilen anwenden.
@@ -48,9 +71,17 @@ function applyFilter( root, activeClass ) {
 							).length;
 							return;
 						}
-						allProducts.set( list, [
+						const products = [
 							...list.querySelectorAll( `:scope > ${ PRODUCT }` ),
-						] );
+						];
+						// Mit ?filter= hat der Server unpassende Produkte schon
+						// versteckt. Ab jetzt regelt das Herausnehmen die
+						// Sichtbarkeit -- sonst blieben sie nach dem Aufheben
+						// unsichtbar.
+						products.forEach( ( product ) => {
+							product.hidden = false;
+						} );
+						allProducts.set( list, products );
 					}
 
 					const all = allProducts.get( list );
@@ -107,6 +138,7 @@ store( 'product-showcase', {
 
 			context.activeTag = off ? null : context.tag;
 			context.activeClass = off ? null : context.tagClass;
+			updateUrl( context.activeTag );
 		},
 	},
 	callbacks: {

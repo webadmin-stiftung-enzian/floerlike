@@ -151,3 +151,88 @@ function psb_hide_unused_filter_buttons($content)
 
     return $p->get_updated_html();
 }
+
+/** Name des Parameters in der Adresse (Spezifikation, Kapitel 7). */
+const PSB_FILTER_PARAM = 'filter';
+
+/**
+ * Das Filter-Schlagwort aus der Adresse (?filter=valentinstag).
+ *
+ * Gilt nur, wenn es gerade ein Filter-Schlagwort ist (Im Filter zeigen,
+ * Zeitraum, psb_get_filter_tags()) -- sonst wird der Parameter übergangen
+ * und die Seite ungefiltert ausgeliefert.
+ *
+ * @return WP_Term|null
+ */
+function psb_requested_filter_tag()
+{
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended -- nur lesen, ändert nichts
+    $slug = isset($_GET[PSB_FILTER_PARAM]) ? sanitize_title(wp_unslash($_GET[PSB_FILTER_PARAM])) : '';
+    if ('' === $slug) {
+        return null;
+    }
+
+    foreach (psb_get_filter_tags() as $tag) {
+        if ($tag->slug === $slug) {
+            return $tag;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Filter schon auf dem Server anwenden: unpassende Produkte und Zeilen ohne
+ * passendes Produkt bekommen hidden -- so blitzen sie beim Laden nicht auf.
+ * Im Browser nimmt applyFilter() (showcase/view.js) die Produkte danach aus
+ * den Listen, damit Swiper sie nicht mitzählt.
+ *
+ * @param string $content   Markup der Innenblöcke des Rahmens.
+ * @param string $tag_class Klasse der passenden Produkte (psb_tag_class()).
+ * @return string
+ */
+function psb_apply_server_filter($content, $tag_class)
+{
+    // 1. Welche Zeilen haben ein passendes Produkt? Zeilen in Zeilen kommen
+    //    nicht vor -- ein Produkt zählt zur zuletzt begonnenen Zeile.
+    $row     = -1;
+    $has_hit = [];
+    $p       = new WP_HTML_Tag_Processor($content);
+    while ($p->next_tag()) {
+        if ($p->has_class('wp-block-product-showcase-row')) {
+            $has_hit[++$row] = false;
+        } elseif ($row >= 0 && $p->has_class('wc-block-product') && $p->has_class($tag_class)) {
+            $has_hit[$row] = true;
+        }
+    }
+
+    // 2. Ausblenden.
+    $row = -1;
+    $p   = new WP_HTML_Tag_Processor($content);
+    while ($p->next_tag()) {
+        if ($p->has_class('wp-block-product-showcase-row')) {
+            if (! $has_hit[++$row]) {
+                $p->set_attribute('hidden', true);
+            }
+        } elseif ($p->has_class('wc-block-product') && ! $p->has_class($tag_class)) {
+            $p->set_attribute('hidden', true);
+        }
+    }
+
+    return $p->get_updated_html();
+}
+
+/**
+ * Abgeleiteter Wert state.isPressed auch auf dem Server, damit der gewählte
+ * Knopf schon beim Laden gedrückt aussieht (aria-pressed, is-selected).
+ * Gleiche Logik wie der Getter in showcase/view.js.
+ */
+add_action('init', function () {
+    wp_interactivity_state('product-showcase', [
+        'isPressed' => static function () {
+            $context = wp_interactivity_get_context();
+
+            return ! empty($context['tag']) && ($context['activeTag'] ?? null) === $context['tag'];
+        },
+    ]);
+});
