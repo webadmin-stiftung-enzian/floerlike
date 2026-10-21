@@ -1,7 +1,8 @@
 # Spezifikation v1: Produkt-Schaufenster mit Filter
 
-**Status:** Überarbeitung 2 – alle Entscheidungen getroffen (Kapitel 13),
-bereit zur Umsetzung.
+**Status:** umgesetzt (Stufen 1–9, Kapitel 12). Wie es gebaut ist, erklärt
+[ARCHITEKTUR.md](ARCHITEKTUR.md); die Einrichtung [SETUP.md](SETUP.md).
+Diese Datei bleibt als Planung mit den Entscheidungen (Kapitel 13).
 **Vorbild:** der Rahmen „Grusskarten-Kauf“ aus `greeting-card-block` – gleiche
 Bauweise (Rahmen + Innenblöcke, gemeinsamer Interactivity-Store).
 **Einsatzort:** die normale Shop-Seite (Template „Produktkatalog“ im Site
