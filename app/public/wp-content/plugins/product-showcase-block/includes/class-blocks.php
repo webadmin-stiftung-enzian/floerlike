@@ -290,3 +290,42 @@ function psb_set_empty_visibility($content, $show)
 
     return $p->get_updated_html();
 }
+
+/**
+ * Daten für den Editor (showcase/edit.js, Vorschau-Filter): alle
+ * Schlagwörter mit "Im Filter zeigen" -- auch ausserhalb ihres Zeitraums,
+ * damit sich z. B. Valentinstag schon im Herbst ansehen lässt.
+ */
+add_action('enqueue_block_editor_assets', function () {
+    $terms = get_terms([
+        'taxonomy'   => PSB_TAG_TAXONOMY,
+        'hide_empty' => false,
+        'meta_query' => [['key' => '_psb_in_filter', 'value' => '1']], // phpcs:ignore WordPress.DB.SlowDBQuery.slow_db_query_meta_query -- wenige Schlagwörter
+    ]);
+    if (is_wp_error($terms)) {
+        $terms = [];
+    }
+
+    usort($terms, static function ($a, $b) {
+        $order = psb_get_filter_tag_settings($a->term_id)['order'] <=> psb_get_filter_tag_settings($b->term_id)['order'];
+
+        return 0 !== $order ? $order : strcasecmp($a->name, $b->name);
+    });
+
+    $data = [
+        'filterTags' => array_map(static function ($term) {
+            return [
+                'id'     => $term->term_id,
+                'slug'   => $term->slug,
+                'name'   => $term->name,
+                'active' => psb_is_filter_tag_active($term->term_id),
+            ];
+        }, $terms),
+    ];
+
+    wp_add_inline_script(
+        generate_block_asset_handle('product-showcase/showcase', 'editorScript'),
+        'window.psbEditorData = ' . wp_json_encode($data) . ';',
+        'before'
+    );
+});

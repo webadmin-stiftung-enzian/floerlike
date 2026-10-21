@@ -142,6 +142,10 @@ return array(
 		),
 		'textdomain' => 'product-showcase-block',
 		'attributes' => array(
+			'previewTag' => array(
+				'type' => 'string',
+				'default' => ''
+			),
 			'style' => array(
 				'type' => 'object',
 				'default' => array(
