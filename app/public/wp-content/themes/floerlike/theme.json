@@ -350,6 +350,15 @@
 					"text": "var(--wp--preset--color--main-1-pistachio-dark)"
 				}
 			},
+			"core/navigation": {
+				"typography": {
+					"fontFamily": "neue-montreal-mono, sans-serif",
+					"fontWeight": "300",
+					"fontSize": "var(--wp--preset--font-size--xl)",
+					"lineHeight": "1.2",
+					"letterSpacing": "0.02em"
+				}
+			},
 			"core/button": {
 				"border": {
 					"radius": "3rem",
