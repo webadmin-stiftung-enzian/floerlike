@@ -475,52 +475,86 @@ header.wp-block-template-part {
     margin: 0 4px !important;
 }
 
-:is(.cb-carousel-block, .slider)>.swiper-button-prev::before,
-:is(.cb-carousel-block, .slider)>.swiper-button-next::before,
-.wc-block-next-previous-buttons__button::before,
 :is(.cb-carousel-block, .slider)>.swiper-pagination span::after {
     content: '';
     position: absolute;
     inset: -3px;
     border-radius: 50%;
-    border: 1px solid var(--wp--preset--color--main-2-deluge);
-    background: transparent;
+    background: var(--wp--preset--color--main-1-pistachio-ultralight);
     transition: background 0.35s ease-in-out;
+    mix-blend-mode: color;
+    /* opacity: 0.7; */
 }
 
 :is(.cb-carousel-block, .slider)>.swiper-pagination .swiper-pagination-bullet {
     width: 8px;
     height: 8px;
-    background: var(--wp--preset--color--main-2-deluge) !important;
+    /* background: var(--wp--preset--color--main-1-pistachio-ultralight) !important; */
+    background: transparent !important;
+    border-radius: 50%;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-lightdark);
 }
 
-:is(.cb-carousel-block, .slider)>.swiper-button-next:hover,
-:is(.cb-carousel-block, .slider)>.swiper-button-prev:hover,
-.wc-block-next-previous-buttons__button:hover {
-    color: var(--wp--preset--color--main-1-pistachio-ultralight) !important;
-    background: var(--wp--preset--color--main-2-deluge) !important;
+/* Pfeil-Knöpfe aller drei Quellen: Optik und Verhalten wie "button outline"
+   (Abschnitt BUTTONS) -- dieselben Tokens, dieselbe von links einfahrende
+   Fläche, derselbe Fokusring. Die Fläche liegt hier auf ::before, weil
+   ::after bei Swiper das Pfeil-Symbol trägt (Carousel, siehe unten). */
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next),
+.wc-block-next-previous-buttons__button {
+    --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
+    padding: 1rem;
+    aspect-ratio: 1 / 1;
+    border: 1px solid var(--btn-border);
+    border-radius: 50%;
+    background: transparent;
+    color: var(--btn-text);
+    cursor: pointer;
+    /* eigener Stapelkontext: die Fläche (z-index -1) liegt über dem
+       Hintergrund und unter dem Pfeil */
+    isolation: isolate;
+    overflow: hidden;
+    transition: color 0.25s ease-in-out, border-color 0.25s ease-in-out;
 }
 
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next)::before,
+.wc-block-next-previous-buttons__button::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--btn-fill);
+    transform: translateX(-100%);
+    opacity: 0;
+    transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next):is(:hover, :focus-visible)::before,
+.wc-block-next-previous-buttons__button:is(:hover, :focus-visible)::before {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next):is(:hover, :focus-visible),
+.wc-block-next-previous-buttons__button:is(:hover, :focus-visible) {
+    color: var(--btn-text-hover);
+    border-color: var(--btn-border-hover);
+}
+
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next):focus-visible,
+.wc-block-next-previous-buttons__button:focus-visible {
+    outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
+    outline-offset: 2px;
+}
+
+/* Die Symbole (SVG mit currentColor) nehmen die Schriftfarbe des Knopfs. */
 .swiper-navigation-icon,
 .wc-block-next-previous-buttons__icon {
-    color: var(--wp--preset--color--main-2-deluge-light);
-}
-
-:is(.cb-carousel-block, .slider)>.swiper-button-next:hover .swiper-navigation-icon,
-:is(.cb-carousel-block, .slider)>.swiper-button-prev:hover .swiper-navigation-icon,
-.wc-block-next-previous-buttons__button:hover .wc-block-next-previous-buttons__icon {
-    color: var(--wp--preset--color--main-1-pistachio-ultralight);
-}
-
-/* Aussehen der Pfeil-Knöpfe -- für alle drei Quellen gleich. */
-:is(.cb-carousel-block, .slider)>.swiper-button-prev,
-:is(.cb-carousel-block, .slider)>.swiper-button-next,
-.wc-block-next-previous-buttons__button {
-    padding: 1rem;
-    border-radius: 50%;
-    aspect-ratio: 1 / 1;
-    background: var(--wp--preset--color--main-2-deluge-lightdark);
-    transition: background 0.35s ease-in-out;
+    color: inherit;
 }
 
 /* Platz im Raster -- nur für die Swiper-Slider. */
@@ -535,7 +569,7 @@ header.wp-block-template-part {
 /* Galerie-Pfeile: WooCommerce gibt ihnen feste 40px und kein Innenabstand.
    Hier dieselbe Rechnung wie bei den Swiper-Pfeilen -- 11px Symbol plus 1rem
    Innenabstand rundum --, damit alle Knöpfe exakt gleich gross sind.
-   position: relative braucht der Ring (::before). */
+   position: relative braucht die einfahrende Fläche (::before). */
 .wc-block-next-previous-buttons__button {
     position: relative;
     display: inline-flex;
@@ -544,7 +578,7 @@ header.wp-block-template-part {
     box-sizing: content-box;
     width: 11px;
     height: 11px;
-    border: 0;
+    /* border: 0; */
 }
 
 /* Das Symbol von WooCommerce ist 8×12px und per Innenabstand leicht
@@ -555,10 +589,13 @@ header.wp-block-template-part {
     padding: 0;
 }
 
-/* Gesperrt (erstes/letztes Bild): wie bei Swiper der ganze Knopf blass,
-   nicht nur das Symbol (das WooCommerce sonst zusätzlich auf 30% setzt). */
+/* Gesperrt (erste/letzte Folie bzw. erstes/letztes Bild): wie ein
+   gesperrter Button (.button[disabled]) der ganze Knopf blass. WooCommerce
+   setzt bei der Galerie sonst nur das Symbol auf 30%. */
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next).swiper-button-disabled,
 .wc-block-next-previous-buttons__button[aria-disabled="true"] {
-    opacity: 0.35;
+    opacity: 0.5;
+    cursor: not-allowed;
     pointer-events: none;
 }
 
@@ -591,6 +628,7 @@ header.wp-block-template-part {
     height: auto;
     margin: 0;
     top: 0 !important;
+    opacity: 1;
 }
 
 /* Pfeile je 4px näher an die Punkte. So sahen die Slider aus, solange das
@@ -608,10 +646,31 @@ header.wp-block-template-part {
     translate: -4px 0;
 }
 
-/* Swiper hängt per ::after noch seine Icon-Font dran */
-:is(.cb-carousel-block, .slider)>.swiper-button-prev::after,
-:is(.cb-carousel-block, .slider)>.swiper-button-next::after {
+/* Pfeil-Symbol. Swiper ab Version 11 setzt ein SVG in den Knopf
+   (.swiper-navigation-icon) -- so in unseren Slidern. Ältere Versionen
+   zeichnen den Pfeil stattdessen per ::after mit einer Icon-Schrift; so der
+   Block "Carousel" mit seiner eigenen Swiper-Kopie. Die Icon-Schrift passt
+   nicht zur Optik, deshalb:
+     - mit SVG: ::after aus,
+     - ohne SVG: ::after zeichnet dieselbe Pfeilform als Maske in der
+       Schriftfarbe des Knopfs, 11px wie das SVG. */
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next)::after {
     content: none;
+}
+
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next):not(:has(svg))::after {
+    content: '';
+    width: 11px;
+    height: 11px;
+    background-color: currentColor;
+    font-size: 0;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 20'%3E%3Cpath d='M0.38296 20.0762C0.111788 19.805 0.111788 19.3654 0.38296 19.0942L9.19758 10.2796L0.38296 1.46497C0.111788 1.19379 0.111788 0.754138 0.38296 0.482966C0.654131 0.211794 1.09379 0.211794 1.36496 0.482966L10.4341 9.55214C10.8359 9.9539 10.8359 10.6053 10.4341 11.007L1.36496 20.0762C1.09379 20.3474 0.654131 20.3474 0.38296 20.0762Z'/%3E%3C/svg%3E") center / contain no-repeat;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 11 20'%3E%3Cpath d='M0.38296 20.0762C0.111788 19.805 0.111788 19.3654 0.38296 19.0942L9.19758 10.2796L0.38296 1.46497C0.111788 1.19379 0.111788 0.754138 0.38296 0.482966C0.654131 0.211794 1.09379 0.211794 1.36496 0.482966L10.4341 9.55214C10.8359 9.9539 10.8359 10.6053 10.4341 11.007L1.36496 20.0762C1.09379 20.3474 0.654131 20.3474 0.38296 20.0762Z'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* Gleiche Form für beide Richtungen, für "zurück" gespiegelt. */
+:is(.cb-carousel-block, .slider)>.swiper-button-prev:not(:has(svg))::after {
+    transform: scaleX(-1);
 }
 
 /* Eigene Slider: Bedienelemente UNTER den Folien statt darüber. Im Slider-Block
@@ -621,8 +680,8 @@ header.wp-block-template-part {
     grid-template-rows: auto auto;
 }
 
-/* Unten 0.25rem Luft: die Ringe (::before, inset -3px) ragen über die Knöpfe
-   hinaus und würden sonst vom overflow: hidden abgeschnitten. Die Punkte
+/* Unten 0.25rem Luft: der Fokusring (2px + 2px Abstand) ragt über die Knöpfe
+   hinaus und würde sonst vom overflow: hidden abgeschnitten. Die Punkte
    behalten wie im Slider-Block links und rechts 1rem Abstand. */
 .slider>:is(.swiper-pagination, .swiper-button-prev, .swiper-button-next) {
     grid-row: 2;
@@ -637,7 +696,7 @@ header.wp-block-template-part {
 /* Slider mit Produkten (Produktsammlung, Kartenauswahl): beide Pfeile
    nebeneinander links unter den Folien, Punkte -- falls eingeschaltet --
    rechts daneben. Die Plugins setzen die Klasse an ihren .slider.
-   Links 4px: der Ring (::before, inset -3px) würde sonst vom overflow:
+   Links 4px: der Fokusring (2px + 2px Abstand) würde sonst vom overflow:
    hidden abgeschnitten. translate: none -- der 4px-Versatz oben rückt
    Pfeile zu mittigen Punkten hin, hier stehen sie am Rand. */
 .slider.slider--controls-start {
@@ -981,6 +1040,7 @@ section.store .wp-block-image img {
     width: 100%;
 }
 
+section.shop-window,
 section.product.single {
     margin-block-start: 4rem;
     margin-block-end: 4rem;
