@@ -29,14 +29,17 @@
    Überschrift über Kartenauswahl und Grusstext
    ---------------------------------------------------------------------------
    Text einstellbar je Block ("Titel" in der Seitenleiste). Hier, weil beide
-   Blöcke sie nutzen und die Styles des Rahmens immer geladen sind. */
+   Blöcke sie nutzen und die Styles des Rahmens immer geladen sind.
+
+   Optik = Überschriften-Stil "Mittel" des Themes (theme.json,
+   settings.custom.heading). Die zweiten Werte sind der Rückfall ohne Theme. */
 .greeting-card-bundle__title {
-	font-family: var(--wp--preset--font-family--neue-frutiger-world, inherit);
-	color: var(--wp--preset--color--main-1-pistachio-dark);
-	font-size: var(--wp--preset--font-size--l);
-	font-weight: 300;
-	line-height: 1.4;
-	letter-spacing: 0.02em;
+	font-family: var(--wp--custom--heading--mittel--font-family, inherit);
+	color: var(--wp--preset--color--main-1-pistachio-dark, inherit);
+	font-size: var(--wp--custom--heading--mittel--font-size, 1.5rem);
+	font-weight: var(--wp--custom--heading--font-weight, 300);
+	line-height: var(--wp--custom--heading--mittel--line-height, 1.33);
+	letter-spacing: var(--wp--custom--heading--mittel--letter-spacing, 0);
 	margin-bottom: 0.5rem;
 }
 
