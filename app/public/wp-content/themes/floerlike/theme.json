@@ -235,6 +235,47 @@
 				}
 			]
 		},
+		"custom": {
+			"heading": {
+				"fontWeight": "300",
+				"gross": {
+					"fontFamily": "var(--wp--preset--font-family--neue-frutiger-world)",
+					"fontSize": "var(--wp--preset--font-size--xl)",
+					"lineHeight": "1.2",
+					"letterSpacing": "0.0125em"
+				},
+				"mittel": {
+					"fontFamily": "var(--wp--preset--font-family--neue-frutiger-world)",
+					"fontSize": "var(--wp--preset--font-size--l)",
+					"lineHeight": "1.33",
+					"letterSpacing": "0.0125em"
+				},
+				"klein": {
+					"fontFamily": "var(--wp--preset--font-family--neue-frutiger-world)",
+					"fontSize": "var(--wp--preset--font-size--m)",
+					"lineHeight": "1.4",
+					"letterSpacing": "0.01em"
+				},
+				"monoGross": {
+					"fontFamily": "var(--wp--preset--font-family--neue-montreal-mono)",
+					"fontSize": "var(--wp--preset--font-size--xl)",
+					"lineHeight": "1.2",
+					"letterSpacing": "0"
+				},
+				"monoMittel": {
+					"fontFamily": "var(--wp--preset--font-family--neue-montreal-mono)",
+					"fontSize": "var(--wp--preset--font-size--l)",
+					"lineHeight": "1.33",
+					"letterSpacing": "0"
+				},
+				"monoKlein": {
+					"fontFamily": "var(--wp--preset--font-family--neue-montreal-mono)",
+					"fontSize": "var(--wp--preset--font-size--m)",
+					"lineHeight": "1.4",
+					"letterSpacing": "0"
+				}
+			}
+		},
 		"useRootPaddingAwareAlignments": true
 	},
 	"styles": {
@@ -298,42 +339,60 @@
 					}
 				}
 			},
+			"heading": {
+				"color": {
+					"text": "var(--wp--preset--color--main-1-pistachio-dark)"
+				},
+				"typography": {
+					"fontWeight": "var(--wp--custom--heading--font-weight)"
+				}
+			},
 			"h1": {
 				"typography": {
-					"fontFamily": "neue-frutiger-world, sans-serif",
-					"fontWeight": "300"
+					"fontFamily": "var(--wp--custom--heading--gross--font-family)",
+					"fontSize": "var(--wp--custom--heading--gross--font-size)",
+					"lineHeight": "var(--wp--custom--heading--gross--line-height)",
+					"letterSpacing": "var(--wp--custom--heading--gross--letter-spacing)"
 				}
 			},
 			"h2": {
 				"typography": {
-					"fontFamily": "neue-frutiger-world, sans-serif",
-					"fontWeight": "300",
-					"lineHeight": "1.33",
-					"letterSpacing": "0.0125em"
+					"fontFamily": "var(--wp--custom--heading--gross--font-family)",
+					"fontSize": "var(--wp--custom--heading--gross--font-size)",
+					"lineHeight": "var(--wp--custom--heading--gross--line-height)",
+					"letterSpacing": "var(--wp--custom--heading--gross--letter-spacing)"
 				}
 			},
 			"h3": {
 				"typography": {
-					"fontFamily": "neue-frutiger-world, sans-serif",
-					"fontWeight": "300"
+					"fontFamily": "var(--wp--custom--heading--mittel--font-family)",
+					"fontSize": "var(--wp--custom--heading--mittel--font-size)",
+					"lineHeight": "var(--wp--custom--heading--mittel--line-height)",
+					"letterSpacing": "var(--wp--custom--heading--mittel--letter-spacing)"
 				}
 			},
 			"h4": {
 				"typography": {
-					"fontFamily": "neue-montreal-mono, sans-serif",
-					"fontWeight": "300"
+					"fontFamily": "var(--wp--custom--heading--mono-mittel--font-family)",
+					"fontSize": "var(--wp--custom--heading--mono-mittel--font-size)",
+					"lineHeight": "var(--wp--custom--heading--mono-mittel--line-height)",
+					"letterSpacing": "var(--wp--custom--heading--mono-mittel--letter-spacing)"
 				}
 			},
 			"h5": {
 				"typography": {
-					"fontFamily": "neue-montreal-mono, sans-serif",
-					"fontWeight": "300"
+					"fontFamily": "var(--wp--custom--heading--klein--font-family)",
+					"fontSize": "var(--wp--custom--heading--klein--font-size)",
+					"lineHeight": "var(--wp--custom--heading--klein--line-height)",
+					"letterSpacing": "var(--wp--custom--heading--klein--letter-spacing)"
 				}
 			},
 			"h6": {
 				"typography": {
-					"fontFamily": "neue-montreal-mono, sans-serif",
-					"fontWeight": "300"
+					"fontFamily": "var(--wp--custom--heading--klein--font-family)",
+					"fontSize": "var(--wp--custom--heading--klein--font-size)",
+					"lineHeight": "var(--wp--custom--heading--klein--line-height)",
+					"letterSpacing": "var(--wp--custom--heading--klein--letter-spacing)"
 				}
 			}
 		},

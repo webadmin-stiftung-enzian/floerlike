@@ -57,6 +57,27 @@ add_action('enqueue_block_editor_assets', function () {
     );
 });
 
+// Stile für Überschriften (rechts unter "Stile"): drei Grössen in Frutiger,
+// dieselben drei in Montreal Mono. Unabhängig von der Ebene (h1–h6) -- die
+// bleibt die Gliederung, der Stil die Optik. Ohne gewählten Stil gilt der
+// Standard je Ebene aus theme.json (styles.elements.h1–h6). Werte:
+// theme.json settings.custom.heading, Aussehen: main.css (ÜBERSCHRIFTEN).
+add_action('init', function () {
+    $styles = [
+        'gross'       => 'Gross',
+        'mittel'      => 'Mittel',
+        'klein'       => 'Klein',
+        'mono-gross'  => 'Mono Gross',
+        'mono-mittel' => 'Mono Mittel',
+        'mono-klein'  => 'Mono Klein',
+    ];
+    foreach (['core/heading', 'core/post-title', 'core/query-title'] as $block) {
+        foreach ($styles as $name => $label) {
+            register_block_style($block, ['name' => $name, 'label' => $label]);
+        }
+    }
+});
+
 // ---------------------------------------------------------------------------
 // Block "Produkt" (woocommerce/single-product) mit fester Variante.
 // Im Editor wählt man die Variante in der Seitenleiste und sieht sie dort

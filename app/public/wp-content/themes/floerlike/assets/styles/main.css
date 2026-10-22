@@ -1,6 +1,6 @@
 h2 {
     margin-block-end: 1.5rem !important;
-}   
+}
 
 header.wp-block-template-part {
     position: fixed;
@@ -15,13 +15,82 @@ header.wp-block-template-part {
 }
 
 .navbar {
-    padding: 0.75rem 1.5rem;
+    padding: 1rem 1.5rem 1rem 2rem;
     border-radius: 3rem;
     width: calc(var(--wp--style--global--content-size) - 3rem);
 }
 
+.navbar div:last-of-type {
+    gap: 0.5rem;
+}
+
 .wp-block-navigation__responsive-container.is-menu-open {
     overflow: unset !important;
+}
+
+.wp-block-site-logo {}
+
+section.info h2 {
+    padding: 2rem 2rem 0 2rem;
+}
+
+section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
+    gap: 2rem;
+    padding: 2rem 2rem;
+
+}
+
+.wp-block-accordion-panel,
+.wp-block-accordion-heading {
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-weight: 300;
+    font-size: var(--wp--preset--font-size--m);
+    line-height: 1.5;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    padding: 1.5rem 2.5rem;
+    background-color: var(--wp--preset--color--main-1-pistachio-ultralight);
+    border-radius: 3rem;
+}
+
+.wp-block-accordion-panel {
+    margin-top: 1rem !important;
+}
+
+/* Symbol des Akkordeons: Pfeil statt "+". font-size 0 blendet das "+" aus;
+   die Masse deshalb in rem -- WordPress gibt der Hülle 1.2em, das wäre bei
+   font-size 0 ebenfalls 0.
+
+   Der Pfeil ist eine Maske: Die Form (Strich, Breite) steht im SVG, die
+   Farbe kommt aus background-color. Ein Bild über content: url(…) liesse
+   sich nicht einfärben -- CSS wie stroke wirkt nicht in ein Bild hinein. */
+.wp-block-accordion-heading__toggle-icon {
+    font-size: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    transform: none;
+}
+
+.wp-block-accordion-heading__toggle-icon::before {
+    content: "";
+    flex-shrink: 0;
+    width: 1.5rem;
+    height: 1.5rem;
+    background-color: var(--wp--preset--color--main-1-pistachio-dark);
+    -webkit-mask: url('data:image/svg+xml,<svg viewBox="0 0 28 29" xmlns="http://www.w3.org/2000/svg"><path d="M8 28.3402L21 14.3402L8 0.34021" fill="none" stroke="black" stroke-width="2"/></svg>') center / contain no-repeat;
+    mask: url('data:image/svg+xml,<svg viewBox="0 0 28 29" xmlns="http://www.w3.org/2000/svg"><path d="M8 28.3402L21 14.3402L8 0.34021" fill="none" stroke="black" stroke-width="2"/></svg>') center / contain no-repeat;
+    transform: rotate(0deg);
+    transition: transform 0.25s ease-in-out;
+}
+
+/* Geöffnet: WordPress dreht die Hülle um 45° (aus "+" wird "×"). Beim Pfeil
+   ergäbe das eine schiefe Ecke -- stattdessen zeigt der Pfeil nach unten.
+   Gleicher Selektor wie im Kern, main.css lädt später und gewinnt. */
+.wp-block-accordion-item.is-open > .wp-block-accordion-heading .wp-block-accordion-heading__toggle-icon {
+    transform: none;
+}
+
+.wp-block-accordion-item.is-open > .wp-block-accordion-heading .wp-block-accordion-heading__toggle-icon::before {
+    transform: rotate(90deg);
 }
 
 /* ---------------------------------------------------------------------------
@@ -52,16 +121,70 @@ header.wp-block-template-part {
     transition: color 0.25s ease-in-out;
 }
 
+/* Mini-Cart: Der Badge mit der Anzahl ragt über den runden Knopf hinaus
+   und darf nicht abgeschnitten werden -- also kein overflow: hidden. Damit
+   die Fläche trotzdem nur im Knopf zu sehen ist, fährt sie hier nicht von
+   links herein (sie stünde sonst sichtbar neben dem Knopf), sondern wird an
+   Ort und Stelle von links freigelegt (clip-path). Gleiche Dauer, gleiches
+   Aussehen. */
+.wc-block-mini-cart__quantity-badge {
+    overflow: visible;
+}
+
+/* Mit .wc-block-mini-cart davor: stärker als die allgemeine Regel weiter
+   unten, die die Fläche verschiebt. */
+.wc-block-mini-cart .wc-block-mini-cart__button .wc-block-mini-cart__quantity-badge::after {
+    transform: none;
+    clip-path: inset(0 100% 0 0 round 3rem);
+    transition: clip-path 0.35s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+.wc-block-mini-cart .wc-block-mini-cart__button:is(:hover, :focus-visible) .wc-block-mini-cart__quantity-badge::after {
+    transform: none;
+    clip-path: inset(0 0 0 0 round 3rem);
+}
+
+/* Der Badge liegt über der Fläche. */
+.wc-block-mini-cart__badge {
+    z-index: 1;
+    background-color: var(--wp--preset--color--main-1-pistachio-dark) !important;
+    color: var(--wp--preset--color--main-1-pistachio-ultralight) !important;
+}
+
 .wp-block-navigation-item__content {
     display: flex;
     align-items: center;
-    padding: 0.6rem 1.25rem 0.4rem 1.25rem;
+    padding: 1rem 1.5rem;
 }
 
+/* Konto, Mini-Cart und Menü-Knopf: gleich grosse Hover-Fläche, egal auf
+   welcher Ebene sie liegt. Beim Mini-Cart sitzt sie eine Ebene tiefer (auf
+   der Hülle um Symbol und Anzahl, im <button>), und WooCommerce macht das
+   Symbol dort kleiner -- deshalb feste Masse statt Innenabstand:
+   40px Fläche, 24px Symbol, mittig. */
 .wc-block-customer-account__link,
 .wp-block-navigation__responsive-container-open,
 .wc-block-mini-cart__quantity-badge {
-    padding: 0.25rem;
+    box-sizing: border-box;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+}
+
+.wc-block-customer-account__account-icon,
+.wp-block-navigation__responsive-container-open svg,
+.wc-block-mini-cart__icon {
+    width: 24px;
+    height: 24px;
+}
+
+/* Der Knopf um die Mini-Cart-Fläche bekommt von WooCommerce Innenabstand --
+   sonst wäre er grösser als die Fläche darin. */
+.wc-block-mini-cart .wc-block-mini-cart__button {
+    padding: 0;
 }
 
 .wp-block-navigation__responsive-container-open,
@@ -103,6 +226,20 @@ header.wp-block-template-part {
 .wc-block-mini-cart__button:is(:hover, :focus-visible) .wc-block-mini-cart__quantity-badge::after {
     transform: translateX(0);
     opacity: 1;
+}
+
+.wc-block-mini-cart__quantity-badge {
+    font-size: 0.875rem;
+    /* Beispielwert, kann angepasst werden */
+    line-height: 1;
+    /* Beispielwert, kann angepasst werden */
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    font-weight: 300;
+    /* Beispielwert, kann angepasst werden */
+    /* Höhe und Innenabstand: siehe "gleich grosse Hover-Fläche" oben. */
 }
 
 /* Schrift hell, solange die Fläche steht. Doppelte Klasse, weil der Kern
@@ -227,7 +364,7 @@ header.wp-block-template-part {
    --------------------------------------------------------------------------- */
 
 .button.solid,
-.button.outline, 
+.button.outline,
 .wp-block-button .wp-block-button__link {
     /* gemeinsame Form und Typografie beider Varianten */
     display: inline-flex;
@@ -235,7 +372,7 @@ header.wp-block-template-part {
     justify-content: center;
     gap: 0.5rem;
     /* Werte gespiegelt aus theme.json → styles.blocks.core/button */
-    padding: 0.75rem 1.5rem;
+    padding: 1rem 1.5rem;
     border: 1px solid var(--btn-border);
     border-radius: 3rem;
     background-color: var(--btn-bg);
@@ -380,6 +517,7 @@ header.wp-block-template-part {
    Browser ohne text-box (ältere Versionen, ggf. Firefox) überspringen den
    Block und behalten die bisherige Darstellung. */
 @supports (text-box: trim-both ex alphabetic) {
+
     .button.solid,
     .button.outline,
     .wp-block-button .wp-block-button__link {
@@ -409,6 +547,105 @@ header.wp-block-template-part {
     padding: 0.75rem;
     border-radius: 0.75rem;
     text-box: normal;
+}
+
+/* button.wc-block-mini-cart__button {
+    padding: 0;
+} */
+
+/* ===========================================================================
+   ÜBERSCHRIFTEN
+   ===========================================================================
+   Wie bei den Buttons: Optik und Ebene getrennt. Die Ebene (h1–h6) ist die
+   Gliederung für Screenreader und Suchmaschinen, die Optik wählt man im
+   Editor rechts unter "Stile" (registriert in functions.php):
+
+     Stil          Schrift          Grösse  Zeilenhöhe  Laufweite
+     Gross         Frutiger         xl      1.2         0.0125em
+     Mittel        Frutiger         l       1.33        0.0125em
+     Klein         Frutiger         m       1.4         0.01em
+     Mono Gross    Montreal Mono    xl      1.2         0
+     Mono Mittel   Montreal Mono    l       1.33        0
+     Mono Klein    Montreal Mono    m       1.4         0
+
+   Alle mit Gewicht 300, Farbe Pistazie dunkel (theme.json,
+   styles.elements.heading). Die Werte stehen nur in theme.json
+   (settings.custom.heading) und kommen hier als Variablen an -- dieselben,
+   die theme.json für den Standard je Ebene benutzt:
+
+     h1, h2  Gross     h3  Mittel     h4  Mono Mittel     h5, h6  Klein
+
+   Für eigenes Markup (Plugins, Custom HTML) die freie Klasse:
+     <h2 class="heading mittel">…</h2>      <p class="heading mono-klein">…</p>
+
+   Im Editor gewählte Schriftgrösse oder Farbe am Block gewinnen weiterhin.
+   Farbe auf dunklen Flächen: am Block oder an der Gruppe (Farbe →
+   Überschrift) wählen. Abstände (margin) gehören nicht hierher, sondern zu
+   den Bereichen. */
+
+:is(h1, h2, h3, h4, h5, h6).is-style-gross,
+.heading.gross {
+    font-family: var(--wp--custom--heading--gross--font-family);
+    font-size: var(--wp--custom--heading--gross--font-size);
+    line-height: var(--wp--custom--heading--gross--line-height);
+    letter-spacing: var(--wp--custom--heading--gross--letter-spacing);
+}
+
+:is(h1, h2, h3, h4, h5, h6).is-style-mittel,
+.heading.mittel {
+    font-family: var(--wp--custom--heading--mittel--font-family);
+    font-size: var(--wp--custom--heading--mittel--font-size);
+    line-height: var(--wp--custom--heading--mittel--line-height);
+    letter-spacing: var(--wp--custom--heading--mittel--letter-spacing);
+}
+
+:is(h1, h2, h3, h4, h5, h6).is-style-klein,
+.heading.klein {
+    font-family: var(--wp--custom--heading--klein--font-family);
+    font-size: var(--wp--custom--heading--klein--font-size);
+    line-height: var(--wp--custom--heading--klein--line-height);
+    letter-spacing: var(--wp--custom--heading--klein--letter-spacing);
+}
+
+:is(h1, h2, h3, h4, h5, h6).is-style-mono-gross,
+.heading.mono-gross {
+    font-family: var(--wp--custom--heading--mono-gross--font-family);
+    font-size: var(--wp--custom--heading--mono-gross--font-size);
+    line-height: var(--wp--custom--heading--mono-gross--line-height);
+    letter-spacing: var(--wp--custom--heading--mono-gross--letter-spacing);
+}
+
+:is(h1, h2, h3, h4, h5, h6).is-style-mono-mittel,
+.heading.mono-mittel {
+    font-family: var(--wp--custom--heading--mono-mittel--font-family);
+    font-size: var(--wp--custom--heading--mono-mittel--font-size);
+    line-height: var(--wp--custom--heading--mono-mittel--line-height);
+    letter-spacing: var(--wp--custom--heading--mono-mittel--letter-spacing);
+}
+
+:is(h1, h2, h3, h4, h5, h6).is-style-mono-klein,
+.heading.mono-klein {
+    font-family: var(--wp--custom--heading--mono-klein--font-family);
+    font-size: var(--wp--custom--heading--mono-klein--font-size);
+    line-height: var(--wp--custom--heading--mono-klein--line-height);
+    letter-spacing: var(--wp--custom--heading--mono-klein--letter-spacing);
+}
+
+/* Produkttitel in Produktkarten (Produktsammlung, Schaufenster): ohne
+   gewählten Stil "Klein" -- unabhängig davon, ob die Vorlage h2 oder h3
+   verwendet. Ein im Editor gewählter Stil geht vor. */
+.wc-block-product .wp-block-post-title:not([class*="is-style-"]) {
+    font-family: var(--wp--custom--heading--klein--font-family);
+    font-size: var(--wp--custom--heading--klein--font-size);
+    line-height: var(--wp--custom--heading--klein--line-height);
+    letter-spacing: var(--wp--custom--heading--klein--letter-spacing);
+}
+
+/* Die freie Klasse auch für Nicht-Überschriften (z. B. <p>): Gewicht und
+   Farbe wie bei den Überschriften. */
+.heading:is(.gross, .mittel, .klein, .mono-gross, .mono-mittel, .mono-klein) {
+    font-weight: var(--wp--custom--heading--font-weight);
+    color: var(--wp--preset--color--main-1-pistachio-dark);
 }
 
 /* ===========================================================================
@@ -746,7 +983,7 @@ section.highlight .swiper-slide .wp-block-columns {
 }
 
 .wc-block-product-gallery-large-image {
-    margin-bottom:0.6rem !important;
+    margin-bottom: 0.6rem !important;
 }
 
 .woocommerce.wc-block-breadcrumbs {
@@ -756,6 +993,10 @@ section.highlight .swiper-slide .wp-block-columns {
 section.cta {
     height: unset;
     overflow: clip;
+}
+
+section.highlight {
+    aspect-ratio: 1.5;
 }
 
 
@@ -827,11 +1068,6 @@ section.cta .cta-message div.wp-block-buttons {
     width: 100%;
 }
 
-section.cta .cta-message h2 {
-    font-family: var(--wp--preset--font-family--neue-montreal-mono);
-    font-size: var(--wp--preset--font-size--xl);
-    font-weight: 200;
-}
 
 .highlight.wp-block-columns {
     gap: 0;
@@ -854,9 +1090,11 @@ section.cta .cta-message h2 {
     letter-spacing: 0.001;
 }
 
-.highlight .highlight-text-wrapper h2 {
-    font-weight: 300;
-    font-size: var(--wp--preset--font-size--xl);
+
+.highlight-img-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 section.topic .wp-block-columns .wp-block-column,
@@ -876,16 +1114,10 @@ section.topic .wp-block-columns .wp-block-column div.wp-block-group>* {
 }
 
 section.topic .wp-block-columns .wp-block-column div.wp-block-group>h2 {
-    font-weight: 300;
-    font-size: var(--wp--preset--font-size--xl);
-    line-height: 1.33;
     margin-bottom: 1.5rem;
 }
 
 section.topic .wp-block-columns .wp-block-column div.wp-block-group>h4 {
-    font-weight: 300;
-    font-size: var(--wp--preset--font-size--l);
-    line-height: 1.33;
     margin-bottom: 1.5rem;
 }
 
@@ -957,10 +1189,6 @@ section.services .services-wrapper {
 }
 
 section.services h2 {
-    font-weight: 300;
-    font-size: var(--wp--preset--font-size--xl);
-    line-height: 1.33;
-    letter-spacing: 0.001;
     padding-bottom: 1.5rem;
     padding-top: 1.5rem;
 }
@@ -1032,7 +1260,7 @@ section.feature div.wp-block-group .wp-block-woocommerce-product-price .woocomme
     color: var(--wp--preset--color--main-1-pistachio-dark);
     border-radius: 100%;
     border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
-    padding: 0.75rem 1rem;
+    padding: 0.8rem 1.25rem;
 
 }
 
@@ -1047,10 +1275,6 @@ section.product.single {
 }
 
 section.product.single h1 {
-    color: var(--wp--preset--color--main-1-pistachio-dark);
-    font-size: var(--wp--preset--font-size--xl);
-    font-weight: 300;
-    line-height: 1.2;
     margin-block-end: 1.5rem;
 }
 
@@ -1086,13 +1310,13 @@ section.product.single .wc-block-breadcrumbs {
 
 
 .wc-block-components-notice-banner {
-	font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
     font-weight: 300;
     letter-spacing: 0.0125em;
     line-height: 1.33;
 }
 
-.wc-block-components-product-summary p{
+.wc-block-components-product-summary p {
     font-weight: 300;
 }
 
@@ -1184,13 +1408,13 @@ footer .footer-wrapper a:visited {
    =========================================================================== */
 
 .wc-block-components-product-image.floerlike-image-circle,
-.floerlike-image-circle > .wc-block-components-product-image {
+.floerlike-image-circle>.wc-block-components-product-image {
     position: relative;
     isolation: isolate;
 }
 
 .wc-block-components-product-image.floerlike-image-circle::before,
-.floerlike-image-circle > .wc-block-components-product-image::before {
+.floerlike-image-circle>.wc-block-components-product-image::before {
     content: "";
     position: absolute;
     top: 50%;
