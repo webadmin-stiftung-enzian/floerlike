@@ -117,6 +117,67 @@ add_filter('render_block_data', function ($parsed_block) {
     return $parsed_block;
 });
 
+// ---------------------------------------------------------------------------
+// Block "Produktbild" (woocommerce/product-image): Kreis hinter dem Bild.
+// Einstellungen im Editor: assets/js/editor-product-image-circle.js.
+// Gezeichnet wird der Kreis per CSS (main.css, "Kreis hinter dem
+// Produktbild") aus der Klasse floerlike-image-circle und zwei Variablen.
+// ---------------------------------------------------------------------------
+
+// Standardwerte -- gleich in editor-product-image-circle.js.
+const FLOERLIKE_IMAGE_CIRCLE_COLOR = 'main-2-deluge';
+const FLOERLIKE_IMAGE_CIRCLE_SIZE  = 75;
+
+add_action('enqueue_block_editor_assets', function () {
+    $file = 'assets/js/editor-product-image-circle.js';
+    wp_enqueue_script(
+        'floerlike-editor-product-image-circle',
+        get_theme_file_uri($file),
+        ['wp-hooks', 'wp-compose', 'wp-element', 'wp-block-editor', 'wp-components'],
+        filemtime(get_theme_file_path($file)),
+        // Im <head>: der Attribut-Filter muss stehen, bevor WooCommerce den
+        // Block registriert.
+        false
+    );
+});
+
+add_filter('register_block_type_args', function ($args, $name) {
+    if ('woocommerce/product-image' === $name) {
+        $args['attributes']['floerlikeCircle']      = ['type' => 'boolean', 'default' => false];
+        $args['attributes']['floerlikeCircleColor'] = ['type' => 'string', 'default' => FLOERLIKE_IMAGE_CIRCLE_COLOR];
+        $args['attributes']['floerlikeCircleSize']  = ['type' => 'number', 'default' => FLOERLIKE_IMAGE_CIRCLE_SIZE];
+    }
+    return $args;
+}, 10, 2);
+
+// Klasse und Variablen an das Produktbild hängen, wenn der Kreis an ist.
+add_filter('render_block_woocommerce/product-image', function ($content, $block) {
+    $attrs = $block['attrs'] ?? [];
+    if (empty($attrs['floerlikeCircle'])) {
+        return $content;
+    }
+
+    // Slug einer Palettenfarbe, z. B. "main-2-deluge"; Grösse 30–100 %.
+    $color = sanitize_key($attrs['floerlikeCircleColor'] ?? FLOERLIKE_IMAGE_CIRCLE_COLOR) ?: FLOERLIKE_IMAGE_CIRCLE_COLOR;
+    $size  = max(30, min(100, (int) ($attrs['floerlikeCircleSize'] ?? FLOERLIKE_IMAGE_CIRCLE_SIZE)));
+
+    $p = new WP_HTML_Tag_Processor($content);
+    if (! $p->next_tag(['class_name' => 'wc-block-components-product-image'])) {
+        return $content;
+    }
+    $p->add_class('floerlike-image-circle');
+    $style = trim((string) $p->get_attribute('style'));
+    $p->set_attribute('style', ltrim(sprintf(
+        '%s%s--floerlike-circle-color: var(--wp--preset--color--%s); --floerlike-circle-size: %d%%;',
+        $style,
+        $style && ! str_ends_with($style, ';') ? ';' : '',
+        $color,
+        $size
+    )));
+
+    return $p->get_updated_html();
+}, 10, 2);
+
 // Block bindings source for product permalink
 add_action('init', function () {
     register_block_bindings_source('ja/product-permalink', array(

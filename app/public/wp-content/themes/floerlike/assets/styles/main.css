@@ -1166,3 +1166,40 @@ footer .footer-wrapper a:active {
 footer .footer-wrapper a:visited {
     color: var(--wp--preset--color--primary);
 }
+
+/* ===========================================================================
+   Kreis hinter dem Produktbild
+   ---------------------------------------------------------------------------
+   Block "Produktbild" mit "Kreis im Hintergrund" (Seitenleiste, eingebaut
+   in assets/js/editor-product-image-circle.js). Die Klasse und die zwei
+   Variablen setzt auf der Seite functions.php am Produktbild selbst, im
+   Editor sitzen sie an der Block-Hülle darum -- daher beide Selektoren.
+
+     --floerlike-circle-color  Palettenfarbe, z. B. var(--wp--preset--color--main-2-deluge)
+     --floerlike-circle-size   Durchmesser in Prozent der Bildbreite
+
+   Der Kreis ist ein ::before mittig hinter Bild und Link; isolation gibt
+   dem Produktbild einen eigenen Stapelkontext, damit z-index -1 hinter dem
+   Bild, aber vor dem Hintergrund der Seite landet.
+   =========================================================================== */
+
+.wc-block-components-product-image.floerlike-image-circle,
+.floerlike-image-circle > .wc-block-components-product-image {
+    position: relative;
+    isolation: isolate;
+}
+
+.wc-block-components-product-image.floerlike-image-circle::before,
+.floerlike-image-circle > .wc-block-components-product-image::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: -1;
+    width: var(--floerlike-circle-size, 75%);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background-color: var(--floerlike-circle-color, var(--wp--preset--color--main-2-deluge));
+    translate: -50% -50%;
+    pointer-events: none;
+}
