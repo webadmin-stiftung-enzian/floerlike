@@ -13,6 +13,9 @@
 		"anlass"
 	],
 	"textdomain": "product-showcase-block",
+	"usesContext": [
+		"product-showcase/previewTag"
+	],
 	"ancestor": [
 		"product-showcase/showcase"
 	],

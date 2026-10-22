@@ -292,7 +292,8 @@ function psb_set_empty_visibility($content, $show)
 }
 
 /**
- * Daten für den Editor (showcase/edit.js, Vorschau-Filter): alle
+ * Daten für den Editor (showcase/edit.js: Vorschau-Filter; filter/edit.js:
+ * Knöpfe, nur die mit active): alle
  * Schlagwörter mit "Im Filter zeigen" -- auch ausserhalb ihres Zeitraums,
  * damit sich z. B. Valentinstag schon im Herbst ansehen lässt.
  */

@@ -63,6 +63,9 @@ return array(
 			'anlass'
 		),
 		'textdomain' => 'product-showcase-block',
+		'usesContext' => array(
+			'product-showcase/previewTag'
+		),
 		'ancestor' => array(
 			'product-showcase/showcase'
 		),
@@ -154,6 +157,9 @@ return array(
 					)
 				)
 			)
+		),
+		'providesContext' => array(
+			'product-showcase/previewTag' => 'previewTag'
 		),
 		'supports' => array(
 			'html' => false,

@@ -271,9 +271,12 @@ genauso.
 
 - **Zeilen** zeigen die normale Vorschau der Produktsammlung (Raster, kein
   Slider – Swiper läuft im Editor nicht).
-- **Filter** zeigt die echte Ausgabe von `render.php` (`ServerSideRender`),
-  dort aber alle Filter-Schlagwörter – welche ohne Produkt sind, weiss erst
-  der Rahmen auf der Seite.
+- **Filter** zeigt dieselben Knöpfe wie die Seite (aus `window.psbEditorData`,
+  nur die gerade im Zeitraum), aber auch solche ohne Produkt – das weiss erst
+  der Rahmen auf der Seite. Die Knöpfe bedienen den Vorschau-Filter: Ein Klick
+  setzt `previewTag` am Rahmen, ein zweiter hebt ihn auf; der gewählte Knopf
+  erscheint gedrückt. Den Wert bekommt der Filter vom Rahmen als Block-Kontext
+  (`product-showcase/previewTag`).
 - **Kein Treffer** ist immer sichtbar, damit man ihn bearbeiten kann.
 
 ### Der Vorschau-Filter

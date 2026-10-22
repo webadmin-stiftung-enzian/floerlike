@@ -277,7 +277,7 @@ export default function Edit( { attributes, setAttributes, clientId } ) {
 	} );
 
 	let help = __(
-		'Nur im Editor: graut aus, was bei diesem Filter auf der Seite verschwinden würde.',
+		'Nur im Editor: graut aus, was bei diesem Filter auf der Seite verschwinden würde. Auch per Klick auf einen Knopf im Filter-Block.',
 		'product-showcase-block'
 	);
 	if ( previewTag && hits ) {

@@ -79,6 +79,8 @@ Das Panel **Slider** gibt es an jeder Produktsammlung mit dem Stil
 
 ## 4. Im Editor prüfen: Vorschau-Filter
 
+Im Editor einfach auf einen **Filter-Knopf** klicken – ein zweiter Klick hebt
+den Vorschau-Filter wieder auf, der gewählte Knopf erscheint gedrückt. Oder:
 Schaufenster auswählen → Seitenleiste → **Vorschau → Vorschau-Filter**. Zur
 Wahl stehen alle Schlagwörter mit „Im Filter zeigen“, auch solche ausserhalb
 ihres Zeitraums (markiert). Ausgegraut wird, was bei diesem Filter auf der

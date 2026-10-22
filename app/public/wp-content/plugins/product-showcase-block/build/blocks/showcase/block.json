@@ -28,6 +28,9 @@
       }
     }
   },
+  "providesContext": {
+    "product-showcase/previewTag": "previewTag"
+  },
   "supports": {
     "html": false,
     "multiple": false,
