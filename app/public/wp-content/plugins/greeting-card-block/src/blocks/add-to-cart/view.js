@@ -210,6 +210,20 @@ const { state } = store( 'greeting-card-bundle', {
 						?.receiveCart( cart );
 				}
 
+				// Mini-Cart (seit WooCommerce 10 ein Interactivity-Store,
+				// "woocommerce", von aussen gesperrt) neu laden lassen. Er
+				// lauscht auf dieses Ereignis und holt dann den Warenkorb vom
+				// Server. Der React-Store oben meldet sich dort zwar auch,
+				// aber nicht verlässlich -- z. B. nicht nach einem Neuladen
+				// der Seite mit schon gefülltem Warenkorb. Ereignisname aus
+				// WooCommerce 11.1 (stores/woocommerce/cart.js); siehe
+				// Update-Checkliste in ARCHITEKTUR.md.
+				window.dispatchEvent(
+					new CustomEvent( 'wc-blocks_store_sync_required', {
+						detail: { type: 'from_@wordpress/data' },
+					} )
+				);
+
 				// Fallback für Themes, die den Mini-Cart erst lazy laden.
 				document.body.dispatchEvent(
 					new Event( 'wc-blocks_added_to_cart' )
