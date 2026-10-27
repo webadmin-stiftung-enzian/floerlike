@@ -29,14 +29,31 @@ if (! defined('ABSPATH')) {
 }
 
 /**
- * 0. Kartenliste eines Produkts: die unter "Bundle-sells" verknüpften
- * Grusskarten.
+ * 0. Unter "Bundle-sells" eingetragene Produkt-IDs, ungeprüft.
  *
  * Quelle ist `WC_PB_BS_Product::get_bundle_sell_ids()`, das die Liste bereits
  * auf unterstützte Produkttypen (simple/subscription) eingrenzt. Ist Product
  * Bundles nicht aktiv, wird die Meta direkt gelesen: die Liste ist dann zwar
  * im Admin nicht mehr pflegbar, bestehende Produkte funktionieren im Frontend
  * aber unverändert weiter.
+ *
+ * @param WC_Product $product
+ * @return array
+ */
+function gcb_get_bundle_sell_ids(WC_Product $product)
+{
+    $ids = class_exists('WC_PB_BS_Product')
+        ? WC_PB_BS_Product::get_bundle_sell_ids($product)
+        : $product->get_meta('_wc_pb_bundle_sell_ids', true);
+
+    return is_array($ids) ? $ids : [];
+}
+
+/**
+ * 0a. Kartenliste eines Produkts: die unter "Bundle-sells" verknüpften
+ * Grusskarten -- nur, wenn am Produkt der Schalter "Grusskarte" an ist
+ * (gcb_offers_cards(), class-product-options.php). Die einzige Stelle, an
+ * der beides zusammenkommt: Alle anderen fragen hier.
  *
  * @param WC_Product|int|null $product
  * @return int[] Produkt-IDs kaufbarer Grusskarten.
@@ -47,17 +64,13 @@ function gcb_get_card_ids($product)
         $product = $product ? wc_get_product($product) : null;
     }
 
-    if (! $product instanceof WC_Product) {
+    if (! $product instanceof WC_Product || ! gcb_offers_cards($product)) {
         return [];
     }
 
-    if (class_exists('WC_PB_BS_Product')) {
-        $ids = WC_PB_BS_Product::get_bundle_sell_ids($product);
-    } else {
-        $ids = $product->get_meta('_wc_pb_bundle_sell_ids', true);
-    }
+    $ids = gcb_get_bundle_sell_ids($product);
 
-    if (empty($ids) || ! is_array($ids)) {
+    if (empty($ids)) {
         return [];
     }
 

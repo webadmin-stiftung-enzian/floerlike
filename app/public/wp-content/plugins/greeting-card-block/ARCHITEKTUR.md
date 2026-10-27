@@ -173,6 +173,7 @@ greeting-card-block/
 │   ├── class-state.php                  ← bereitet die Produktdaten für alle Blöcke auf
 │   ├── class-preview.php                ← Editor-Vorschau: welches Produkt gezeigt wird
 │   ├── class-variation-fields.php       ← Feld „Durchmesser“ an jeder Variation
+│   ├── class-product-options.php        ← Schalter „Grusskarte“ am Produkt (wirkt in gcb_get_card_ids())
 │   ├── class-integration.php            ← Warenkorb-Logik (Hooks), Kartenliste, Weiche zur WooCommerce-Form
 │   ├── class-store-api.php              ← Zusatzdaten in der Store-API-Antwort
 │   └── class-checkout-blocks-integration.php ← lädt JS/CSS in Warenkorb- und Kassen-Block
@@ -661,8 +662,25 @@ das tut der erste Filter in `class-integration.php`: Er liest die Felder,
 
 Nach `add-item` antwortet die Store API mit dem **kompletten** neuen
 Warenkorb. Der Warenkorb-Knopf gibt ihn an den Datenspeicher der
-Warenkorb-Blöcke weiter (`receiveCart`), damit das Warenkorb-Symbol sofort
-stimmt.
+Warenkorb-Blöcke weiter (`receiveCart`), damit Warenkorb- und Kasse-Block
+sofort stimmen.
+
+Der **Mini-Cart** im Header hängt daran nicht verlässlich: Er läuft seit
+WooCommerce 10 über einen eigenen Interactivity-Store (`woocommerce`), den
+WooCommerce für fremde Plugins sperrt. Ohne weiteres Zutun zeigte er z. B.
+nach einem Neuladen mit gefülltem Warenkorb weiter die alte Anzahl. Der
+Knopf sendet deshalb zusätzlich das Ereignis, auf das dieser Store lauscht:
+
+```js
+window.dispatchEvent( new CustomEvent( 'wc-blocks_store_sync_required', {
+	detail: { type: 'from_@wordpress/data' },
+} ) );
+```
+
+Der Mini-Cart holt dann den Warenkorb neu vom Server. Der Ereignisname ist
+ein Interna von WooCommerce (11.1, `stores/woocommerce/cart.js`) – **nach
+einem WooCommerce-Update prüfen**: Produkt in den Warenkorb legen, Seite neu
+laden, ein zweites hinzufügen, die Zahl am Mini-Cart muss mitzählen.
 
 ### Zusatzdaten in der Antwort (ExtendSchema)
 

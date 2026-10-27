@@ -34,6 +34,15 @@ Eltern-Kind-Beziehung. Beides übernimmt dieses Plugin selbst.
      Bundles werden nicht verwendet.
    - Ohne Karten funktioniert der Kauf trotzdem, nur ohne Kartenoption.
 
+4. **Grusskarte anbieten:** Oben im Kasten **Produktdaten**, neben „Virtuell“
+   und „Herunterladbar“, den Haken bei **Grusskarte** setzen. Nur dann
+   erscheint auf der Produktseite „Grusskarte hinzufügen“ – auch wenn Karten
+   verknüpft sind. So lässt sich die Option je Produkt abschalten, ohne die
+   verknüpften Karten zu verlieren.
+   - Neue Produkte starten ohne Haken.
+   - Produkte von vor diesem Schalter verhalten sich wie bisher (Option da,
+     sobald Karten verknüpft sind), bis du sie einmal speicherst.
+
 ## 2. Blöcke ins Template setzen
 
 1. Site Editor → **Templates → Einzelnes Produkt** öffnen.
