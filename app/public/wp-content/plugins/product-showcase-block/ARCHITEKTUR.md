@@ -60,6 +60,32 @@ Dazu kommt eine **Erweiterung** des WooCommerce-Blocks „Produktsammlung“:
 der Stil „Swiper Slider“ mit dem Panel „Slider“. Sie gilt für jede
 Produktsammlung, nicht nur im Schaufenster (Kapitel 6).
 
+Und ein **Produktblock** für jede Produktvorlage, ebenfalls nicht an das
+Schaufenster gebunden:
+
+| Block | Name | Aufgabe |
+|---|---|---|
+| Varianten-Spanne | `product-showcase/variation-range` | Werte der Varianten als Spanne, z. B. „Grösse: klein – gross“ |
+
+Er bekommt das Produkt aus dem Block-Kontext (`postId`) wie die
+WooCommerce-Blöcke für Titel und Preis. Einstellungen: Beschriftung,
+Attribut (`pa_…`) und welcher Wert aus jeder Variante:
+
+- **Attributwert:** erster bis letzter in der Reihenfolge der Varianten am
+  Produkt (Tab „Variationen“) – Werte wie „klein“ lassen sich nicht der
+  Grösse nach sortieren.
+- **Regulärer Preis, Preis (aktuell):** kleinster bis grösster Wert.
+- **Weitere Werte** melden andere Plugins über den Filter
+  `psb_variation_range_values` an (Schlüssel → `label`, `value`
+  (Variante → Zahl oder null), `format` (min, max → Text)). So kommt der
+  „Durchmesser“ aus dem Grusskarten-Plugin dazu.
+
+Es zählen alle aktiven Varianten, auch ausverkaufte. Hat das Produkt das
+Attribut nicht (einfache Produkte, Grusskarten), gibt der Block nichts aus.
+Logik: `includes/class-variation-range.php`. Im Editor zeigt er per
+`ServerSideRender` die echte Ausgabe; die Produkt-ID geht als `post_id`
+mit, weil `ServerSideRender` keinen Block-Kontext kennt.
+
 ### Die Dateien
 
 ```
@@ -317,7 +343,7 @@ Hauptdokument für die Listenansicht – wie beim Grusskarten-Kauf.
   über npm mit (gleiche Version).
 
 **Wo das Plugin auf Interna von WooCommerce baut** – nach einem
-WooCommerce-Update die Checkliste in SETUP.md, Kapitel 7, durchgehen:
+WooCommerce-Update die Checkliste in SETUP.md, Kapitel 8, durchgehen:
 
 | Annahme | Wo | Wenn sie bricht |
 |---|---|---|

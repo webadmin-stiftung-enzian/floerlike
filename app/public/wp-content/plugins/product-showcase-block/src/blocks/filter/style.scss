@@ -6,6 +6,10 @@
 
 /* Mit Blockklasse davor: die Absatz-Regel des Themes (theme.json, gleich
    spezifisch, später geladen) setzte sonst ihre Schrift durch. */
+.wp-block-product-showcase-filter {
+	margin-block-start: 1rem !important;
+}
+
 .wp-block-product-showcase-filter .psb-filter__label {
 	margin: 0 0 0.75rem;
 	font-family: var(--wp--preset--font-family--neue-montreal-mono, inherit);

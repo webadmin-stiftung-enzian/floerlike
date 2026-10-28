@@ -182,5 +182,57 @@ return array(
 		'style' => 'file:./style-index.css',
 		'render' => 'file:./render.php',
 		'viewScriptModule' => 'file:./view.js'
+	),
+	'variation-range' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'product-showcase/variation-range',
+		'version' => '0.1.0',
+		'title' => 'Varianten-Spanne',
+		'category' => 'product-showcase',
+		'icon' => 'leftright',
+		'description' => 'Werte der Varianten eines Produkts als Spanne, z. B. „Grösse: klein – gross“ oder „Grösse: ca. 35 – 55 cm Ø“. Für die Produktvorlage einer Produktsammlung oder die Produktseite.',
+		'keywords' => array(
+			'variante',
+			'attribut',
+			'grösse',
+			'preis',
+			'spanne'
+		),
+		'textdomain' => 'product-showcase-block',
+		'usesContext' => array(
+			'postId',
+			'postType'
+		),
+		'attributes' => array(
+			'label' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'attribute' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'value' => array(
+				'type' => 'string',
+				'default' => 'term'
+			)
+		),
+		'supports' => array(
+			'html' => false,
+			'color' => array(
+				'text' => true,
+				'background' => false
+			),
+			'typography' => array(
+				'fontSize' => true,
+				'lineHeight' => true
+			),
+			'spacing' => array(
+				'margin' => true
+			)
+		),
+		'editorScript' => 'file:./index.js',
+		'render' => 'file:./render.php'
 	)
 );

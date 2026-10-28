@@ -109,7 +109,24 @@ Zeilen werden trotzdem richtig ausgegraut.
   `product_tag` würde WordPress die Shop-Seite in die Seite des Schlagworts
   verwandeln.
 
-## 6. Kategorie- und Schlagwort-Seiten
+## 6. Varianten in der Produktkarte: „Varianten-Spanne“
+
+Der Block **„Varianten-Spanne“** (Kategorie „Schaufenster“) zeigt in einer
+Produktkarte, welche Varianten es gibt, z. B. „Grösse: klein – gross“ oder
+„Grösse: ca. 35 – 55 cm Ø“. In der Produktsammlung die Produktvorlage
+öffnen und den Block z. B. unter den Titel setzen. Er funktioniert in jeder
+Produktsammlung und auch auf der Produktseite.
+
+| Einstellung | Bedeutung |
+|---|---|
+| Beschriftung | z. B. „Grösse“; leer = ohne |
+| Attribut | nach dem die Varianten gebildet sind, z. B. „Strauss Variation Grösse“ |
+| Wert aus der Variante | **Attributwert** (erster bis letzter in der Reihenfolge der Variationen am Produkt), **Regulärer Preis**, **Preis (aktuell)**, **Durchmesser** (aus dem Grusskarten-Plugin) – Zahlen von klein bis gross |
+
+Produkte ohne dieses Attribut zeigen nichts. Ausverkaufte Varianten zählen
+mit.
+
+## 7. Kategorie- und Schlagwort-Seiten
 
 Ohne eigenes Template nimmt WordPress für Kategorie- und Schlagwort-Seiten
 ebenfalls „Produktkatalog“ – samt Schaufenster. Dafür im Site Editor die
@@ -117,7 +134,7 @@ Templates **„Products by Category“** und **„Products by Tag“** anlegen, 
 einer normalen Produktsammlung, die die Kategorie bzw. das Schlagwort der
 Seite übernimmt.
 
-## 7. Nach Updates prüfen
+## 8. Nach Updates prüfen
 
 Nach einem Update von **WooCommerce** (oder WordPress) einmal die Shop-Seite
 ansehen:

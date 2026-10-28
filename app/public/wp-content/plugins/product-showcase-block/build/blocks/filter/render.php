@@ -30,7 +30,7 @@ $label_id = wp_unique_id('psb-filter-label-');
 
 ?>
 <div <?php echo get_block_wrapper_attributes(['role' => 'group', 'aria-labelledby' => $label_id]); ?>>
-    <p class="psb-filter__label" id="<?php echo esc_attr($label_id); ?>"><?php echo esc_html($attributes['label'] ?? ''); ?></p>
+    <p class="psb-filter__label heading mono-klein" id="<?php echo esc_attr($label_id); ?>"><?php echo esc_html($attributes['label'] ?? ''); ?></p>
     <div class="psb-filter__buttons">
         <?php foreach ($tags as $tag) : ?>
             <?php
