@@ -23,9 +23,11 @@ Eltern-Kind-Beziehung. Beides übernimmt dieses Plugin selbst.
      Aufschlag.
    - Die **Reihenfolge der Variationen** (per Ziehen im Tab „Variationen“)
      ist die Reihenfolge der Knöpfe: oben = links.
-   - Das Feld **„Durchmesser“** (direkt unter „Abmessungen“) erscheint im
-     Knopf unter dem Wert, z. B. „ca. 35 cm Ø“ (abschaltbar). Freitext, so
-     wie er dort steht.
+   - Das Feld **„Durchmesser (cm)“** (direkt unter „Abmessungen“): nur die
+     Zahl eintragen, z. B. `35`. Die Einheit kommt aus WooCommerce
+     (Einstellungen → Produkte → Abmessungen). Im Knopf erscheint daraus
+     „ca. 35 cm Ø“ (abschaltbar), im Block „Varianten-Spanne“ des
+     Schaufenster-Plugins z. B. „ca. 35 – 55 cm Ø“.
 
 3. **Karten verknüpfen:** Produktdaten → **Linked Products** → **Bundle-sells**.
    Dort die gewünschten Karten eintragen (nur einfache Produkte möglich).

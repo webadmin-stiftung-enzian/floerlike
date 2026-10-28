@@ -840,13 +840,24 @@ die Stelle seiner ersten Variante. Ohne diese Sortierung käme die Reihenfolge
 zufällig aus der Datenbank.
 
 Der **Durchmesser** einer Variante erscheint im Knopf unter dem Wert
-(„klein / ca. 35 cm Ø“). Er ist ein eigenes Textfeld, das
+(„klein / ca. 35 cm Ø“). Er ist ein eigenes Feld, das
 `class-variation-fields.php` in jede Variation einsetzt (Hook
 `woocommerce_variation_options_dimensions`, direkt unter
 „Abmessungen“) und als Meta-Feld `_gcb_diameter` speichert (Hook
 `woocommerce_admin_process_variation_object`). Die Beschreibung bleibt so
 frei für echten Text. Bei mehreren Attributen erscheint der Durchmesser nur,
 wenn er eindeutig ist.
+
+Gespeichert wird **nur die Zahl** („35“, „37.5“); die Einheit ist die
+Abmessungs-Einheit von WooCommerce. Den Text baut `gcb_format_diameter()`
+(„ca. 35 cm Ø“, bei zwei Werten „ca. 35 – 55 cm Ø“). Mit einer Zahl lässt
+sich rechnen: Das Schaufenster-Plugin zeigt im Block „Varianten-Spanne“ den
+kleinsten und grössten Durchmesser. Dafür meldet dieses Plugin den
+Durchmesser über den Filter `psb_variation_range_values` an – die beiden
+Plugins kennen sich nicht, ist das Schaufenster aus, greift der Filter
+einfach nicht. Ältere Freitext-Werte („ca. 35 cm Ø“) hat eine einmalige
+Umstellung beim ersten Aufruf des Admins in Zahlen verwandelt (Option
+`gcb_diameter_numeric`).
 
 ### Warum Radio-Buttons, die wie Knöpfe aussehen?
 

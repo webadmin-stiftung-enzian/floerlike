@@ -232,12 +232,12 @@ function gcb_build_variation_selector(WC_Product $product)
             $variation_attrs[substr($key, strlen('attribute_'))] = $value;
         }
 
-        // Durchmesser der Variante (eigenes Feld unter "Beschreibung", siehe
-        // class-variation-fields.php). Nur fürs Rendern, nicht im State fürs
-        // JavaScript.
+        // Durchmesser der Variante, fertig für die Anzeige ("ca. 35 cm Ø",
+        // eigenes Feld unter "Abmessungen", siehe class-variation-fields.php).
+        // Nur fürs Rendern, nicht im State fürs JavaScript.
         $variation_diameters[] = [
             'attributes' => $variation_attrs,
-            'diameter'   => gcb_get_variation_diameter($variation_data['variation_id']),
+            'diameter'   => gcb_format_diameter(gcb_get_variation_diameter($variation_data['variation_id'])),
         ];
 
         $variations[] = [
