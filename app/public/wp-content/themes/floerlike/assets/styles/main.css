@@ -1268,6 +1268,18 @@ section.store .wp-block-image img {
     width: 100%;
 }
 
+section.store-info {
+    background-color: var(--wp--preset--color--main-1-pistachio-light);
+    padding: 1rem;
+    margin: 3rem 7rem;
+    border-radius: 1.5rem;
+    text-box: normal;
+}
+
+section.store-info h4 {
+    font-size: var(--wp--preset--font-size--normal);
+}
+
 section.shop-window,
 section.product.single {
     margin-block-start: 4rem;
