@@ -28,6 +28,9 @@ Eltern-Kind-Beziehung. Beides übernimmt dieses Plugin selbst.
      (Einstellungen → Produkte → Abmessungen). Im Knopf erscheint daraus
      „ca. 35 cm Ø“ (abschaltbar), im Block „Varianten-Spanne“ des
      Schaufenster-Plugins z. B. „ca. 35 – 55 cm Ø“.
+   - Ein **einfaches Produkt** (ohne Variationen) hat dasselbe Feld im Tab
+     **Versand**, ebenfalls unter „Abmessungen“. Es erscheint in der
+     „Varianten-Spanne“, wenn dort „Auch bei einfachen Produkten“ an ist.
 
 3. **Karten verknüpfen:** Produktdaten → **Linked Products** → **Bundle-sells**.
    Dort die gewünschten Karten eintragen (nur einfache Produkte möglich).

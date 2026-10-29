@@ -1,9 +1,10 @@
 <?php
 
 /**
- * Eigenes Feld "Durchmesser" an jeder Variation.
+ * Eigenes Feld "Durchmesser" an jeder Variation -- und an einfachen Produkten.
  *
  * Steht im Admin unter Produktdaten → Variationen direkt unter
+ * "Abmessungen", bei einfachen Produkten im Tab "Versand" ebenfalls unter
  * "Abmessungen". Eingetragen wird nur die Zahl (z. B. 35), die Einheit
  * kommt aus den WooCommerce-Einstellungen (Produkte → Allgemein →
  * Abmessungen, hier cm). Mit einer Zahl lässt sich rechnen -- der Block
@@ -12,9 +13,9 @@
  * Angezeigt wird der Wert als "ca. 35 cm Ø" (gcb_format_diameter()), im
  * Block "Variantenauswahl" im Knopf unter dem Wert.
  *
- * Gespeichert als Meta-Feld _gcb_diameter an der Variation, als Zahl mit
- * Punkt ("35", "37.5"). Der Unterstrich hält es aus der allgemeinen Box
- * "Individuelle Felder" heraus. Früher stand dort freier Text ("ca. 35 cm
+ * Gespeichert als Meta-Feld _gcb_diameter an der Variation bzw. am einfachen
+ * Produkt, als Zahl mit Punkt ("35", "37.5"). Der Unterstrich hält es aus
+ * der allgemeinen Box "Individuelle Felder" heraus. Früher stand dort freier Text ("ca. 35 cm
  * Ø") -- solche Werte liest gcb_get_variation_diameter() weiterhin und
  * stellt sie einmalig auf die Zahl um (unten).
  *
@@ -135,6 +136,50 @@ add_action('woocommerce_admin_process_variation_object', function ($variation, $
         $variation->update_meta_data(GCB_DIAMETER_META, $value);
     }
 }, 10, 2);
+
+/**
+ * Dasselbe Feld bei einfachen Produkten: Tab "Versand", direkt unter
+ * "Abmessungen". show_if_simple: WooCommerce blendet es bei anderen
+ * Produkttypen aus -- bei variablen Produkten gehört der Durchmesser in die
+ * Variationen.
+ */
+add_action('woocommerce_product_options_dimensions', function () {
+    global $product_object;
+
+    $value = $product_object ? gcb_get_variation_diameter($product_object->get_id()) : '';
+
+    woocommerce_wp_text_input([
+        'id'            => 'gcb_product_diameter',
+        'value'         => '' === $value ? '' : wc_format_localized_decimal($value),
+        /* translators: %s: Einheit, z. B. "cm" */
+        'label'         => sprintf(__('Durchmesser (%s)', 'greeting-card-block'), gcb_diameter_unit()),
+        'placeholder'   => __('z. B. 35', 'greeting-card-block'),
+        'desc_tip'      => true,
+        'description'   => __('Nur die Zahl. Erscheint im Block „Varianten-Spanne“ / „Ab-Preis“ als „ca. 35 cm Ø“.', 'greeting-card-block'),
+        'wrapper_class' => 'show_if_simple',
+        'class'         => 'short wc_input_decimal',
+    ]);
+});
+
+/**
+ * Speichern beim einfachen Produkt. Nur dort: Bei anderen Typen ist das Feld
+ * ausgeblendet, sein Wert bliebe sonst unbemerkt am Produkt hängen.
+ */
+add_action('woocommerce_admin_process_product_object', function ($product) {
+    if (! $product->is_type('simple')) {
+        return;
+    }
+
+    // phpcs:ignore WordPress.Security.NonceVerification.Missing -- prüft WooCommerce (Produkt speichern)
+    $raw   = isset($_POST['gcb_product_diameter']) ? wp_unslash($_POST['gcb_product_diameter']) : '';
+    $value = gcb_parse_diameter(wc_format_decimal(sanitize_text_field((string) $raw)));
+
+    if ('' === $value) {
+        $product->delete_meta_data(GCB_DIAMETER_META);
+    } else {
+        $product->update_meta_data(GCB_DIAMETER_META, $value);
+    }
+});
 
 /**
  * Einmalige Umstellung alter Freitext-Werte ("ca. 35 cm Ø" → "35"). Läuft

@@ -137,7 +137,7 @@ Varianten-Spanne:
 | Darstellung | Spanne · kleinster Wert · grösster Wert (bei Attributwerten: erster/letzter) |
 | Text davor / danach | z. B. „ab“, „von“ |
 | Zusatztext nur bei mehreren Werten | an: ein Produkt mit nur einem Preis zeigt „CHF 35.00“ statt „ab CHF 35.00“ |
-| Auch bei einfachen Produkten | an (Ab-Preis): einfache Produkte zeigen ihren Preis. Aus (Standard der Spanne): einfache Produkte zeigen nichts – neben dem Preis-Block von WooCommerce steht dann kein Preis doppelt |
+| Auch bei einfachen Produkten | an (Ab-Preis): einfache Produkte zeigen ihren Preis bzw. Durchmesser (Feld im Tab „Versand“). Aus (Standard der Spanne): einfache Produkte zeigen nichts – neben dem Preis-Block von WooCommerce steht dann kein Preis doppelt |
 
 Bei Preisen und Durchmesser ist das Attribut optional („Alle Varianten“).
 Preise erscheinen wie bei WooCommerce (Steuer-Anzeige des Shops, nie

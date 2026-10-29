@@ -172,7 +172,7 @@ greeting-card-block/
 │   ├── class-purchase-status.php        ← Vollständigkeit des Rahmens, wann die WooCommerce-Form verschwindet
 │   ├── class-state.php                  ← bereitet die Produktdaten für alle Blöcke auf
 │   ├── class-preview.php                ← Editor-Vorschau: welches Produkt gezeigt wird
-│   ├── class-variation-fields.php       ← Feld „Durchmesser“ an jeder Variation
+│   ├── class-variation-fields.php       ← Feld „Durchmesser“ (Variationen, einfache Produkte)
 │   ├── class-product-options.php        ← Schalter „Grusskarte“ am Produkt (wirkt in gcb_get_card_ids())
 │   ├── class-integration.php            ← Warenkorb-Logik (Hooks), Kartenliste, Weiche zur WooCommerce-Form
 │   ├── class-store-api.php              ← Zusatzdaten in der Store-API-Antwort
@@ -855,7 +855,14 @@ sich rechnen: Das Schaufenster-Plugin zeigt im Block „Varianten-Spanne“ den
 kleinsten und grössten Durchmesser. Dafür meldet dieses Plugin den
 Durchmesser über den Filter `psb_variation_range_values` an – die beiden
 Plugins kennen sich nicht, ist das Schaufenster aus, greift der Filter
-einfach nicht. Ältere Freitext-Werte („ca. 35 cm Ø“) hat eine einmalige
+einfach nicht. Einfache Produkte haben dasselbe Feld im Tab „Versand“ (Hook
+`woocommerce_product_options_dimensions`, gespeichert über
+`woocommerce_admin_process_product_object`, nur beim Typ „einfach“). Es
+landet im selben Meta-Feld; `gcb_get_variation_diameter()` liest es über die
+Produkt-ID, deshalb zeigt die Spanne mit „Auch bei einfachen Produkten“ auch
+diesen Wert. Das Feld heisst im Formular `gcb_product_diameter`, nicht
+`gcb_diameter` – das sind bei variablen Produkten die Felder der Variationen
+im selben Formular. Ältere Freitext-Werte („ca. 35 cm Ø“) hat eine einmalige
 Umstellung beim ersten Aufruf des Admins in Zahlen verwandelt (Option
 `gcb_diameter_numeric`).
 
