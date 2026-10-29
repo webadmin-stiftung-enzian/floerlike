@@ -85,11 +85,11 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
 /* Geöffnet: WordPress dreht die Hülle um 45° (aus "+" wird "×"). Beim Pfeil
    ergäbe das eine schiefe Ecke -- stattdessen zeigt der Pfeil nach unten.
    Gleicher Selektor wie im Kern, main.css lädt später und gewinnt. */
-.wp-block-accordion-item.is-open > .wp-block-accordion-heading .wp-block-accordion-heading__toggle-icon {
+.wp-block-accordion-item.is-open>.wp-block-accordion-heading .wp-block-accordion-heading__toggle-icon {
     transform: none;
 }
 
-.wp-block-accordion-item.is-open > .wp-block-accordion-heading .wp-block-accordion-heading__toggle-icon::before {
+.wp-block-accordion-item.is-open>.wp-block-accordion-heading .wp-block-accordion-heading__toggle-icon::before {
     transform: rotate(90deg);
 }
 
@@ -547,6 +547,26 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
     padding: 0.75rem;
     border-radius: 0.75rem;
     text-box: normal;
+}
+
+div.single-buttons-wrapper {
+    gap: 0.5rem;
+}
+
+div.single-buttons-wrapper .wp-block-button:has(>.wp-block-button__link) {
+    display: flex;
+}
+
+div.single-buttons-wrapper .wp-block-button>.wp-block-button__link:before {
+    background-color: currentColor;
+    content: "";
+    display: inline-block;
+    height: 1.5rem;
+    margin-right: .5rem;
+    mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="%231f1f1f"><path d="m294.92-450 227.85 227.85L480-180 180-480l300-300 42.77 42.15L294.92-510H780v60H294.92Z"/></svg>');
+    -webkit-mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960" fill="%231f1f1f"><path d="m294.92-450 227.85 227.85L480-180 180-480l300-300 42.77 42.15L294.92-510H780v60H294.92Z"/></svg>');
+    vertical-align: middle;
+    width: 1.5rem;
 }
 
 /* button.wc-block-mini-cart__button {
@@ -1299,18 +1319,27 @@ section.product.single .wp-block-post-excerpt__excerpt {
     margin-block-end: 1.5rem;
 }
 
+.wc-block-components-product-price .woocommerce-Price-amount {
+    border-radius: 100%;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
+    padding: 0.8rem 1.25rem;
+}
+
 .woocommerce-Price-amount,
 .woocommerce-Price-currencySymbol,
-section.product.single .wc-block-components-product-price {
+section.product.single .wp-block-woocommerce-product-price {
     font-family: var(--wp--preset--font-family--neue-montreal-mono);
     font-weight: 300;
     letter-spacing: 0.0125em;
     line-height: 1.33;
     color: var(--wp--preset--color--main-1-pistachio-dark);
     font-size: var(--wp--preset--font-size--m);
-    margin-block-end: 1.5rem;
+    margin-block-end: 2.5rem;
+    margin-block-start: 2.5rem;
 }
 
+.wp-block-product-showcase-variation-range span,
+.wp-block-product-showcase-term-list span,
 section.product.single .wc-block-breadcrumbs {
     font-family: var(--wp--preset--font-family--neue-montreal-mono);
     font-weight: 300;
@@ -1334,6 +1363,11 @@ section.product.single .wc-block-breadcrumbs {
 
 section.product.single .single-wrapper {
     gap: 1.5rem;
+}
+
+.wp-block-product-showcase-variation-range span,
+.wp-block-product-showcase-term-list span {
+    font-size: 1rem;
 }
 
 footer {
