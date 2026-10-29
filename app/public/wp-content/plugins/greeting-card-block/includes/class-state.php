@@ -332,10 +332,20 @@ function gcb_build_variation_selector(WC_Product $product)
 }
 
 /**
- * Vorauswahl wie in der nativen Form: die im Admin gesetzten Standardwerte
- * ("Standard-Formularwerte" der Variationen), sofern sie noch angeboten
- * werden. Hat ein Attribut nur einen einzigen Wert, gibt es nichts zu wählen --
- * dann wird er ebenfalls vorausgewählt.
+ * Vorauswahl der Variantenauswahl.
+ *
+ * 1. Die im Admin gesetzten Standardwerte ("Standard-Formularwerte" im Tab
+ *    "Variationen"), sofern sie noch angeboten werden -- wer sie einstellt,
+ *    will genau das.
+ * 2. Sonst die erste Variante (Reihenfolge im Tab "Variationen" = Knöpfe von
+ *    links nach rechts), die vorrätig und kaufbar ist. Ihre Werte ergeben die
+ *    Vorauswahl für alle Attribute -- so entsteht auch bei mehreren
+ *    Attributen (Grösse und Farbe) nie eine Kombination, die es nicht gibt.
+ *    Ist z. B. "klein" ausverkauft, startet die Auswahl bei "mittel".
+ * 3. Steht die Variante bei einem Attribut auf "beliebig" (leer), der erste
+ *    angebotene Wert dieses Attributs.
+ *
+ * Ist gar keine Variante kaufbar, bleibt alles ungewählt.
  *
  * @param WC_Product $product
  * @param array|null $variation_selector Ergebnis von gcb_build_variation_selector().
@@ -349,19 +359,33 @@ function gcb_build_selected_attributes(WC_Product $product, $variation_selector)
 
     /** @var WC_Product_Variable $product */
     $defaults = $product->get_default_attributes();
-    $selected = [];
 
+    // Erste kaufbare Variante, in der Reihenfolge am Produkt.
+    $first = null;
+    foreach ($variation_selector['variations'] as $variation) {
+        if ($variation['inStock'] && $variation['purchasable']) {
+            $first = $variation;
+            break;
+        }
+    }
+
+    $selected = [];
     foreach ($variation_selector['attributes'] as $attribute) {
+        $name    = $attribute['name'];
         $offered = array_column($attribute['options'], 'value');
-        $default = $defaults[$attribute['name']] ?? '';
+        $default = $defaults[$name] ?? '';
+        $value   = '';
 
         if ('' !== $default && in_array($default, $offered, true)) {
-            $selected[$attribute['name']] = $default;
-        } elseif (1 === count($offered)) {
-            $selected[$attribute['name']] = $offered[0];
-        } else {
-            $selected[$attribute['name']] = '';
+            $value = $default;
+        } elseif ($first) {
+            $value = $first['attributes'][$name] ?? '';
+            if ('' === $value || ! in_array($value, $offered, true)) {
+                $value = $offered[0] ?? '';
+            }
         }
+
+        $selected[$name] = $value;
     }
 
     return $selected;
