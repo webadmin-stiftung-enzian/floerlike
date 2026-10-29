@@ -81,8 +81,21 @@ Attribut (`pa_…`) und welcher Wert aus jeder Variante:
   (Variante → Zahl oder null), `format` (min, max → Text)). So kommt der
   „Durchmesser“ aus dem Grusskarten-Plugin dazu.
 
-Es zählen alle aktiven Varianten, auch ausverkaufte. Hat das Produkt das
-Attribut nicht (einfache Produkte, Grusskarten), gibt der Block nichts aus.
+**Darstellung:** Spanne, kleinster oder grösster Wert, dazu Text davor und
+danach – standardmässig nur, wenn es verschiedene Werte gibt. Die
+Block-Variante **„Ab-Preis“** (`index.js`, `variations`) ist derselbe Block,
+voreingestellt auf kleinsten aktuellen Preis mit „ab“; `isActive` erkennt
+ihn im Editor wieder.
+
+Es zählen alle kaufbaren Varianten (`is_purchasable()`: veröffentlicht, mit
+Preis), auch ausverkaufte – dieselben, die die Variantenauswahl anbietet.
+Attributwerte brauchen ein Attribut; ohne Attribut gibt der Block dann
+nichts aus. Bei Zahlen ist das Attribut optional (alle Varianten).
+Einfache Produkte geben standardmässig nichts aus, damit neben dem
+Preis-Block von WooCommerce kein Preis doppelt steht. Mit „Auch bei
+einfachen Produkten“ (`includeSimple`, beim „Ab-Preis“ an) zählt das Produkt
+selbst – dann ersetzt der Block den Preis-Block ganz. Preise über `wc_get_price_to_display()`, wie im Preis-Block von
+WooCommerce (Steuer-Anzeige, nie negativ).
 Logik: `includes/class-variation-range.php`. Im Editor zeigt er per
 `ServerSideRender` die echte Ausgabe; die Produkt-ID geht als `post_id`
 mit, weil `ServerSideRender` keinen Block-Kontext kennt.

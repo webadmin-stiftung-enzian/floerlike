@@ -123,8 +123,32 @@ Produktsammlung und auch auf der Produktseite.
 | Attribut | nach dem die Varianten gebildet sind, z. B. „Strauss Variation Grösse“ |
 | Wert aus der Variante | **Attributwert** (erster bis letzter in der Reihenfolge der Variationen am Produkt), **Regulärer Preis**, **Preis (aktuell)**, **Durchmesser** (aus dem Grusskarten-Plugin) – Zahlen von klein bis gross |
 
-Produkte ohne dieses Attribut zeigen nichts. Ausverkaufte Varianten zählen
-mit.
+Produkte ohne dieses Attribut zeigen nichts. Es zählen alle kaufbaren
+Varianten, auch ausverkaufte.
+
+**Einzelwert statt Spanne, z. B. „ab CHF 35.00“:** Im Einfügen-Menü gibt es
+dafür die fertige Variante **„Ab-Preis“**. Sie ersetzt den Preis-Block von
+WooCommerce: „ab CHF 35.00“ bei Produkten mit Varianten, der normale Preis
+bei einfachen Produkten. Dieselben Einstellungen gibt es an jeder
+Varianten-Spanne:
+
+| Einstellung | Bedeutung |
+|---|---|
+| Darstellung | Spanne · kleinster Wert · grösster Wert (bei Attributwerten: erster/letzter) |
+| Text davor / danach | z. B. „ab“, „von“ |
+| Zusatztext nur bei mehreren Werten | an: ein Produkt mit nur einem Preis zeigt „CHF 35.00“ statt „ab CHF 35.00“ |
+| Auch bei einfachen Produkten | an (Ab-Preis): einfache Produkte zeigen ihren Preis. Aus (Standard der Spanne): einfache Produkte zeigen nichts – neben dem Preis-Block von WooCommerce steht dann kein Preis doppelt |
+
+Bei Preisen und Durchmesser ist das Attribut optional („Alle Varianten“).
+Preise erscheinen wie bei WooCommerce (Steuer-Anzeige des Shops, nie
+negativ).
+
+Zwei typische Kombinationen in der Produktkarte:
+
+- **Preis-Block + Spanne:** Preis von WooCommerce, darunter die Spanne nur
+  bei Varianten.
+- **Nur „Ab-Preis“** (z. B. im Schaufenster): ohne Preis-Block von
+  WooCommerce.
 
 ### Begriffsliste, z. B. die Blumen eines Strausses
 

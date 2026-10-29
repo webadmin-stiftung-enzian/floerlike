@@ -252,7 +252,7 @@ return array(
 		'title' => 'Varianten-Spanne',
 		'category' => 'product-showcase',
 		'icon' => 'leftright',
-		'description' => 'Werte der Varianten eines Produkts als Spanne, z. B. „Grösse: klein – gross“ oder „Grösse: ca. 35 – 55 cm Ø“. Für die Produktvorlage einer Produktsammlung oder die Produktseite.',
+		'description' => 'Werte der Varianten eines Produkts als Spanne, z. B. „Grösse: klein – gross“, oder als Einzelwert mit Zusatztext, z. B. „ab CHF 35.00“. Für die Produktvorlage einer Produktsammlung oder die Produktseite.',
 		'keywords' => array(
 			'variante',
 			'attribut',
@@ -277,6 +277,26 @@ return array(
 			'value' => array(
 				'type' => 'string',
 				'default' => 'term'
+			),
+			'display' => array(
+				'type' => 'string',
+				'default' => 'range'
+			),
+			'prefix' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'suffix' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'affixOnlyIfMultiple' => array(
+				'type' => 'boolean',
+				'default' => true
+			),
+			'includeSimple' => array(
+				'type' => 'boolean',
+				'default' => false
 			)
 		),
 		'supports' => array(
