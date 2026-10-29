@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schemas.wp.org/trunk/block.json",
+  "apiVersion": 3,
+  "name": "product-showcase/term-list",
+  "version": "0.1.0",
+  "title": "Begriffsliste",
+  "category": "product-showcase",
+  "icon": "editor-ul",
+  "description": "Die Werte eines Attributs (z. B. „Blumen“), einer Kategorie oder der Schlagwörter eines Produkts als Liste, z. B. „Dahlien, Rosen, Sonnenhut“. Für die Produktvorlage einer Produktsammlung oder die Produktseite.",
+  "keywords": [
+    "attribut",
+    "blumen",
+    "zusammensetzung",
+    "liste",
+    "begriffe"
+  ],
+  "textdomain": "product-showcase-block",
+  "usesContext": [
+    "postId",
+    "postType"
+  ],
+  "attributes": {
+    "taxonomy": {
+      "type": "string",
+      "default": ""
+    },
+    "orderBy": {
+      "type": "string",
+      "default": "source"
+    },
+    "label": {
+      "type": "string",
+      "default": ""
+    },
+    "separator": {
+      "type": "string",
+      "default": ", "
+    },
+    "isLink": {
+      "type": "boolean",
+      "default": false
+    }
+  },
+  "supports": {
+    "html": false,
+    "color": {
+      "text": true,
+      "background": false,
+      "link": true
+    },
+    "typography": {
+      "fontSize": true,
+      "lineHeight": true
+    },
+    "spacing": {
+      "margin": true
+    }
+  },
+  "editorScript": "file:./index.js",
+  "render": "file:./render.php"
+}

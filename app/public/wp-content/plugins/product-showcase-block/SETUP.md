@@ -126,6 +126,31 @@ Produktsammlung und auch auf der Produktseite.
 Produkte ohne dieses Attribut zeigen nichts. Ausverkaufte Varianten zählen
 mit.
 
+### Begriffsliste, z. B. die Blumen eines Strausses
+
+Der Block **„Begriffsliste“** zeigt die Werte eines Attributs als Liste,
+z. B. „Blumen: Dahlien, Rosen, Sonnenhut“ – in der Produktkarte oder auf der
+Produktseite.
+
+1. **Attribut anlegen** (einmal): Produkte → Attribute → z. B. „Blumen“, mit
+   den Blumen als Werten. Reihenfolge der Werte per Ziehen, wenn „Eigene
+   Reihenfolge“ gewünscht ist.
+2. **Am Produkt:** Produktdaten → Attribute → „Blumen“ hinzufügen, Blumen
+   wählen (neue mit „Neu erstellen“). „Für Variationen verwenden“ nicht
+   anhaken.
+3. **Block setzen:** in die Produktvorlage der Produktsammlung bzw. ins
+   Template „Single Product“.
+
+| Einstellung | Bedeutung |
+|---|---|
+| Quelle | ein globales Attribut, Kategorien oder Schlagwörter |
+| Sortierung | wie beim Attribut eingestellt · eigene Reihenfolge · Name A–Z · Name Z–A |
+| Beschriftung | z. B. „Blumen:“; leer = ohne |
+| Trennzeichen | Standard „, “ |
+| Verlinken | jede Blume mit ihrer Übersichtsseite (nur bei Attributen mit „Archive aktivieren“) |
+
+Produkte ohne Werte in dieser Quelle zeigen nichts.
+
 ## 7. Kategorie- und Schlagwort-Seiten
 
 Ohne eigenes Template nimmt WordPress für Kategorie- und Schlagwort-Seiten

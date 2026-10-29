@@ -183,6 +183,67 @@ return array(
 		'render' => 'file:./render.php',
 		'viewScriptModule' => 'file:./view.js'
 	),
+	'term-list' => array(
+		'$schema' => 'https://schemas.wp.org/trunk/block.json',
+		'apiVersion' => 3,
+		'name' => 'product-showcase/term-list',
+		'version' => '0.1.0',
+		'title' => 'Begriffsliste',
+		'category' => 'product-showcase',
+		'icon' => 'editor-ul',
+		'description' => 'Die Werte eines Attributs (z. B. „Blumen“), einer Kategorie oder der Schlagwörter eines Produkts als Liste, z. B. „Dahlien, Rosen, Sonnenhut“. Für die Produktvorlage einer Produktsammlung oder die Produktseite.',
+		'keywords' => array(
+			'attribut',
+			'blumen',
+			'zusammensetzung',
+			'liste',
+			'begriffe'
+		),
+		'textdomain' => 'product-showcase-block',
+		'usesContext' => array(
+			'postId',
+			'postType'
+		),
+		'attributes' => array(
+			'taxonomy' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'orderBy' => array(
+				'type' => 'string',
+				'default' => 'source'
+			),
+			'label' => array(
+				'type' => 'string',
+				'default' => ''
+			),
+			'separator' => array(
+				'type' => 'string',
+				'default' => ', '
+			),
+			'isLink' => array(
+				'type' => 'boolean',
+				'default' => false
+			)
+		),
+		'supports' => array(
+			'html' => false,
+			'color' => array(
+				'text' => true,
+				'background' => false,
+				'link' => true
+			),
+			'typography' => array(
+				'fontSize' => true,
+				'lineHeight' => true
+			),
+			'spacing' => array(
+				'margin' => true
+			)
+		),
+		'editorScript' => 'file:./index.js',
+		'render' => 'file:./render.php'
+	),
 	'variation-range' => array(
 		'$schema' => 'https://schemas.wp.org/trunk/block.json',
 		'apiVersion' => 3,

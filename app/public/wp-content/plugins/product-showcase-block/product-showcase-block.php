@@ -22,3 +22,4 @@ require_once __DIR__ . '/includes/class-filter-tags.php';
 require_once __DIR__ . '/includes/class-slider.php';
 require_once __DIR__ . '/includes/class-blocks.php';
 require_once __DIR__ . '/includes/class-variation-range.php';
+require_once __DIR__ . '/includes/class-term-list.php';

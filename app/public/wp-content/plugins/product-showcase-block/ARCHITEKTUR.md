@@ -66,6 +66,7 @@ Schaufenster gebunden:
 | Block | Name | Aufgabe |
 |---|---|---|
 | Varianten-Spanne | `product-showcase/variation-range` | Werte der Varianten als Spanne, z. B. „Grösse: klein – gross“ |
+| Begriffsliste | `product-showcase/term-list` | Begriffe einer Taxonomie als Liste, z. B. die Werte des Attributs „Blumen“: „Dahlien, Rosen, Sonnenhut“ |
 
 Er bekommt das Produkt aus dem Block-Kontext (`postId`) wie die
 WooCommerce-Blöcke für Titel und Preis. Einstellungen: Beschriftung,
@@ -85,6 +86,17 @@ Attribut nicht (einfache Produkte, Grusskarten), gibt der Block nichts aus.
 Logik: `includes/class-variation-range.php`. Im Editor zeigt er per
 `ServerSideRender` die echte Ausgabe; die Produkt-ID geht als `post_id`
 mit, weil `ServerSideRender` keinen Block-Kontext kennt.
+
+Die **Begriffsliste** arbeitet genauso (Kontext, Editor-Vorschau). Quelle
+ist eine Taxonomie am Produkt: globale Attribute (`pa_…`), Kategorien,
+Schlagwörter. Die Begriffe holt `wc_get_product_terms()` – dieselbe
+Funktion wie „Zusätzliche Informationen“ auf der Produktseite, inklusive
+der eigenen Reihenfolge der Attributwerte. Sortierung: wie beim Attribut
+eingestellt, eigene Reihenfolge, Name A–Z / Z–A (selbst sortiert mit
+`remove_accents()` + `strnatcasecmp()`: „Löwenmäulchen“ unter L, „2“ vor
+„10“ – `name_num` von WooCommerce ordnet solche Namen falsch ein).
+Verlinken nur, wenn die Taxonomie Übersichtsseiten hat (beim Attribut
+„Archive aktivieren“). Logik: `includes/class-term-list.php`.
 
 ### Die Dateien
 
