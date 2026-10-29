@@ -1,5 +1,5 @@
 /**
- * Editor-Ansicht der "Varianten-Spanne".
+ * Editor-Ansicht der "Produktangabe" (früher "Varianten-Spanne").
  *
  * Zeigt die echte Ausgabe von render.php für das Produkt, das die
  * Produktvorlage gerade darstellt (Kontext postId). ServerSideRender kennt
@@ -25,6 +25,21 @@ const Hint = ( { children } ) => (
 	<p className="psb-variation-range__hint">{ children }</p>
 );
 
+const PRODUCTS_HELP = {
+	variable: __(
+		'Einfache Produkte zeigen nichts – neben dem Preis-Block von WooCommerce steht so kein Preis doppelt.',
+		'product-showcase-block'
+	),
+	all: __(
+		'Einfache Produkte zeigen ihren eigenen Wert. So ersetzt der Block z. B. den Preis-Block.',
+		'product-showcase-block'
+	),
+	simple: __(
+		'Produkte mit Varianten zeigen nichts – z. B. für den Durchmesser, den bei ihnen schon die Variantenauswahl zeigt.',
+		'product-showcase-block'
+	),
+};
+
 export default function Edit( { attributes, setAttributes, context, name } ) {
 	const blockProps = useBlockProps();
 	const {
@@ -35,17 +50,22 @@ export default function Edit( { attributes, setAttributes, context, name } ) {
 		prefix,
 		suffix,
 		affixOnlyIfMultiple,
-		includeSimple,
+		products,
 	} = attributes;
-	// Attributwerte brauchen ein Attribut, Zahlen (Preise …) nicht.
-	const needsAttribute = value === 'term';
+	// Attributwerte gibt es nur bei Varianten und brauchen ein Attribut.
+	// Zahlen (Preise, Durchmesser) gehen ohne -- und auch bei einfachen
+	// Produkten.
+	const isTerm = value === 'term';
+	// Nur einfache Produkte: ein einziger Wert, Attribut und Darstellung
+	// spielen keine Rolle.
+	const onlySimple = ! isTerm && products === 'simple';
 
 	let preview;
-	if ( needsAttribute && ! attribute ) {
+	if ( isTerm && ! attribute ) {
 		preview = (
 			<Hint>
 				{ __(
-					'Varianten-Spanne: In der Seitenleiste ein Attribut wählen.',
+					'Produktangabe: In der Seitenleiste ein Attribut wählen.',
 					'product-showcase-block'
 				) }
 			</Hint>
@@ -54,7 +74,7 @@ export default function Edit( { attributes, setAttributes, context, name } ) {
 		preview = (
 			<Hint>
 				{ __(
-					'Varianten-Spanne: erscheint in der Produktvorlage einer Produktsammlung oder auf der Produktseite.',
+					'Produktangabe: erscheint in der Produktvorlage einer Produktsammlung oder auf der Produktseite.',
 					'product-showcase-block'
 				) }
 			</Hint>
@@ -70,7 +90,7 @@ export default function Edit( { attributes, setAttributes, context, name } ) {
 				EmptyResponsePlaceholder={ () => (
 					<Hint>
 						{ __(
-							'Varianten-Spanne: bei diesem Produkt nichts anzuzeigen.',
+							'Produktangabe: bei diesem Produkt nichts anzuzeigen.',
 							'product-showcase-block'
 						) }
 					</Hint>
@@ -83,7 +103,7 @@ export default function Edit( { attributes, setAttributes, context, name } ) {
 		<>
 			<InspectorControls>
 				<PanelBody
-					title={ __( 'Varianten-Spanne', 'product-showcase-block' ) }
+					title={ __( 'Produktangabe', 'product-showcase-block' ) }
 				>
 					<TextControl
 						__next40pxDefaultSize
@@ -101,87 +121,133 @@ export default function Edit( { attributes, setAttributes, context, name } ) {
 					<SelectControl
 						__next40pxDefaultSize
 						__nextHasNoMarginBottom
-						label={ __( 'Attribut', 'product-showcase-block' ) }
+						label={ __( 'Wert', 'product-showcase-block' ) }
 						help={
-							needsAttribute
+							isTerm
 								? __(
-										'Das Attribut, nach dem die Varianten gebildet sind. Produkte ohne dieses Attribut zeigen nichts.',
+										'Die Werte des Attributs (klein, mittel, gross) – gibt es nur bei Produkten mit Varianten.',
 										'product-showcase-block'
 								  )
 								: __(
-										'Optional: nur Produkte mit diesem Attribut. „Alle Varianten“ zeigt bei jedem Produkt einen Wert, bei einfachen Produkten den des Produkts selbst.',
+										'Bei Varianten: kleinster bis grösster Wert. Bei einfachen Produkten: der Wert des Produkts selbst.',
 										'product-showcase-block'
 								  )
 						}
-						value={ attribute }
-						options={ [
-							{
-								value: '',
-								label: needsAttribute
-									? __(
-											'— wählen —',
-											'product-showcase-block'
-									  )
-									: __(
-											'Alle Varianten',
-											'product-showcase-block'
-									  ),
-							},
-							...DATA.attributes,
-						] }
-						onChange={ ( next ) =>
-							setAttributes( { attribute: next } )
-						}
-					/>
-					<SelectControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-						label={ __(
-							'Wert aus der Variante',
-							'product-showcase-block'
-						) }
-						help={ __(
-							'Zahlen: kleinster bis grösster Wert. Attributwert: erster bis letzter in der Reihenfolge der Varianten am Produkt.',
-							'product-showcase-block'
-						) }
 						value={ value }
 						options={ DATA.values }
 						onChange={ ( next ) =>
 							setAttributes( { value: next } )
 						}
 					/>
-					<SelectControl
-						__next40pxDefaultSize
-						__nextHasNoMarginBottom
-						label={ __( 'Darstellung', 'product-showcase-block' ) }
-						value={ display }
-						options={ [
-							{
-								value: 'range',
-								label: __(
-									'Spanne (kleinster – grösster)',
-									'product-showcase-block'
-								),
-							},
-							{
-								value: 'min',
-								label: __(
-									'Kleinster Wert (bei Attributwerten: erster)',
-									'product-showcase-block'
-								),
-							},
-							{
-								value: 'max',
-								label: __(
-									'Grösster Wert (bei Attributwerten: letzter)',
-									'product-showcase-block'
-								),
-							},
-						] }
-						onChange={ ( next ) =>
-							setAttributes( { display: next } )
-						}
-					/>
+					{ ! isTerm && (
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Produkte', 'product-showcase-block' ) }
+							help={ PRODUCTS_HELP[ products ] }
+							value={ products }
+							options={ [
+								{
+									value: 'variable',
+									label: __(
+										'Nur mit Varianten',
+										'product-showcase-block'
+									),
+								},
+								{
+									value: 'all',
+									label: __(
+										'Alle Produkte',
+										'product-showcase-block'
+									),
+								},
+								{
+									value: 'simple',
+									label: __(
+										'Nur einfache Produkte',
+										'product-showcase-block'
+									),
+								},
+							] }
+							onChange={ ( next ) =>
+								setAttributes( { products: next } )
+							}
+						/>
+					) }
+					{ ! onlySimple && (
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __( 'Attribut', 'product-showcase-block' ) }
+							help={
+								isTerm
+									? __(
+											'Das Attribut, nach dem die Varianten gebildet sind. Produkte ohne dieses Attribut zeigen nichts.',
+											'product-showcase-block'
+									  )
+									: __(
+											'Optional: nur Produkte, deren Varianten nach diesem Attribut gebildet sind. „Alle Varianten“: jede Variante zählt.',
+											'product-showcase-block'
+									  )
+							}
+							value={ attribute }
+							options={ [
+								{
+									value: '',
+									label: isTerm
+										? __(
+												'— wählen —',
+												'product-showcase-block'
+										  )
+										: __(
+												'Alle Varianten',
+												'product-showcase-block'
+										  ),
+								},
+								...DATA.attributes,
+							] }
+							onChange={ ( next ) =>
+								setAttributes( { attribute: next } )
+							}
+						/>
+					) }
+					{ ! onlySimple && (
+						<SelectControl
+							__next40pxDefaultSize
+							__nextHasNoMarginBottom
+							label={ __(
+								'Darstellung bei Varianten',
+								'product-showcase-block'
+							) }
+							value={ display }
+							options={ [
+								{
+									value: 'range',
+									label: __(
+										'Spanne (kleinster – grösster)',
+										'product-showcase-block'
+									),
+								},
+								{
+									value: 'min',
+									label: __(
+										'Kleinster Wert (bei Attributwerten: erster)',
+										'product-showcase-block'
+									),
+								},
+								{
+									value: 'max',
+									label: __(
+										'Grösster Wert (bei Attributwerten: letzter)',
+										'product-showcase-block'
+									),
+								},
+							] }
+							onChange={ ( next ) =>
+								setAttributes( { display: next } )
+							}
+						/>
+					) }
 					<TextControl
 						__next40pxDefaultSize
 						__nextHasNoMarginBottom
@@ -204,35 +270,22 @@ export default function Edit( { attributes, setAttributes, context, name } ) {
 							setAttributes( { suffix: next } )
 						}
 					/>
-					<ToggleControl
-						__nextHasNoMarginBottom
-						label={ __(
-							'Zusatztext nur bei mehreren Werten',
-							'product-showcase-block'
-						) }
-						help={ __(
-							'Hat ein Produkt nur einen Preis, erscheint „CHF 35.00“ statt „ab CHF 35.00“.',
-							'product-showcase-block'
-						) }
-						checked={ affixOnlyIfMultiple }
-						onChange={ ( next ) =>
-							setAttributes( { affixOnlyIfMultiple: next } )
-						}
-					/>
-					{ ! needsAttribute && (
+					{ /* Nur einfache Produkte haben nie mehrere Werte -- dort
+					   stehen die Zusatztexte immer (render.php). */ }
+					{ ! onlySimple && (
 						<ToggleControl
 							__nextHasNoMarginBottom
 							label={ __(
-								'Auch bei einfachen Produkten',
+								'Zusatztext nur bei mehreren Werten',
 								'product-showcase-block'
 							) }
 							help={ __(
-								'An: einfache Produkte zeigen ihren eigenen Wert – dann ersetzt der Block den Preis-Block. Aus: nur Produkte mit Varianten, neben dem Preis-Block steht kein Preis doppelt.',
+								'Hat ein Produkt nur einen Preis, erscheint „CHF 35.00“ statt „ab CHF 35.00“.',
 								'product-showcase-block'
 							) }
-							checked={ includeSimple }
+							checked={ affixOnlyIfMultiple }
 							onChange={ ( next ) =>
-								setAttributes( { includeSimple: next } )
+								setAttributes( { affixOnlyIfMultiple: next } )
 							}
 						/>
 					) }

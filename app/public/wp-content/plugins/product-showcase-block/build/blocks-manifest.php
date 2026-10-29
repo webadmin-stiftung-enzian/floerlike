@@ -249,16 +249,18 @@ return array(
 		'apiVersion' => 3,
 		'name' => 'product-showcase/variation-range',
 		'version' => '0.1.0',
-		'title' => 'Varianten-Spanne',
+		'title' => 'Produktangabe',
 		'category' => 'product-showcase',
 		'icon' => 'leftright',
-		'description' => 'Werte der Varianten eines Produkts als Spanne, z. B. „Grösse: klein – gross“, oder als Einzelwert mit Zusatztext, z. B. „ab CHF 35.00“. Für die Produktvorlage einer Produktsammlung oder die Produktseite.',
+		'description' => 'Grösse, Preis oder Durchmesser eines Produkts – bei Varianten als Spanne („Grösse: klein – gross“) oder Einzelwert mit Zusatztext („ab CHF 35.00“). Für die Produktvorlage einer Produktsammlung oder die Produktseite.',
 		'keywords' => array(
 			'variante',
 			'attribut',
 			'grösse',
 			'preis',
-			'spanne'
+			'durchmesser',
+			'spanne',
+			'ab-preis'
 		),
 		'textdomain' => 'product-showcase-block',
 		'usesContext' => array(
@@ -294,9 +296,14 @@ return array(
 				'type' => 'boolean',
 				'default' => true
 			),
-			'includeSimple' => array(
-				'type' => 'boolean',
-				'default' => false
+			'products' => array(
+				'type' => 'string',
+				'enum' => array(
+					'variable',
+					'all',
+					'simple'
+				),
+				'default' => 'variable'
 			)
 		),
 		'supports' => array(

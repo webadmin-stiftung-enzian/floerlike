@@ -851,7 +851,7 @@ wenn er eindeutig ist.
 Gespeichert wird **nur die Zahl** („35“, „37.5“); die Einheit ist die
 Abmessungs-Einheit von WooCommerce. Den Text baut `gcb_format_diameter()`
 („ca. 35 cm Ø“, bei zwei Werten „ca. 35 – 55 cm Ø“). Mit einer Zahl lässt
-sich rechnen: Das Schaufenster-Plugin zeigt im Block „Varianten-Spanne“ den
+sich rechnen: Das Schaufenster-Plugin zeigt im Block „Produktangabe“ den
 kleinsten und grössten Durchmesser. Dafür meldet dieses Plugin den
 Durchmesser über den Filter `psb_variation_range_values` an – die beiden
 Plugins kennen sich nicht, ist das Schaufenster aus, greift der Filter
@@ -859,8 +859,8 @@ einfach nicht. Einfache Produkte haben dasselbe Feld im Tab „Versand“ (Hook
 `woocommerce_product_options_dimensions`, gespeichert über
 `woocommerce_admin_process_product_object`, nur beim Typ „einfach“). Es
 landet im selben Meta-Feld; `gcb_get_variation_diameter()` liest es über die
-Produkt-ID, deshalb zeigt die Spanne mit „Auch bei einfachen Produkten“ auch
-diesen Wert. Das Feld heisst im Formular `gcb_product_diameter`, nicht
+Produkt-ID, deshalb zeigt die „Produktangabe“ mit „Produkte: Alle“ bzw. „Nur
+einfache“ auch diesen Wert. Das Feld heisst im Formular `gcb_product_diameter`, nicht
 `gcb_diameter` – das sind bei variablen Produkten die Felder der Variationen
 im selben Formular. Ältere Freitext-Werte („ca. 35 cm Ø“) hat eine einmalige
 Umstellung beim ersten Aufruf des Admins in Zahlen verwandelt (Option

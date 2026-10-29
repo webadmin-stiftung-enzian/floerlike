@@ -8,7 +8,7 @@
  * "Abmessungen". Eingetragen wird nur die Zahl (z. B. 35), die Einheit
  * kommt aus den WooCommerce-Einstellungen (Produkte → Allgemein →
  * Abmessungen, hier cm). Mit einer Zahl lässt sich rechnen -- der Block
- * "Varianten-Spanne" im Schaufenster-Plugin zeigt z. B. "ca. 35 – 55 cm Ø".
+ * "Produktangabe" im Schaufenster-Plugin zeigt z. B. "ca. 35 – 55 cm Ø".
  *
  * Angezeigt wird der Wert als "ca. 35 cm Ø" (gcb_format_diameter()), im
  * Block "Variantenauswahl" im Knopf unter dem Wert.
@@ -155,7 +155,7 @@ add_action('woocommerce_product_options_dimensions', function () {
         'label'         => sprintf(__('Durchmesser (%s)', 'greeting-card-block'), gcb_diameter_unit()),
         'placeholder'   => __('z. B. 35', 'greeting-card-block'),
         'desc_tip'      => true,
-        'description'   => __('Nur die Zahl. Erscheint im Block „Varianten-Spanne“ / „Ab-Preis“ als „ca. 35 cm Ø“.', 'greeting-card-block'),
+        'description'   => __('Nur die Zahl. Erscheint im Block „Produktangabe“ als „ca. 35 cm Ø“.', 'greeting-card-block'),
         'wrapper_class' => 'show_if_simple',
         'class'         => 'short wc_input_decimal',
     ]);
@@ -206,7 +206,7 @@ add_action('admin_init', function () {
 });
 
 /**
- * Den Durchmesser beim Block "Varianten-Spanne" (Plugin
+ * Den Durchmesser beim Block "Produktangabe" (Plugin
  * product-showcase-block) als Wert anmelden. Ein Filter statt eines direkten
  * Aufrufs: Die beiden Plugins kennen sich nicht -- ist das Schaufenster aus,
  * passiert hier nichts.

@@ -65,7 +65,7 @@ Schaufenster gebunden:
 
 | Block | Name | Aufgabe |
 |---|---|---|
-| Varianten-Spanne | `product-showcase/variation-range` | Werte der Varianten als Spanne, z. B. „Grösse: klein – gross“ |
+| Produktangabe (früher „Varianten-Spanne“) | `product-showcase/variation-range` | Grösse, Preis, Durchmesser – bei Varianten als Spanne („Grösse: klein – gross“) oder Einzelwert („ab CHF 35.00“) |
 | Begriffsliste | `product-showcase/term-list` | Begriffe einer Taxonomie als Liste, z. B. die Werte des Attributs „Blumen“: „Dahlien, Rosen, Sonnenhut“ |
 
 Er bekommt das Produkt aus dem Block-Kontext (`postId`) wie die
@@ -91,10 +91,23 @@ Es zählen alle kaufbaren Varianten (`is_purchasable()`: veröffentlicht, mit
 Preis), auch ausverkaufte – dieselben, die die Variantenauswahl anbietet.
 Attributwerte brauchen ein Attribut; ohne Attribut gibt der Block dann
 nichts aus. Bei Zahlen ist das Attribut optional (alle Varianten).
-Einfache Produkte geben standardmässig nichts aus, damit neben dem
-Preis-Block von WooCommerce kein Preis doppelt steht. Mit „Auch bei
-einfachen Produkten“ (`includeSimple`, beim „Ab-Preis“ an) zählt das Produkt
-selbst – dann ersetzt der Block den Preis-Block ganz. Preise über `wc_get_price_to_display()`, wie im Preis-Block von
+Welche Produkte, regelt „Produkte“ (`products`, nur bei Zahlen):
+
+- `variable` (Standard): nur Produkte mit Varianten – neben dem Preis-Block
+  von WooCommerce steht so kein Preis doppelt.
+- `all` (beim „Ab-Preis“): einfache Produkte zählen mit ihrem eigenen Wert –
+  dann ersetzt der Block den Preis-Block ganz.
+- `simple`: nur einfache Produkte, z. B. der Durchmesser, den variable
+  Produkte schon in der Variantenauswahl zeigen. Es gibt dann nur einen
+  Wert; Attribut, Darstellung und „nur bei mehreren Werten“ sind im Editor
+  ausgeblendet, Zusatztexte stehen immer.
+
+Vorher gab es dafür den Schalter `includeSimple`. Alte Blöcke stellt
+`deprecated` in `index.js` beim Öffnen im Editor um; bis sie neu
+gespeichert sind, wertet `render.php` das alte Attribut aus. Der Name
+`variation-range` blieb, damit gespeicherte Inhalte nicht brechen.
+
+Preise über `wc_get_price_to_display()`, wie im Preis-Block von
 WooCommerce (Steuer-Anzeige, nie negativ).
 Logik: `includes/class-variation-range.php`. Im Editor zeigt er per
 `ServerSideRender` die echte Ausgabe; die Produkt-ID geht als `post_id`

@@ -109,46 +109,43 @@ Zeilen werden trotzdem richtig ausgegraut.
   `product_tag` würde WordPress die Shop-Seite in die Seite des Schlagworts
   verwandeln.
 
-## 6. Varianten in der Produktkarte: „Varianten-Spanne“
+## 6. Grösse, Preis, Durchmesser in der Produktkarte: „Produktangabe“
 
-Der Block **„Varianten-Spanne“** (Kategorie „Schaufenster“) zeigt in einer
-Produktkarte, welche Varianten es gibt, z. B. „Grösse: klein – gross“ oder
-„Grösse: ca. 35 – 55 cm Ø“. In der Produktsammlung die Produktvorlage
-öffnen und den Block z. B. unter den Titel setzen. Er funktioniert in jeder
-Produktsammlung und auch auf der Produktseite.
+Der Block **„Produktangabe“** (Kategorie „Schaufenster“; hiess früher
+„Varianten-Spanne“) zeigt in einer Produktkarte z. B. „Grösse: klein –
+gross“, „ca. 35 – 55 cm Ø“ oder „ab CHF 35.00“. In der Produktsammlung die
+Produktvorlage öffnen und den Block z. B. unter den Titel setzen. Er
+funktioniert in jeder Produktsammlung und auch auf der Produktseite.
+
+Im Einfügen-Menü gibt es ausserdem die fertige Variante **„Ab-Preis“**: Sie
+ersetzt den Preis-Block von WooCommerce – „ab CHF 35.00“ bei Produkten mit
+Varianten, der normale Preis bei einfachen Produkten.
+
+Einstellungen in der Seitenleiste (nur die, die gerade etwas bewirken, sind
+sichtbar):
 
 | Einstellung | Bedeutung |
 |---|---|
 | Beschriftung | z. B. „Grösse“; leer = ohne |
-| Attribut | nach dem die Varianten gebildet sind, z. B. „Strauss Variation Grösse“ |
-| Wert aus der Variante | **Attributwert** (erster bis letzter in der Reihenfolge der Variationen am Produkt), **Regulärer Preis**, **Preis (aktuell)**, **Durchmesser** (aus dem Grusskarten-Plugin) – Zahlen von klein bis gross |
-
-Produkte ohne dieses Attribut zeigen nichts. Es zählen alle kaufbaren
-Varianten, auch ausverkaufte.
-
-**Einzelwert statt Spanne, z. B. „ab CHF 35.00“:** Im Einfügen-Menü gibt es
-dafür die fertige Variante **„Ab-Preis“**. Sie ersetzt den Preis-Block von
-WooCommerce: „ab CHF 35.00“ bei Produkten mit Varianten, der normale Preis
-bei einfachen Produkten. Dieselben Einstellungen gibt es an jeder
-Varianten-Spanne:
-
-| Einstellung | Bedeutung |
-|---|---|
-| Darstellung | Spanne · kleinster Wert · grösster Wert (bei Attributwerten: erster/letzter) |
+| Wert | **Attributwert** (erster bis letzter in der Reihenfolge der Variationen am Produkt, nur bei Varianten), **Regulärer Preis**, **Preis (aktuell)**, **Durchmesser** (aus dem Grusskarten-Plugin) |
+| Produkte | nur bei Preisen und Durchmesser: **Nur mit Varianten** (Standard) · **Alle Produkte** (einfache zeigen ihren eigenen Wert) · **Nur einfache Produkte** |
+| Attribut | nach dem die Varianten gebildet sind, z. B. „Strauss Variation Grösse“. Bei Attributwerten Pflicht, bei Zahlen optional („Alle Varianten“). Produkte ohne dieses Attribut zeigen nichts |
+| Darstellung bei Varianten | Spanne · kleinster Wert · grösster Wert (bei Attributwerten: erster/letzter) |
 | Text davor / danach | z. B. „ab“, „von“ |
 | Zusatztext nur bei mehreren Werten | an: ein Produkt mit nur einem Preis zeigt „CHF 35.00“ statt „ab CHF 35.00“ |
-| Auch bei einfachen Produkten | an (Ab-Preis): einfache Produkte zeigen ihren Preis bzw. Durchmesser (Feld im Tab „Versand“). Aus (Standard der Spanne): einfache Produkte zeigen nichts – neben dem Preis-Block von WooCommerce steht dann kein Preis doppelt |
 
-Bei Preisen und Durchmesser ist das Attribut optional („Alle Varianten“).
-Preise erscheinen wie bei WooCommerce (Steuer-Anzeige des Shops, nie
-negativ).
+Es zählen alle kaufbaren Varianten, auch ausverkaufte. Preise erscheinen
+wie bei WooCommerce (Steuer-Anzeige des Shops, nie negativ). Der
+Durchmesser einfacher Produkte steht im Tab „Versand“ (Grusskarten-Plugin).
 
-Zwei typische Kombinationen in der Produktkarte:
+Typische Kombinationen in der Produktkarte:
 
-- **Preis-Block + Spanne:** Preis von WooCommerce, darunter die Spanne nur
-  bei Varianten.
-- **Nur „Ab-Preis“** (z. B. im Schaufenster): ohne Preis-Block von
-  WooCommerce.
+- **Preis-Block + Spanne** („Nur mit Varianten“): Preis von WooCommerce,
+  darunter die Spanne nur bei Varianten – kein Preis doppelt.
+- **Nur „Ab-Preis“** („Alle Produkte“, z. B. im Schaufenster): ohne
+  Preis-Block von WooCommerce.
+- **Durchmesser nur bei einfachen Produkten** („Nur einfache Produkte“):
+  Produkte mit Varianten zeigen ihn schon in der Variantenauswahl.
 
 ### Begriffsliste, z. B. die Blumen eines Strausses
 

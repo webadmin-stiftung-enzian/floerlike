@@ -26,11 +26,12 @@ Eltern-Kind-Beziehung. Beides übernimmt dieses Plugin selbst.
    - Das Feld **„Durchmesser (cm)“** (direkt unter „Abmessungen“): nur die
      Zahl eintragen, z. B. `35`. Die Einheit kommt aus WooCommerce
      (Einstellungen → Produkte → Abmessungen). Im Knopf erscheint daraus
-     „ca. 35 cm Ø“ (abschaltbar), im Block „Varianten-Spanne“ des
+     „ca. 35 cm Ø“ (abschaltbar), im Block „Produktangabe“ des
      Schaufenster-Plugins z. B. „ca. 35 – 55 cm Ø“.
    - Ein **einfaches Produkt** (ohne Variationen) hat dasselbe Feld im Tab
      **Versand**, ebenfalls unter „Abmessungen“. Es erscheint in der
-     „Varianten-Spanne“, wenn dort „Auch bei einfachen Produkten“ an ist.
+     „Produktangabe“, wenn dort „Produkte“ auf „Alle Produkte“ oder „Nur
+     einfache Produkte“ steht.
 
 3. **Karten verknüpfen:** Produktdaten → **Linked Products** → **Bundle-sells**.
    Dort die gewünschten Karten eintragen (nur einfache Produkte möglich).

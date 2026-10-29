@@ -3,7 +3,7 @@
  *
  * Zeigt die echte Ausgabe von render.php für das Produkt, das die
  * Produktvorlage bzw. die Produktseite gerade darstellt (Kontext postId) --
- * gleiches Vorgehen wie bei der "Varianten-Spanne": ServerSideRender kennt
+ * gleiches Vorgehen wie bei der "Produktangabe": ServerSideRender kennt
  * keinen Block-Kontext, die Produkt-ID geht als post_id mit.
  *
  * Die möglichen Quellen gibt der Server mit (window.psbTermList,

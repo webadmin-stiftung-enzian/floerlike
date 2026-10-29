@@ -4,7 +4,7 @@
  * Block "Begriffsliste": Begriffe eines Produkts als Liste, z. B. die Werte
  * des globalen Attributs "Blumen" -- "Dahlien, Rosen, Sonnenhut".
  *
- * Ein Produktblock wie die "Varianten-Spanne": funktioniert in jeder
+ * Ein Produktblock wie die "Produktangabe": funktioniert in jeder
  * Produktvorlage (Schaufenster, Produktsammlung) und auf der Produktseite.
  *
  * Quelle: jede Taxonomie am Produkt -- globale Attribute (pa_…),

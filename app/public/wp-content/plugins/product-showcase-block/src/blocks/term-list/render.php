@@ -3,7 +3,7 @@
 /**
  * Block "Begriffsliste" auf der Seite, z. B. "Blumen: Dahlien, Rosen".
  *
- * Wie die "Varianten-Spanne": Das Produkt kommt aus dem Kontext der
+ * Wie die "Produktangabe": Das Produkt kommt aus dem Kontext der
  * Produktvorlage bzw. der Produktseite (postId), in der Editor-Vorschau als
  * post_id (edit.js). Ohne Begriffe gibt der Block nichts aus.
  *

@@ -1,10 +1,12 @@
 <?php
 
 /**
- * Block "Varianten-Spanne": Werte der Varianten eines Produkts als Spanne,
- * z. B. "Grösse: klein – gross" oder "Grösse: ca. 35 – 55 cm Ø" -- oder als
- * Einzelwert mit Zusatztext, z. B. "ab CHF 35.00" (Block-Variante
- * "Ab-Preis", src/blocks/variation-range/index.js).
+ * Block "Produktangabe" (früher "Varianten-Spanne"; intern weiter
+ * product-showcase/variation-range): Werte der Varianten eines Produkts als
+ * Spanne, z. B. "Grösse: klein – gross" oder "Grösse: ca. 35 – 55 cm Ø" --
+ * oder als Einzelwert mit Zusatztext, z. B. "ab CHF 35.00" (Block-Variante
+ * "Ab-Preis", src/blocks/variation-range/index.js). Bei einfachen Produkten
+ * auf Wunsch der Wert des Produkts selbst (Preis, Durchmesser).
  *
  * Ein Produktblock wie "Preis" oder "Titel": funktioniert in jeder
  * Produktvorlage (Schaufenster, Produktsammlung, Templates), das Produkt
@@ -125,20 +127,25 @@ function psb_variations_with_attribute(WC_Product $product, $attribute)
  * Attributwerte brauchen ein Attribut. Zahlen (Preise, Durchmesser) gehen
  * auch ohne: dann zählen alle Varianten.
  *
- * Einfache Produkte geben standardmässig nichts aus -- neben dem Preis-Block
- * von WooCommerce stünde ihr Preis sonst doppelt. Mit $include_simple zählt
- * das Produkt selbst: So ersetzt ein "Ab-Preis" den Preis-Block ganz ("ab
- * CHF 35.00" bei Varianten, "CHF 55.00" bei einfachen Produkten).
+ * Welche Produkte ($products):
+ *   variable  nur Produkte mit Varianten (Standard) -- neben dem Preis-Block
+ *             von WooCommerce steht so kein Preis doppelt
+ *   all       auch einfache Produkte mit ihrem eigenen Wert: So ersetzt ein
+ *             "Ab-Preis" den Preis-Block ganz ("ab CHF 35.00" bei Varianten,
+ *             "CHF 55.00" bei einfachen Produkten)
+ *   simple    nur einfache Produkte, z. B. der Durchmesser, den variable
+ *             Produkte schon in der Variantenauswahl zeigen
+ * Attributwerte gibt es nur bei Varianten -- dort zählt $products nicht.
  *
  * @param WC_Product $product
- * @param string     $attribute      Leer = alle Varianten (nur bei Zahlen).
- * @param string     $value          "term" oder ein Schlüssel aus psb_variation_range_values().
- * @param string     $display        range | min | max.
- * @param bool       $include_simple Auch einfache Produkte (eigener Wert).
+ * @param string     $attribute Leer = alle Varianten (nur bei Zahlen).
+ * @param string     $value     "term" oder ein Schlüssel aus psb_variation_range_values().
+ * @param string     $display   range | min | max.
+ * @param string     $products  variable | all | simple.
  * @return array{html: string, multiple: bool} html leer = nichts anzeigen;
  *                                             multiple = es gibt verschiedene Werte.
  */
-function psb_variation_range_text(WC_Product $product, $attribute, $value, $display = 'range', $include_simple = false)
+function psb_variation_range_text(WC_Product $product, $attribute, $value, $display = 'range', $products = 'variable')
 {
     $none = ['html' => '', 'multiple' => false];
 
@@ -174,8 +181,11 @@ function psb_variation_range_text(WC_Product $product, $attribute, $value, $disp
     }
 
     if ($product->is_type('variable')) {
+        if ('simple' === $products) {
+            return $none;
+        }
         $items = array_column(psb_variations_with_attribute($product, $attribute), 'variation');
-    } elseif ($include_simple) {
+    } elseif (in_array($products, ['all', 'simple'], true)) {
         $items = [$product];
     } else {
         return $none;
