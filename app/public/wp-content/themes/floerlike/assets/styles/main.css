@@ -1291,7 +1291,7 @@ section.store .wp-block-image img {
 section.store-info {
     background-color: var(--wp--preset--color--main-1-pistachio-light);
     padding: 1rem;
-    margin: 3rem 7rem;
+    margin: 3rem 3rem;
     border-radius: 1.5rem;
     text-box: normal;
 }
@@ -1319,6 +1319,7 @@ section.product.single .wp-block-post-excerpt__excerpt {
     margin-block-end: 1.5rem;
 }
 
+section.shop-window .wp-block-product-showcase-variation-range .psb-variation-range__value:has(.woocommerce-Price-amount),
 .wc-block-components-product-price .woocommerce-Price-amount {
     border-radius: 100%;
     border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
@@ -1365,9 +1366,18 @@ section.product.single .single-wrapper {
     gap: 1.5rem;
 }
 
-.wp-block-product-showcase-variation-range span,
+section.product.single .wp-block-product-showcase-variation-range span,
 .wp-block-product-showcase-term-list span {
-    font-size: 1rem;
+    font-size: var(--wp--preset--font-size--normal);
+}
+
+section.wp-block-product-showcase-row .wp-block-product-showcase-term-list span{
+    font-size: var(--wp--preset--font-size--s);
+}
+
+section.wp-block-product-showcase-row .psb-variation-range__value span.woocommerce-Price-amount,
+section.wp-block-product-showcase-row .psb-variation-range__value span.woocommerce-Price-currencySymbol{
+    font-size: var(--wp--preset--font-size--m);
 }
 
 footer {
