@@ -1,0 +1,27 @@
+// Nur Anordnung -- Ecken und Farben gibt das Theme.
+.woo-order-ext-pickup-image {
+	margin: 16px 0 0;
+
+	img {
+		display: block;
+		width: 100%;
+		height: auto;
+	}
+
+	a {
+		display: block;
+	}
+}
+
+// Im Editor: Hinweis unter dem Bild, ausgeschaltet blass.
+.wp-block-woo-order-ext-checkout-pickup-image {
+	&.is-disabled .woo-order-ext-pickup-image {
+		opacity: 0.4;
+	}
+
+	.woo-order-ext-pickup-image__hint {
+		margin: 8px 0 0;
+		font-size: 12px;
+		opacity: 0.7;
+	}
+}

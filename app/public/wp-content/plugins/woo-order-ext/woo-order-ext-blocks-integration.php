@@ -35,6 +35,9 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		$this->register_newsletter_block_editor_scripts();
 		// $this->register_newsletter_block_editor_styles();
 
+		$this->register_pickup_image_block_frontend_scripts();
+		$this->register_pickup_image_block_editor_scripts();
+
 		$this->register_placeholder_block_frontend_scripts();
 		$this->register_placeholder_block_editor_scripts();
 		// $this->register_placeholder_block_editor_styles();
@@ -116,6 +119,7 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		return array(
 			'woo-order-ext-blocks-integration',
 			'woo-order-ext-checkout-newsletter-subscription-block-frontend',
+			'woo-order-ext-checkout-pickup-image-block-frontend',
 			'woo-order-ext-placeholder-block-frontend',
 		);
 	}
@@ -132,6 +136,7 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 		return array(
 			'woo-order-ext-editor-integration',
 			'woo-order-ext-checkout-newsletter-subscription-block-editor',
+			'woo-order-ext-checkout-pickup-image-block-editor',
 			'woo-order-ext-placeholder-block-editor',
 		);
 	}
@@ -269,6 +274,67 @@ class WooOrderExt_Blocks_Integration implements IntegrationInterface
 			'woo-order-ext-checkout-newsletter-subscription-block-frontend', // script handle
 			'woo-order-ext', // text domain
 			dirname(__FILE__) . '/languages'
+		);
+	}
+
+	/**
+	 * Aufgabe: Registriert Skript und Stylesheet des Blocks "Bild bei Abholung"
+	 * fuer die Kasse. Das Skript zeigt das Bild nur bei "Im Laden abholen".
+	 */
+	public function register_pickup_image_block_frontend_scripts()
+	{
+		$script_path       = '/build/woo-order-ext-checkout-pickup-image-block-frontend.js';
+		// Ein Stylesheet fuer Kasse und Editor: webpack legt die Styles beider
+		// Skripte in diese eine Datei.
+		$style_path        = '/build/style-woo-order-ext-checkout-pickup-image-block.css';
+		$script_asset_path = dirname(__FILE__) . '/build/woo-order-ext-checkout-pickup-image-block-frontend.asset.php';
+		$script_asset      = file_exists($script_asset_path)
+			? require $script_asset_path
+			: array(
+				'dependencies' => array(),
+				'version'      => $this->get_file_version($script_path),
+			);
+
+		wp_register_script(
+			'woo-order-ext-checkout-pickup-image-block-frontend',
+			plugins_url($script_path, __FILE__),
+			$script_asset['dependencies'],
+			$script_asset['version'],
+			true
+		);
+
+		if (file_exists(dirname(__FILE__) . $style_path)) {
+			wp_enqueue_style(
+				'woo-order-ext-checkout-pickup-image-block',
+				plugins_url($style_path, __FILE__),
+				[],
+				$this->get_file_version($style_path)
+			);
+		}
+	}
+
+	/**
+	 * Aufgabe: Registriert das Editor-Skript des Blocks "Bild bei Abholung"
+	 * (Bild waehlen, Schalter "Bild anzeigen"). Das Stylesheet bindet
+	 * register_pickup_image_block_frontend_scripts() ein.
+	 */
+	public function register_pickup_image_block_editor_scripts()
+	{
+		$script_path       = '/build/woo-order-ext-checkout-pickup-image-block.js';
+		$script_asset_path = dirname(__FILE__) . '/build/woo-order-ext-checkout-pickup-image-block.asset.php';
+		$script_asset      = file_exists($script_asset_path)
+			? require $script_asset_path
+			: array(
+				'dependencies' => array(),
+				'version'      => $this->get_file_version($script_path),
+			);
+
+		wp_register_script(
+			'woo-order-ext-checkout-pickup-image-block-editor',
+			plugins_url($script_path, __FILE__),
+			$script_asset['dependencies'],
+			$script_asset['version'],
+			true
 		);
 	}
 

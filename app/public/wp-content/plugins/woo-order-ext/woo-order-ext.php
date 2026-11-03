@@ -30,6 +30,12 @@ add_action(
 		register_block_type_from_metadata(
 			__DIR__ . '/src/js/placeholder-block'
 		);
+		// Bild bei Abholung (Kind des Blocks "Lieferung"). Auch hier in PHP
+		// registriert: Erst dann schreibt WooCommerce seine Einstellungen als
+		// data-Attribute in die Seite, die block.js an der Kasse liest.
+		register_block_type_from_metadata(
+			__DIR__ . '/src/js/checkout-pickup-image-block'
+		);
 	}
 );
 

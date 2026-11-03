@@ -28,6 +28,16 @@ module.exports = {
 				'checkout-newsletter-subscription-block',
 				'frontend.js'
 			),
+		'woo-order-ext-checkout-pickup-image-block': path.resolve(
+			process.cwd(), 'src', 'js',
+			'checkout-pickup-image-block',
+			'index.js'
+		),
+		'woo-order-ext-checkout-pickup-image-block-frontend': path.resolve(
+			process.cwd(), 'src', 'js',
+			'checkout-pickup-image-block',
+			'frontend.js'
+		),
 		'woo-order-ext-placeholder-block': path.resolve(
 			process.cwd(),
 			'src',
