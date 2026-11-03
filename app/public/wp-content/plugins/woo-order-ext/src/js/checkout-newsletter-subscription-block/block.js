@@ -2,14 +2,18 @@ import { useState, useEffect, useMemo } from '@wordpress/element';
 import { CheckboxControl } from '@woocommerce/blocks-checkout';
 import { __ } from '@wordpress/i18n';
 
-const Block = ( { attributes = {}, checkoutExtensionData } ) => {
-	const {
-		text = __( 'Subscribe to our newsletter', 'woo-order-ext' ),
-		optInDefaultChecked = false,
-		privacyPolicyUrl = '',
-	} = attributes;
-
-	const [ checked, setChecked ] = useState( optInDefaultChecked );
+// WooCommerce gibt die Einstellungen an der Kasse als einzelne Props weiter
+// (aus den data-Attributen der Hülle), nicht als "attributes" wie im Editor.
+// Schalter kommen je nach Version als true/false oder als Text "true"/"false".
+const Block = ( {
+	text = __( 'Subscribe to our newsletter', 'woo-order-ext' ),
+	optInDefaultChecked = false,
+	privacyPolicyUrl = '',
+	checkoutExtensionData,
+} ) => {
+	const [ checked, setChecked ] = useState(
+		optInDefaultChecked === true || optInDefaultChecked === 'true'
+	);
 	const { setExtensionData } = checkoutExtensionData;
 
 	// Plain-text für die Consent-Dokumentation (URL enthalten als Nachweis)
