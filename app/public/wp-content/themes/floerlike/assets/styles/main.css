@@ -323,6 +323,7 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
    einfahrende Fläche verdecken.
    =========================================================================== */
 
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,
 .button.solid,
 .button.outline,
 .wp-block-button .wp-block-button__link {
@@ -335,6 +336,7 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
     transition: color 0.25s ease-in-out, border-color 0.25s ease-in-out;
 }
 
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option:after,
 .button.solid::after,
 .button.outline::after,
 .wp-block-button .wp-block-button__link::after {
@@ -349,6 +351,7 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
     transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
 }
 
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option:hover::after,
 .button.solid:hover::after,
 .button.solid:focus-visible::after,
 .button.outline:hover::after,
@@ -363,6 +366,7 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
    Freie Button-Klasse
    --------------------------------------------------------------------------- */
 
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,
 .button.solid,
 .button.outline,
 .wp-block-button .wp-block-button__link {
@@ -390,6 +394,7 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
     -webkit-appearance: none;
 }
 
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option:hover,
 .button.solid:hover,
 .button.solid:focus-visible,
 .button.outline:hover,
@@ -415,6 +420,7 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
 
 /* Hell · Voll: heller Grund mit dunklem Rand, beim Hover fährt Dunkel ein.
    Zugleich der Standard für Core-Buttons ohne gewählten Stil. */
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,   
 .button.solid,
 .wp-block-button .wp-block-button__link {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
@@ -438,6 +444,7 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
 }
 
 /* Hell · Rand: dunkler Rand, beim Hover fährt Hellgrün ein. */
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,
 .button.outline,
 .wp-block-button.is-style-outline-dark .wp-block-button__link {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
@@ -1482,4 +1489,459 @@ footer .footer-wrapper a:visited {
     background-color: var(--floerlike-circle-color, var(--wp--preset--color--main-2-deluge));
     translate: -50% -50%;
     pointer-events: none;
+}
+
+/* ===========================================================================
+   MINI-CART, WARENKORB, KASSE
+   ===========================================================================
+   Die Blöcke von WooCommerce (Mini-Cart-Schublade, Seiten "Warenkorb" und
+   "Kasse") bringen eigene Schrift, Farben und Knöpfe mit. Hier bekommen sie
+   die des Themes: Schrift Frutiger, Text Pistazie dunkel, Preise in
+   Montreal Mono wie auf der Produktseite, Überschriften als "Mittel", Knöpfe
+   wie im Abschnitt BUTTONS.
+
+   Alle Regeln stehen unter einem der drei Bereiche (:is(…) unten). Das hält
+   sie von anderen Stellen fern und macht sie stärker als die Regeln von
+   WooCommerce: deren CSS für die Schublade lädt erst beim Öffnen, also nach
+   main.css -- bei gleicher Stärke gewönne sonst WooCommerce.
+
+   Schriftgrössen: WooCommerce rechnet mit den Grössen "small", "x-small"
+   und "medium" eines Themes. Dieses Theme hat andere Namen -- die drei
+   werden deshalb in den Bereichen auf die eigenen umgelenkt.
+   =========================================================================== */
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) {
+    --wp--preset--font-size--x-small: var(--wp--preset--font-size--s);
+    --wp--preset--font-size--small: var(--wp--preset--font-size--normal);
+    --wp--preset--font-size--medium: var(--wp--preset--font-size--l);
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+/* Formularelemente erben keine Schrift vom Browser her. */
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(button, input, select, textarea) {
+    font-family: inherit;
+    letter-spacing: inherit;
+}
+
+/* Fett gibt es im Theme nicht -- WooCommerce setzt 500/600 an Namen, Summen
+   und Tabellenköpfen. Hervorhebung kommt hier über Grösse und Schriftart. */
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
+    .wc-block-components-product-name,
+    .wc-block-components-totals-item__label,
+    .wc-block-components-totals-item__value,
+    .wc-block-components-totals-footer-item-tax,
+    .wc-block-components-address-card__address-section--primary,
+    .wc-block-cart-items__header th,
+    .wc-block-components-checkout-order-summary__title-text,
+    .wc-block-components-checkout-step__title) {
+    font-weight: 300 !important;
+}
+
+/* Text, dem WooCommerce eine feste Farbe gibt (Links, Tabellen, Auswahl). */
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
+    a:not(.wc-block-components-button),
+    .wc-blocks-components-select__select,
+    .wc-block-components-text-input input,
+    .wc-block-components-text-input label,
+    .wc-block-components-drawer__close) {
+    color: var(--wp--preset--color--main-1-pistachio-dark) !important;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) a:not(.wc-block-components-button):hover {
+    color: var(--wp--preset--color--main-1-pistachio) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Überschriften: "Mittel" (Abschnitt ÜBERSCHRIFTEN)
+   --------------------------------------------------------------------------- */
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
+    .wc-block-mini-cart__title,
+    .wc-block-components-checkout-step__title,
+    .wc-block-components-checkout-order-summary__title-text,
+    .wc-block-cart__totals-title) {
+    font-family: var(--wp--custom--heading--mittel--font-family);
+    font-size: var(--wp--custom--heading--mittel--font-size);
+    line-height: var(--wp--custom--heading--mittel--line-height);
+    letter-spacing: var(--wp--custom--heading--mittel--letter-spacing);
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    text-transform: none;
+}
+
+/* Produktname: "Klein" wie in den Produktkarten, ohne Unterstrich. */
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-product-name {
+    font-family: var(--wp--custom--heading--klein--font-family);
+    font-size: var(--wp--custom--heading--klein--font-size) !important;
+    line-height: var(--wp--custom--heading--klein--line-height) !important;
+    letter-spacing: var(--wp--custom--heading--klein--letter-spacing);
+    text-decoration: none;
+}
+
+/* Kopf der Tabelle im Warenkorb ("PRODUKT", "SUMME"): klein in Mono. */
+:is(.wp-block-woocommerce-cart) .wc-block-cart-items__header {
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    font-size: var(--wp--preset--font-size--s);
+    letter-spacing: 0.0125em;
+}
+
+/* ---------------------------------------------------------------------------
+   Preise: Montreal Mono wie auf der Produktseite
+   --------------------------------------------------------------------------- */
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-formatted-money-amount {
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    letter-spacing: 0.0125em;
+}
+
+/* Summe ganz unten: Grösse wie "Mittel". */
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-totals-footer-item :is(.wc-block-components-totals-item__label, .wc-block-components-totals-item__value) {
+    font-size: var(--wp--preset--font-size--l);
+}
+
+/* Anzahl am Produktbild der Bestellübersicht. */
+.wp-block-woocommerce-checkout .wc-block-components-order-summary-item__quantity {
+    background-color: var(--wp--preset--color--main-1-pistachio-dark);
+    color: var(--wp--preset--color--main-1-pistachio-ultralight);
+    border-color: var(--wp--preset--color--main-1-pistachio-ultralight);
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+}
+
+/* ---------------------------------------------------------------------------
+   Knöpfe: dieselbe Optik wie im Abschnitt BUTTONS
+   ---------------------------------------------------------------------------
+   Hauptaktion (zur Kasse, Bestellen) wie "button solid", Nebenaktion
+   ("Warenkorb ansehen", Gutschein) wie "button outline". Die Mechanik --
+   Tokens, einfahrende Fläche (::after), Fokusring -- ist dieselbe; hier nur
+   mit den Klassen von WooCommerce. Der Text steckt bei WooCommerce in
+   .wc-block-components-button__text. */
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
+    .wc-block-mini-cart__footer-checkout,
+    .wc-block-mini-cart__footer-cart,
+    .wc-block-mini-cart__shopping-button,
+    .wc-block-cart__submit-button,
+    .wc-block-components-checkout-place-order-button,
+    .wc-block-components-totals-coupon__button) {
+    /* Hell · Voll */
+    --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-text-hover: var(--wp--preset--color--neutral-light);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-ultralight);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 0;
+    padding: 1rem 1.5rem;
+    border: 1px solid var(--btn-border);
+    border-radius: 3rem;
+    background-color: var(--btn-bg);
+    background-image: none;
+    box-shadow: none;
+    color: var(--btn-text);
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-size: var(--wp--preset--font-size--normal);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: normal;
+    text-decoration: none;
+    opacity: 1;
+    transition: color 0.25s ease-in-out, border-color 0.25s ease-in-out;
+}
+
+/* Nebenaktion: Hell · Rand. */
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
+    .wc-block-mini-cart__footer-cart,
+    .wc-block-components-totals-coupon__button) {
+    --btn-bg: transparent;
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
+    .wc-block-mini-cart__footer-checkout,
+    .wc-block-mini-cart__footer-cart,
+    .wc-block-mini-cart__shopping-button,
+    .wc-block-cart__submit-button,
+    .wc-block-components-checkout-place-order-button,
+    .wc-block-components-totals-coupon__button)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--btn-fill);
+    transform: translateX(-100%);
+    opacity: 0;
+    transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
+    .wc-block-mini-cart__footer-checkout,
+    .wc-block-mini-cart__footer-cart,
+    .wc-block-mini-cart__shopping-button,
+    .wc-block-cart__submit-button,
+    .wc-block-components-checkout-place-order-button,
+    .wc-block-components-totals-coupon__button):is(:hover, :focus-visible) {
+    background-color: var(--btn-bg);
+    color: var(--btn-text-hover);
+    border-color: var(--btn-border-hover);
+    box-shadow: none;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
+    .wc-block-mini-cart__footer-checkout,
+    .wc-block-mini-cart__footer-cart,
+    .wc-block-mini-cart__shopping-button,
+    .wc-block-cart__submit-button,
+    .wc-block-components-checkout-place-order-button,
+    .wc-block-components-totals-coupon__button):is(:hover, :focus-visible)::after {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+/* Fokusring wie bei den Buttons statt des blauen von WooCommerce. */
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
+    .wc-block-mini-cart__footer-checkout,
+    .wc-block-mini-cart__footer-cart,
+    .wc-block-mini-cart__shopping-button,
+    .wc-block-cart__submit-button,
+    .wc-block-components-checkout-place-order-button,
+    .wc-block-components-totals-coupon__button):focus {
+    box-shadow: none;
+    outline: none;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
+    .wc-block-mini-cart__footer-checkout,
+    .wc-block-mini-cart__footer-cart,
+    .wc-block-mini-cart__shopping-button,
+    .wc-block-cart__submit-button,
+    .wc-block-components-checkout-place-order-button,
+    .wc-block-components-totals-coupon__button):focus-visible {
+    outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
+    outline-offset: 2px;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
+    .wc-block-cart__submit-button,
+    .wc-block-components-checkout-place-order-button,
+    .wc-block-components-totals-coupon__button):is(:disabled, [aria-disabled="true"]) {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
+    .wc-block-mini-cart__footer-checkout,
+    .wc-block-mini-cart__footer-cart,
+    .wc-block-mini-cart__shopping-button,
+    .wc-block-cart__submit-button,
+    .wc-block-components-checkout-place-order-button,
+    .wc-block-components-totals-coupon__button) {
+    --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-bg: transparent;
+    --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+/* Text optisch mittig wie bei den Buttons (dort ausführlich erklärt). Hier
+   sitzt der Text in einem eigenen Block-Element, das lässt sich direkt
+   zuschneiden. */
+@supports (text-box: trim-both ex alphabetic) {
+    :is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link) .wc-block-components-button__text {
+        text-box: trim-both ex alphabetic;
+    }
+}
+
+/* Das Häkchen-/Pfeil-Symbol im Bestellen-Knopf von WooCommerce ist weiss
+   fest eingestellt. */
+.wp-block-woocommerce-checkout .wc-block-components-checkout-place-order-button .wc-block-components-button__text > svg {
+    fill: currentColor;
+}
+
+/* ---------------------------------------------------------------------------
+   Eingabefelder, Auswahl, Häkchen
+   --------------------------------------------------------------------------- */
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
+    .wc-block-components-text-input input,
+    .wc-block-components-textarea,
+    .wc-blocks-components-select__select) {
+    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 50%, transparent) !important;
+    border-radius: 0.75rem !important;
+    background-color: var(--wp--preset--color--neutral-light);
+    font-size: var(--wp--preset--font-size--normal) !important;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-blocks-components-select__container {
+    border-radius: 0.75rem;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
+    .wc-block-components-text-input input,
+    .wc-block-components-textarea,
+    .wc-blocks-components-select__select):focus {
+    border-color: var(--wp--preset--color--main-1-pistachio-dark) !important;
+    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark) !important;
+    outline: none;
+}
+
+/* Radio-Knöpfe und Häkchen in Pistazie dunkel. */
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(.wc-block-components-radio-control__input, .wc-block-components-checkbox__input) {
+    border-color: var(--wp--preset--color--main-1-pistachio-dark) !important;
+    background-color: var(--wp--preset--color--neutral-light);
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-radio-control__input:checked::before {
+    background: var(--wp--preset--color--main-1-pistachio-dark) !important;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-checkbox__mark {
+    fill: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(.wc-block-components-radio-control__input, .wc-block-components-checkbox__input):focus {
+    outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
+    outline-offset: 2px;
+    box-shadow: none;
+}
+
+/* Kästen um Abholort und Zahlungsart: Rand und Ecken wie die Eingaben. */
+.wp-block-woocommerce-checkout :is(
+    .wc-block-components-radio-control--highlight-checked,
+    .wc-block-components-radio-control-accordion-option,
+    .wc-block-components-radio-control__option) {
+    border-radius: 0.75rem;
+}
+
+/* Rahmen um die ganze Liste (::after) zart, die gewählte Option darin mit
+   der kräftigen Linie -- sonst lägen zwei gleich starke Linien aufeinander. */
+.wp-block-woocommerce-checkout .wc-block-components-radio-control--highlight-checked::after {
+    border-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border-radius: 0.75rem;
+}
+
+.wp-block-woocommerce-checkout .wc-block-components-radio-control-accordion-option--checked-option-highlighted,
+.wp-block-woocommerce-checkout .wc-block-components-radio-control__option--checked-option-highlighted {
+    border-radius: 0.75rem;
+    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark) !important;
+}
+
+/* Lieferdatum (Plugin woo-order-ext): Feld und Beschriftung wie die übrigen.
+   Das Plugin setzt beides als style-Attribut, daher !important. */
+#woo-order-ext-delivery-date {
+    box-sizing: border-box;
+    width: 100% !important;
+    padding: 1rem 0.75rem !important;
+    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 50%, transparent) !important;
+    border-radius: 0.75rem !important;
+    background-color: var(--wp--preset--color--neutral-light);
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-size: var(--wp--preset--font-size--normal);
+}
+
+label[for="woo-order-ext-delivery-date"] {
+    font-weight: 300 !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Kasse: Versandart, Schritte, Bestellübersicht
+   --------------------------------------------------------------------------- */
+
+/* "Versand" / "Im Laden abholen": wie die Auswahlknöpfe im Theme (z. B.
+   Grösse eines Strausses) -- Rand, gewählt mit hellgrüner Fläche. */
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-container {
+    gap: 0.5rem;
+    padding: 0;
+    background: none;
+}
+
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option {
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
+    border-radius: 3rem;
+    background-color: transparent;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    transition: background-color 0.25s ease-in-out;
+}
+
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option.wc-block-checkout__shipping-method-option--selected {
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
+    background-color: var(--wp--preset--color--main-1-pistachio-light);
+}
+
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option:focus-within {
+    outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
+    outline-offset: 2px;
+}
+
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option-title {
+    font-size: var(--wp--preset--font-size--normal);
+}
+
+/* "Bild bei Abholung" (Plugin woo-order-ext): Ecken wie die Eingaben. */
+.wp-block-woocommerce-checkout .woo-order-ext-pickup-image img {
+    border-radius: 0.75rem;
+}
+
+/* Linie links neben den nummerierten Schritten. */
+.wp-block-woocommerce-checkout .wc-block-components-checkout-step--with-step-number .wc-block-components-checkout-step__container::after {
+    border-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+}
+
+/* Bestellübersicht als Kachel wie die Store-Info. */
+.wp-block-woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block {
+    border-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border-radius: 1.5rem;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-totals-wrapper,
+.wc-block-mini-cart__drawer .wc-block-mini-cart__footer,
+.wp-block-woocommerce-checkout .wc-block-checkout__terms--with-separator {
+    border-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent) !important;
+}
+
+/* ---------------------------------------------------------------------------
+   Anzahl (− 1 +) und Entfernen
+   --------------------------------------------------------------------------- */
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart) .wc-block-components-quantity-selector {
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-dark) !important;
+    border-radius: 3rem !important;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    overflow: hidden;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart) .wc-block-components-quantity-selector input.wc-block-components-quantity-selector__input {
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    font-size: var(--wp--preset--font-size--normal);
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart) .wc-block-components-quantity-selector .wc-block-components-quantity-selector__button {
+    border-radius: 0 !important;
+    opacity: 1;
+    transition: background-color 0.25s ease-in-out;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart) .wc-block-components-quantity-selector .wc-block-components-quantity-selector__button:is(:hover, :focus-visible):not(:disabled) {
+    background-color: var(--wp--preset--color--main-1-pistachio-light);
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart) .wc-block-components-quantity-selector .wc-block-components-quantity-selector__button:disabled {
+    opacity: 0.4;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart) .wc-block-cart-item__remove-link {
+    color: var(--wp--preset--color--main-1-pistachio-dark) !important;
+}
+
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart) .wc-block-cart-item__remove-link:hover {
+    color: var(--wp--preset--color--main-1-pistachio) !important;
 }
