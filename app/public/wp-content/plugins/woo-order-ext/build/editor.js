@@ -1,0 +1,1 @@
+(()=>{"use strict";(0,window.wc.blocksCheckout.registerCheckoutFilters)("woo-order-ext",{additionalCartCheckoutInnerBlockTypes:(e,o,t)=>(e.push("woo-order-ext/checkout-newsletter-subscription","woo-order-ext/placeholder-block"),e)})})();

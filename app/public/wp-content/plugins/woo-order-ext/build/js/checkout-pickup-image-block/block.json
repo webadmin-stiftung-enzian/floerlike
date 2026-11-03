@@ -1,0 +1,53 @@
+{
+  "apiVersion": 3,
+  "name": "woo-order-ext/checkout-pickup-image",
+  "version": "1.0.0",
+  "title": "Bild bei Abholung",
+  "category": "woocommerce",
+  "description": "Zeigt im Block „Lieferung“ ein Bild, z. B. einen Kartenausschnitt mit dem Laden – nur wenn „Im Laden abholen“ gewählt ist.",
+  "keywords": [
+    "karte",
+    "abholung",
+    "pickup",
+    "bild"
+  ],
+  "supports": {
+    "html": false,
+    "align": false,
+    "multiple": false,
+    "reusable": false
+  },
+  "attributes": {
+    "lock": {
+      "type": "object",
+      "default": {
+        "remove": false,
+        "move": false
+      }
+    },
+    "enabled": {
+      "type": "boolean",
+      "default": true
+    },
+    "mediaId": {
+      "type": "number",
+      "default": 0
+    },
+    "url": {
+      "type": "string",
+      "default": ""
+    },
+    "alt": {
+      "type": "string",
+      "default": ""
+    },
+    "linkUrl": {
+      "type": "string",
+      "default": ""
+    }
+  },
+  "parent": [
+    "woocommerce/checkout-shipping-method-block"
+  ],
+  "textdomain": "woo-order-ext"
+}

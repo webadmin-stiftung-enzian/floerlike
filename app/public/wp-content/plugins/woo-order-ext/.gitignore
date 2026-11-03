@@ -25,6 +25,6 @@ tests/e2e/config/local-*
 /vendor/
 
 dist
-build
+# build/ ist bewusst im Repo: Plesk zieht main und baut nicht selbst.
 
 woo-order-ext.zip
