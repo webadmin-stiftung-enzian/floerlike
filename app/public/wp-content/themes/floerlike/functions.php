@@ -216,4 +216,14 @@ add_action('wp_enqueue_scripts', function () {
     wp_enqueue_script('gsap', get_template_directory_uri() . '/assets/libs/gsap.min.js', [], '3.12.5', true);
     wp_enqueue_script('gsap-scrolltrigger', get_template_directory_uri() . '/assets/libs/ScrollTrigger.min.js', ['gsap'], '3.12.5', true);
     wp_enqueue_script('navbar-animation', get_template_directory_uri() . '/assets/js/navbar-animation.js', ['gsap', 'gsap-scrolltrigger'], '1.0', true);
+
+    $file = 'assets/js/accordion-animation.js';
+    wp_register_script('floerlike-accordion-animation', get_theme_file_uri($file), ['gsap'], filemtime(get_theme_file_path($file)), true);
+});
+
+// Akkordeon mit GSAP auf- und zuklappen -- das Skript nur dort laden, wo ein
+// Akkordeon auf der Seite steht (auch in Templates und Vorlagen).
+add_filter('render_block_core/accordion', function ($content) {
+    wp_enqueue_script('floerlike-accordion-animation');
+    return $content;
 });

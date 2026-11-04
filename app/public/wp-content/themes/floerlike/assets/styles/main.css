@@ -93,6 +93,134 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
     transform: rotate(90deg);
 }
 
+/* Aufklappen animiert -- mit GSAP (assets/js/accordion-animation.js), in
+   allen Browsern. WordPress versteckt das geschlossene Panel mit
+   hidden="until-found" (content-visibility: hidden, Innenabstand 0 mit
+   !important). Während einer Animation trägt das Panel die Klasse
+   is-animating: dann bleibt es sichtbar, und der Innenabstand oben und unten
+   folgt der Variable, die das Skript animiert. Seitlich bleibt er stehen --
+   sonst bräche der Text während der Bewegung laufend neu um. */
+.wp-block-accordion-panel.is-animating {
+    /* Die animierte Höhe ist die gemessene Gesamthöhe samt Innenabstand --
+       mit content-box käme der Innenabstand noch dazu, und am Ende spränge
+       das Panel um genau diesen Betrag zurück. */
+    box-sizing: border-box;
+    overflow: clip;
+    padding-block: var(--accordion-panel-padding, 1.5rem) !important;
+}
+
+.wp-block-accordion-panel.is-animating[hidden] {
+    content-visibility: visible;
+    padding-inline: 2.5rem !important;
+}
+
+/* ===========================================================================
+   ICONS
+   ===========================================================================
+   Ein Symbol vor einem Element: im Editor unter Erweitert → "Zusätzliche
+   CSS-Klasse(n)" die Klasse "icon" plus eine Variante eintragen, z. B.
+
+     icon icon--flower
+
+   Das Symbol ist eine Maske über einer Farbfläche (wie beim Akkordeon-Pfeil):
+   es nimmt die Textfarbe an (currentColor) -- dunkel auf hellem Grund, hell
+   auf dunklen Flächen, beim Hover eines Buttons automatisch mit.
+
+   Wichtig für die SVG-Dateien: Eine Maske kennt nur deckend/durchsichtig,
+   keine Farben. Weisse Details werden genauso eingefärbt wie der Rest; sie
+   müssen in der Datei ausgeschnitten (durchsichtig) sein, sonst wird das
+   Symbol zur Silhouette. Eine andere Form beim Hover (z. B. nur Umriss)
+   braucht eine zweite Datei, per --icon getauscht.
+
+   Anpassen pro Stelle über Variablen:
+     --icon        das Symbol (setzt die Variante)
+     --icon-open   Symbol einer geöffneten Akkordeon-Überschrift (wird
+                   überblendet), ohne Angabe bleibt es --icon
+     --icon-size   Grösse, Standard 1em (= Schriftgrösse)
+     --icon-gap    Abstand zum Text, Standard 0.5em
+     --icon-align  senkrechte Lage, Standard leicht unter der Mitte
+
+   Die Klasse sitzt immer am äussersten Element eines Blocks. Beim Button ist
+   das die Hülle, nicht der Link, bei der Akkordeon-Überschrift das <h3>, nicht
+   der Knopf mit dem Titel darin. Das Symbol gehört aber in die Pille bzw. vor
+   den Titel -- daher die eigenen Zeilen für diese beiden. */
+
+.icon::before,
+.wp-block-button.icon > .wp-block-button__link::before,
+.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::before,
+div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
+    content: "";
+    display: inline-block;
+    flex-shrink: 0;
+    width: var(--icon-size, 1em);
+    height: var(--icon-size, 1em);
+    margin-inline-end: var(--icon-gap, 0.5em);
+    vertical-align: var(--icon-align, -0.125em);
+    background-color: currentColor;
+    -webkit-mask: var(--icon) no-repeat center / contain;
+    mask: var(--icon) no-repeat center / contain;
+}
+
+/* Nicht an der Hülle, nur innen (Regel oben). */
+.wp-block-button.icon::before,
+.wp-block-accordion-heading.icon::before {
+    content: none;
+}
+
+.icon--flower {
+    --icon: url("../files/icon_flower.svg");
+    --icon-open: url("../files/icon_flower_outline.svg");
+}
+
+.icon--flower-outline {
+    --icon: url("../files/icon_flower_outline.svg");
+}
+
+.icon--arrow-back {
+    --icon: url("../files/arrow_back_24dp_1F1F1F_FILL0_wght300_GRAD0_opsz24.svg");
+}
+
+/* Akkordeon-Überschrift mit Symbol: grösser, und beim Öffnen wird von --icon
+   auf --icon-open überblendet. Ein Masken-Bild lässt sich nicht animieren --
+   das zweite Symbol liegt deshalb auf ::after exakt über dem ersten, und die
+   beiden tauschen die Deckkraft. */
+.wp-block-accordion-heading.icon {
+    --icon-size: 3rem;
+    --icon-gap: 1.5rem;
+}
+
+.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle {
+    position: relative;
+}
+
+.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    width: var(--icon-size);
+    height: var(--icon-size);
+    translate: 0 -50%;
+    background-color: currentColor;
+    -webkit-mask: var(--icon-open, var(--icon)) no-repeat center / contain;
+    mask: var(--icon-open, var(--icon)) no-repeat center / contain;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::before,
+.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::after {
+    transition: opacity 0.35s ease-in-out;
+}
+
+.wp-block-accordion-item.is-open > .wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::before {
+    opacity: 0;
+}
+
+.wp-block-accordion-item.is-open > .wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::after {
+    opacity: 1;
+}
+
 /* ---------------------------------------------------------------------------
    Menüpunkte und Symbole im Header
    ---------------------------------------------------------------------------
@@ -564,16 +692,12 @@ div.single-buttons-wrapper .wp-block-button:has(>.wp-block-button__link) {
     display: flex;
 }
 
-div.single-buttons-wrapper .wp-block-button>.wp-block-button__link:before {
-    background-color: currentColor;
-    content: "";
-    display: inline-block;
-    height: 1.5rem;
-    margin-right: .5rem;
-    mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 -960 960 960" fill="%231f1f1f"><path d="m294.92-450 227.85 227.85L480-180 180-480l300-300 42.77 42.15L294.92-510H780v60H294.92Z"/></svg>');
-    -webkit-mask: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg"  viewBox="0 -960 960 960" fill="%231f1f1f"><path d="m294.92-450 227.85 227.85L480-180 180-480l300-300 42.77 42.15L294.92-510H780v60H294.92Z"/></svg>');
-    vertical-align: middle;
-    width: 1.5rem;
+/* Zurück-Pfeil vor jedem Button dieser Gruppe -- über das Icon-System (ICONS
+   oben), ohne dass jeder Button die Klasse braucht. */
+div.single-buttons-wrapper .wp-block-button {
+    --icon: url("../files/arrow_back_24dp_1F1F1F_FILL0_wght300_GRAD0_opsz24.svg");
+    --icon-size: 1.5rem;
+    --icon-align: middle;
 }
 
 /* button.wc-block-mini-cart__button {
