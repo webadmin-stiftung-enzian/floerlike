@@ -3,7 +3,7 @@
  *
  * @see https://developer.wordpress.org/block-editor/reference-guides/packages/packages-i18n/
  */
-import { __ } from '@wordpress/i18n';
+import { __, sprintf } from '@wordpress/i18n';
 
 /**
  * React hook that is used to mark the block wrapper element.
@@ -26,6 +26,7 @@ import {
 import { Panel, PanelBody, PanelRow, ColorPalette, Button, ToggleControl, RadioControl, RangeControl, TextControl, FontSizePicker, FocalPointPicker, Placeholder, Spinner, Notice } from '@wordpress/components';
 import { background, image as imageIcon } from '@wordpress/icons';
 import { useEffect, useState } from '@wordpress/element';
+import apiFetch from '@wordpress/api-fetch';
 
 /**
  * Internal dependencies
@@ -173,14 +174,19 @@ const buildFitStyle = ( { focalPoint, scale } ) => ( {
  * @param {string} overrides           CSS properties the block sets, comma-separated
  *                                     so the effect stays a stable dependency.
  * @param {string} text                Replaces the words drawn along a path.
- * @return {{markup: ?string, ownText: string, isLoading: boolean, hasError: boolean}} Load state.
+ * @param {string} textStyles          The drawing's own text styling as JSON (a
+ *                                     stable dependency), empty to leave it — see
+ *                                     `styleText` in `inline-svg.js`.
+ * @param {number} revision            Bumped when the file changed on the server
+ *                                     (photos split out), so it is fetched again.
+ * @return {{markup: ?string, ownText: string, hasText: boolean, textCount: number, isLoading: boolean, hasError: boolean}} Load state.
  */
-const useInlineSvg = ( url, preserveAspectRatio, overrides, text ) => {
-	const [ state, setState ] = useState( { markup: null, ownText: '', isLoading: false, hasError: false } );
+const useInlineSvg = ( url, preserveAspectRatio, overrides, text, textStyles = '', revision = 0 ) => {
+	const [ state, setState ] = useState( { markup: null, ownText: '', hasText: false, textCount: 0, isLoading: false, hasError: false } );
 
 	useEffect( () => {
 		if ( ! url ) {
-			setState( { markup: null, ownText: '', isLoading: false, hasError: false } );
+			setState( { markup: null, ownText: '', hasText: false, textCount: 0, isLoading: false, hasError: false } );
 			return undefined;
 		}
 
@@ -189,15 +195,17 @@ const useInlineSvg = ( url, preserveAspectRatio, overrides, text ) => {
 			// `isEmbeddableUrl` in `inline-svg.js`. Reported as an error so the
 			// block falls back to the `<img>` a browser keeps in secure static
 			// mode.
-			setState( { markup: null, ownText: '', isLoading: false, hasError: true } );
+			setState( { markup: null, ownText: '', hasText: false, textCount: 0, isLoading: false, hasError: true } );
 			return undefined;
 		}
 
 		let isCurrent = true;
 		setState( ( previous ) => ( { ...previous, isLoading: true, hasError: false } ) );
 
+		// `no-cache`: revalidate, so a file just rewritten on the server (photos
+		// split out) is not served from the browser cache.
 		window
-			.fetch( url )
+			.fetch( url, { cache: 'no-cache' } )
 			.then( ( response ) => {
 				if ( ! response.ok ) {
 					throw new Error( response.statusText );
@@ -212,24 +220,27 @@ const useInlineSvg = ( url, preserveAspectRatio, overrides, text ) => {
 					preserveAspectRatio,
 					overrides: overrides ? overrides.split( ',' ) : [],
 					text,
+					textStyles: textStyles ? JSON.parse( textStyles ) : null,
 				} );
 				setState( {
 					markup: prepared?.markup ?? null,
 					ownText: prepared?.text ?? '',
+					hasText: !! prepared?.hasText,
+					textCount: prepared?.textCount ?? 0,
 					isLoading: false,
 					hasError: ! prepared,
 				} );
 			} )
 			.catch( () => {
 				if ( isCurrent ) {
-					setState( { markup: null, ownText: '', isLoading: false, hasError: true } );
+					setState( { markup: null, ownText: '', hasText: false, textCount: 0, isLoading: false, hasError: true } );
 				}
 			} );
 
 		return () => {
 			isCurrent = false;
 		};
-	}, [ url, preserveAspectRatio, overrides, text ] );
+	}, [ url, preserveAspectRatio, overrides, text, textStyles, revision ] );
 
 	return state;
 };
@@ -342,16 +353,41 @@ export default function Edit( { attributes, setAttributes } ) {
 	const isPixelForeground = fgType !== 'svg';
 	const hasForeground = isPixelForeground ? !! imgUrl : !! fgSvgUrl;
 	const foregroundPreviewUrl = isPixelForeground ? imgUrl : fgSvgUrl;
-	const hasTextpath = ! isPixelForeground && !! fgTextpathEnable && !! fgTextpathUrl;
+	const hasTextpath = !! fgTextpathEnable && !! fgTextpathUrl;
 
 	// The foreground SVG is embedded rather than referenced: an `<img>` would
 	// put it into secure static mode, where an `<image>` inside it — a cut-out
 	// photo from the media library — never loads.
+	// Bumped once the server has split a picked file's embedded photos out,
+	// so the rewritten file is fetched again — see `splitEmbeddedPhotos`.
+	const [ svgRevision, setSvgRevision ] = useState( 0 );
+	const [ splitMessage, setSplitMessage ] = useState( null );
+
+	// Text in the drawing itself (artwork and textPath in one file): the
+	// block's text settings apply to it — unless a separate textPath file is
+	// layered on top, which then takes them. Mirrors render.php.
+	const foregroundTextStyles = hasTextpath
+		? ''
+		: JSON.stringify(
+			Object.fromEntries(
+				Object.entries( {
+					fill: safeCssValue( fgTextpathColor ),
+					'font-family': safeCssValue( fgTextpathFontFamily ),
+					'font-size': safeCssValue( fgTextpathFontSize ),
+					'letter-spacing': safeCssValue( fgTextpathLetterSpacing ),
+				} ).filter( ( [ , value ] ) => value )
+			)
+		);
+
 	const foregroundSvg = useInlineSvg(
 		isPixelForeground ? '' : fgSvgUrl,
 		focalPointToPreserveAspectRatio( fgFocalPoint ),
-		fgSvgColor ? 'fill' : ''
+		fgSvgColor ? 'fill' : '',
+		hasTextpath ? '' : fgTextpathText,
+		foregroundTextStyles,
+		svgRevision
 	);
+	const hasForegroundText = ! isPixelForeground && ! hasTextpath && foregroundSvg.hasText;
 
 	// The textPath layer sits over the whole block rather than following the
 	// foreground's size and focal point, so the words keep running around it.
@@ -375,12 +411,51 @@ export default function Edit( { attributes, setAttributes } ) {
 		.filter( Boolean )
 		.join( ',' );
 
+	// Over a photo the layer is fitted exactly like the photo (`slice` is what
+	// `object-fit: cover` does, pinned at the focal point), so a path drawn on
+	// the photo stays on it — see render.php.
+	const textpathAspectRatio = isPixelForeground
+		? focalPointToPreserveAspectRatio( fgFocalPoint ).replace( ' meet', ' slice' )
+		: TEXTPATH_ASPECT_RATIO;
+
 	const textpathSvg = useInlineSvg(
 		hasTextpath ? fgTextpathUrl : '',
-		TEXTPATH_ASPECT_RATIO,
+		textpathAspectRatio,
 		textpathOverrides,
-		fgTextpathText
+		fgTextpathText,
+		'',
+		svgRevision
 	);
+
+	/**
+	 * Splits photos embedded in a picked SVG out into files of their own (see
+	 * includes/externalize.php), so the drawing stays small however it was
+	 * saved. The file keeps its place in the media library and looks the same.
+	 *
+	 * @param {Object} media Picked attachment.
+	 */
+	const splitEmbeddedPhotos = ( media ) => {
+		setSplitMessage( null );
+		if ( ! media?.id ) {
+			return;
+		}
+		apiFetch( { path: `/img-svg-block/v1/externalize/${ media.id }`, method: 'POST' } )
+			.then( ( result ) => {
+				if ( result?.changed ) {
+					setSvgRevision( ( revision ) => revision + 1 );
+					setSplitMessage( {
+						status: 'success',
+						text: __( 'Das eingebettete Foto wurde als eigene Datei gespeichert – die SVG ist jetzt klein und lädt schnell.', 'img-svg-block' ),
+					} );
+				}
+			} )
+			.catch( ( error ) => {
+				setSplitMessage( {
+					status: 'warning',
+					text: error?.message || __( 'Das eingebettete Foto konnte nicht ausgelagert werden.', 'img-svg-block' ),
+				} );
+			} );
+	};
 
 	const onSelectImage = ( media ) => {
 		setAttributes( {
@@ -408,6 +483,7 @@ export default function Edit( { attributes, setAttributes } ) {
 			'fg-svg-id': String( media.id ),
 			'fg-svg-alt': media.alt || '',
 		} );
+		splitEmbeddedPhotos( media );
 	};
 
 	const onRemoveForegroundSvg = () => {
@@ -420,6 +496,7 @@ export default function Edit( { attributes, setAttributes } ) {
 			'fg-textpath-id': String( media.id ),
 			'fg-textpath-alt': media.alt || '',
 		} );
+		splitEmbeddedPhotos( media );
 	};
 
 	const onRemoveTextpathSvg = () => {
@@ -489,6 +566,60 @@ export default function Edit( { attributes, setAttributes } ) {
 			alt={ fgTextpathAlt }
 			style={ textpathStyle }
 		/>
+	);
+
+	/**
+	 * Text, typography and color of a textPath — the one in the drawing itself
+	 * or the one in a separate file over it.
+	 *
+	 * @param {string} ownText   The words the file draws, shown as placeholder.
+	 * @param {number} textCount How many texts the file holds; only the first
+	 *                           is the block's, the others stay as drawn.
+	 * @return {Element} Controls.
+	 */
+	const textControls = ( ownText, textCount = 1 ) => (
+		<>
+			{ textCount > 1 && (
+				<Notice status="warning" isDismissible={ false }>
+					{ sprintf(
+						/* translators: %d: number of texts in the SVG file */
+						__( 'Die Grafik enthält %d Texte – einstellbar ist nur einer: der in Inkscape unterste (im Dialog „Ebenen und Objekte“ ganz unten). Die anderen bleiben, wie sie in der Datei stehen, und sind ohne eigene Füllung unsichtbar.', 'img-svg-block' ),
+						textCount
+					) }
+				</Notice>
+			) }
+			<TextControl
+				label={ __( 'Text', 'img-svg-block' ) }
+				help={ __( 'Leer lassen, um den Text aus der SVG-Datei zu verwenden.', 'img-svg-block' ) }
+				placeholder={ ownText }
+				value={ fgTextpathText || '' }
+				onChange={ ( value ) => setAttributes( { 'fg-textpath-text': value } ) }
+			/>
+			<FontFamilyControl
+				fontFamilies={ fontFamilies }
+				value={ fgTextpathFontFamily }
+				onChange={ ( value ) => setAttributes( { 'fg-textpath-font-family': value } ) }
+			/>
+			<FontSizePicker
+				fontSizes={ fontSizes }
+				value={ fgTextpathFontSize }
+				onChange={ ( value ) => setAttributes( { 'fg-textpath-font-size': value } ) }
+				withSlider
+			/>
+			<LetterSpacingControl
+				value={ fgTextpathLetterSpacing }
+				onChange={ ( value ) => setAttributes( { 'fg-textpath-letter-spacing': value } ) }
+			/>
+			<p className="components-base-control__help">
+				{ __( 'Schriftgröße und Laufweite skalieren mit der Grafik: sie gelten im Koordinatensystem der SVG-Datei, nicht in Bildschirmpixeln.', 'img-svg-block' ) }
+			</p>
+			<ColorPaletteControl
+				label={ __( 'Farbe', 'img-svg-block' ) }
+				colors={ colorPalette }
+				value={ fgTextpathColor }
+				onChange={ ( color ) => setAttributes( { 'fg-textpath-color': color } ) }
+			/>
+		</>
 	);
 
 	return (
@@ -575,6 +706,13 @@ export default function Edit( { attributes, setAttributes } ) {
 								onChange={ ( value ) => setAttributes( { 'fg-type': value } ) }
 							/>
 						</PanelRow>
+						{ splitMessage && (
+							<PanelRow>
+								<Notice status={ splitMessage.status } onRemove={ () => setSplitMessage( null ) }>
+									{ splitMessage.text }
+								</Notice>
+							</PanelRow>
+						) }
 						{ isPixelForeground ? (
 							<>
 								<PanelRow>
@@ -654,6 +792,14 @@ export default function Edit( { attributes, setAttributes } ) {
 									max={ 200 }
 									step={ 1 }
 								/>
+								{ hasForegroundText && (
+									<>
+										<p className="components-base-control__help">
+											{ __( 'Die Grafik enthält einen Textpfad – Text, Schrift und Farbe lassen sich hier anpassen.', 'img-svg-block' ) }
+										</p>
+										{ textControls( foregroundSvg.ownText, foregroundSvg.textCount ) }
+									</>
+								) }
 							</>
 						) }
 						{ hasForeground && (
@@ -666,12 +812,14 @@ export default function Edit( { attributes, setAttributes } ) {
 								/>
 							</PanelRow>
 						) }
-						{ ! isPixelForeground && (
+						{ hasForeground && (
 							<>
 								<PanelRow>
 									<ToggleControl
 										label={ __( 'Zusätzliches SVG mit Textpfad', 'img-svg-block' ) }
-										help={ __( 'Legt ein zweites SVG über den Vordergrund – z. B. ein umlaufender Text um die freigestellte Grafik.', 'img-svg-block' ) }
+										help={ isPixelForeground
+											? __( 'Legt ein SVG mit Textpfad über das Bild. Die SVG-Datei genau so groß anlegen wie das Bild (in Inkscape: Bild verknüpft importieren, Seite an Bild anpassen, Pfad zeichnen, Bild löschen) – dann liegt der Text deckungsgleich auf dem Bild.', 'img-svg-block' )
+											: __( 'Nur nötig, wenn der Text nicht schon in der Grafik selbst liegt: legt ein zweites SVG mit Textpfad über den Vordergrund.', 'img-svg-block' ) }
 										checked={ !! fgTextpathEnable }
 										onChange={ ( value ) => setAttributes( { 'fg-textpath-enable': value } ) }
 									/>
@@ -708,41 +856,7 @@ export default function Edit( { attributes, setAttributes } ) {
 												</Notice>
 											</PanelRow>
 										) }
-										{ hasTextpath && ! textpathSvg.hasError && (
-											<>
-												<TextControl
-													label={ __( 'Text', 'img-svg-block' ) }
-													help={ __( 'Leer lassen, um den Text aus der SVG-Datei zu verwenden.', 'img-svg-block' ) }
-													placeholder={ textpathSvg.ownText }
-													value={ fgTextpathText || '' }
-													onChange={ ( value ) => setAttributes( { 'fg-textpath-text': value } ) }
-												/>
-												<FontFamilyControl
-													fontFamilies={ fontFamilies }
-													value={ fgTextpathFontFamily }
-													onChange={ ( value ) => setAttributes( { 'fg-textpath-font-family': value } ) }
-												/>
-												<FontSizePicker
-													fontSizes={ fontSizes }
-													value={ fgTextpathFontSize }
-													onChange={ ( value ) => setAttributes( { 'fg-textpath-font-size': value } ) }
-													withSlider
-												/>
-												<LetterSpacingControl
-													value={ fgTextpathLetterSpacing }
-													onChange={ ( value ) => setAttributes( { 'fg-textpath-letter-spacing': value } ) }
-												/>
-												<p className="components-base-control__help">
-													{ __( 'Schriftgröße und Laufweite skalieren mit der Grafik: sie gelten im Koordinatensystem der SVG-Datei, nicht in Bildschirmpixeln.', 'img-svg-block' ) }
-												</p>
-												<ColorPaletteControl
-													label={ __( 'Farbe', 'img-svg-block' ) }
-													colors={ colorPalette }
-													value={ fgTextpathColor }
-													onChange={ ( color ) => setAttributes( { 'fg-textpath-color': color } ) }
-												/>
-											</>
-										) }
+										{ hasTextpath && ! textpathSvg.hasError && textControls( textpathSvg.ownText, textpathSvg.textCount ) }
 									</>
 								) }
 							</>

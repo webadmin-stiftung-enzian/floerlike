@@ -77,7 +77,9 @@ export const isEmbeddableUrl = ( url ) => {
  * @return {boolean} Whether the reference is safe to keep.
  */
 const isSafeHref = ( value ) => {
-	const reference = String( value ).replace( /[\u0000-\u0020]+/g, '' );
+	// Only the start decides — the scheme, or the host of an absolute
+	// reference. A photo embedded as base64 runs to megabytes.
+	const reference = String( value ).slice( 0, 512 ).replace( /[\u0000-\u0020]+/g, '' );
 
 	if ( '' === reference || reference.startsWith( '#' ) || reference.startsWith( '/' ) ) {
 		return true;
@@ -152,6 +154,16 @@ const scopeCss = ( css, scope ) =>
  * @param {SVGElement} svg   Root SVG element (mutated in place).
  * @param {string}     scope Class name to bind the file's own CSS to.
  */
+/**
+ * How long a `data:` reference may be and still be embedded — see
+ * img_svg_block_max_data_uri_length() in render.php, which this mirrors. A
+ * placed photo belongs in the media library, not base64 inside the drawing.
+ */
+const MAX_DATA_URI_LENGTH = 500 * 1024;
+
+const isOversizedDataUri = ( value ) =>
+	value.length > MAX_DATA_URI_LENGTH && /^\s*data:/i.test( value.slice( 0, 64 ) );
+
 const sanitizeSvg = ( svg, scope ) => {
 	svg.querySelectorAll( '*' ).forEach( ( element ) => {
 		const isSvgElement =
@@ -166,7 +178,7 @@ const sanitizeSvg = ( svg, scope ) => {
 		[ ...element.attributes ].forEach( ( attribute ) => {
 			const name = attribute.name.toLowerCase();
 
-			if ( name.startsWith( 'on' ) || ( name.includes( 'href' ) && ! isSafeHref( attribute.value ) ) ) {
+			if ( name.startsWith( 'on' ) || ( name.includes( 'href' ) && ( ! isSafeHref( attribute.value ) || isOversizedDataUri( attribute.value ) ) ) ) {
 				element.removeAttributeNode( attribute );
 			}
 		} );
@@ -270,6 +282,63 @@ const takeOverProperty = ( svg, property ) => {
 const findTextNode = ( svg ) => svg.querySelector( 'textPath' ) || svg.querySelector( 'text' );
 
 /**
+ * Hands the typography and color of a drawing's own text over to the block —
+ * for a textPath that lives in the same file as the artwork. Works on the text
+ * alone, unlike `takeOverProperty`: the artwork keeps its fills, the words get
+ * theirs set directly on their `<text>`. Without a color chosen, the file's own
+ * fill stays — unless it is `none` or missing, as routinely on a textPath; the
+ * words then take the block's color. Mirrors img_svg_block_style_text() in
+ * render.php.
+ *
+ * @param {SVGElement} svg    Root SVG element (mutated in place).
+ * @param {Object}     styles CSS property => value for the text.
+ */
+const styleText = ( svg, styles ) => {
+	const text =
+		svg.querySelector( 'textPath' )?.closest( 'text' ) || svg.querySelector( 'text' );
+	if ( ! text ) {
+		return;
+	}
+
+	const elements = [ text, ...text.querySelectorAll( '*' ) ];
+	const declared = { ...styles };
+
+	if ( ! declared.fill ) {
+		let fill = '';
+		elements.forEach( ( element ) => {
+			const match = /(?:^|;)\s*fill\s*:\s*([^;]+)/i.exec( element.getAttribute( 'style' ) || '' );
+			if ( match ) {
+				fill = match[ 1 ].trim().toLowerCase();
+			} else if ( element.hasAttribute( 'fill' ) ) {
+				fill = element.getAttribute( 'fill' ).trim().toLowerCase();
+			}
+		} );
+		if ( '' === fill || 'none' === fill ) {
+			declared.fill = 'currentColor';
+		}
+	}
+
+	const properties = Object.keys( declared ).filter( ( property ) => declared[ property ] );
+	if ( ! properties.length ) {
+		return;
+	}
+
+	properties.forEach( ( property ) => {
+		elements.forEach( ( element ) => {
+			element.removeAttribute( property );
+			const style = element.getAttribute( 'style' );
+			if ( style ) {
+				element.setAttribute( 'style', stripDeclaration( style, property, () => false ) );
+			}
+		} );
+	} );
+
+	const own = ( text.getAttribute( 'style' ) || '' ).replace( /[;\s]+$/, '' );
+	const added = properties.map( ( property ) => `${ property }:${ declared[ property ] }` ).join( ';' );
+	text.setAttribute( 'style', own ? `${ own };${ added }` : added );
+};
+
+/**
  * Maps a focal point onto an SVG `preserveAspectRatio` alignment. An inline
  * SVG has no `object-position`; the nearest equivalent is which corner of its
  * viewBox is pinned when the drawing is fitted ("meet", i.e. contain) into a
@@ -303,11 +372,16 @@ export const focalPointToPreserveAspectRatio = ( focalPoint ) => {
  *                                               `fill` or `font-family`.
  * @param {string}   options.text                Replaces the words drawn along the
  *                                               path; empty keeps the file's own.
- * @return {?{markup: string, text: string}} The sanitized `<svg>` and the text
- *                                           the file itself carries, or null
- *                                           when the source is not SVG.
+ * @param {?Object}  options.textStyles          CSS property => value for the
+ *                                               drawing's own text — see
+ *                                               `styleText`. Null leaves the
+ *                                               text as the file has it.
+ * @return {?{markup: string, text: string, hasText: boolean, textCount: number}}
+ *         The sanitized `<svg>`, the text the file itself carries, whether it
+ *         carries any and in how many `<text>` runs — only the first is the
+ *         block's — or null when the source is not SVG.
  */
-export const prepareInlineSvg = ( source, { preserveAspectRatio, overrides = [], text } = {} ) => {
+export const prepareInlineSvg = ( source, { preserveAspectRatio, overrides = [], text, textStyles = null } = {} ) => {
 	const parsed = new window.DOMParser().parseFromString( source, 'image/svg+xml' );
 	const svg = parsed.querySelector( 'svg' );
 
@@ -334,11 +408,15 @@ export const prepareInlineSvg = ( source, { preserveAspectRatio, overrides = [],
 		textNode.textContent = text;
 	}
 
+	if ( textStyles ) {
+		styleText( svg, textStyles );
+	}
+
 	if ( preserveAspectRatio ) {
 		svg.setAttribute( 'preserveAspectRatio', preserveAspectRatio );
 	}
 	svg.removeAttribute( 'width' );
 	svg.removeAttribute( 'height' );
 
-	return { markup: svg.outerHTML, text: ownText };
+	return { markup: svg.outerHTML, text: ownText, hasText: !! textNode, textCount: svg.querySelectorAll( 'text' ).length };
 };

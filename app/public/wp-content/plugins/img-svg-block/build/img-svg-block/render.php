@@ -362,7 +362,10 @@ if ( ! function_exists( 'img_svg_block_is_safe_href' ) ) {
 	 * @return bool Whether the reference is safe to keep.
 	 */
 	function img_svg_block_is_safe_href( $value ) {
-		$value = preg_replace( '/[\x00-\x20]+/', '', (string) $value );
+		// Only the start decides — the scheme, or the host of an absolute
+		// reference. A photo embedded as base64 runs to megabytes, and
+		// stripping all of it would copy every byte once more for nothing.
+		$value = preg_replace( '/[\x00-\x20]+/', '', substr( (string) $value, 0, 512 ) );
 
 		if ( '' === $value || '#' === $value[0] || '/' === $value[0] ) {
 			return true;
@@ -386,6 +389,30 @@ if ( ! function_exists( 'img_svg_block_is_safe_href' ) ) {
 
 		// A relative path: no scheme in front of the first separator.
 		return ! preg_match( '/^[a-z0-9+.-]*:/i', $value );
+	}
+}
+
+if ( ! function_exists( 'img_svg_block_max_data_uri_length' ) ) {
+	/**
+	 * How long a `data:` reference may be and still be embedded.
+	 *
+	 * A drawing program embeds a placed photo as base64 unless told to link
+	 * it, and the block copies the file's markup into every page that shows
+	 * it — a 5 MB photo becomes 5 MB of HTML per visit, and parsing,
+	 * sanitizing and printing it holds several copies in memory at once,
+	 * enough to exhaust PHP's limit on a common 128 MB host. A photo belongs
+	 * in the media library, referenced by URL (or set as the foreground
+	 * image); what stays inline are small textures and icons.
+	 *
+	 * @return int Maximum length in bytes.
+	 */
+	function img_svg_block_max_data_uri_length() {
+		/**
+		 * Filters the maximum length of an embedded `data:` reference.
+		 *
+		 * @param int $length Bytes, default 500 KB.
+		 */
+		return (int) apply_filters( 'img_svg_block_max_data_uri_length', 500 * 1024 );
 	}
 }
 
@@ -453,17 +480,97 @@ if ( ! function_exists( 'img_svg_block_sanitize_svg' ) ) {
 			}
 		}
 
+		$max_data_uri = img_svg_block_max_data_uri_length();
+
 		foreach ( iterator_to_array( $xpath->query( '//@*' ) ) as $attribute ) {
 			$name = strtolower( $attribute->nodeName );
 
-			if ( 0 === strpos( $name, 'on' ) || ( false !== strpos( $name, 'href' ) && ! img_svg_block_is_safe_href( $attribute->value ) ) ) {
+			if ( 0 === strpos( $name, 'on' ) ) {
+				$attribute->ownerElement->removeAttributeNode( $attribute );
+				continue;
+			}
+
+			if ( false === strpos( $name, 'href' ) ) {
+				continue;
+			}
+
+			// Read once: every access to ->value copies the whole string.
+			$value = $attribute->value;
+			if (
+				! img_svg_block_is_safe_href( $value )
+				|| ( strlen( $value ) > $max_data_uri && 0 === stripos( ltrim( $value ), 'data:' ) )
+			) {
 				$attribute->ownerElement->removeAttributeNode( $attribute );
 			}
+			unset( $value );
 		}
 
 		foreach ( iterator_to_array( $xpath->query( "//*[local-name()='style']" ) ) as $style ) {
 			$style->textContent = img_svg_block_scope_css( $style->textContent, $scope );
 		}
+	}
+}
+
+if ( ! function_exists( 'img_svg_block_style_text' ) ) {
+	/**
+	 * Hands the typography and color of a drawing's own text over to the
+	 * block — for a textPath that lives in the same file as the artwork, so
+	 * photo, shape and words are drawn and placed together in one file.
+	 *
+	 * Unlike img_svg_block_take_over_property(), which clears a property in
+	 * the whole drawing so the container's value reaches it, this works on the
+	 * text alone: the artwork keeps its fills, and the words get theirs set
+	 * directly on their `<text>`. Without a color chosen, the file's own fill
+	 * stays — unless it is `none` or missing, as routinely on a textPath (an
+	 * Inkscape export would draw nothing); the words then take the block's
+	 * color.
+	 *
+	 * @param DOMXPath $xpath  XPath over the parsed document.
+	 * @param array    $styles CSS property => value for the text.
+	 */
+	function img_svg_block_style_text( $xpath, $styles ) {
+		$runs = $xpath->query( "//*[local-name()='text'][.//*[local-name()='textPath']]" );
+		if ( ! $runs->length ) {
+			$runs = $xpath->query( "//*[local-name()='text']" );
+		}
+		if ( ! $runs->length ) {
+			return;
+		}
+
+		$text = $runs->item( 0 );
+
+		if ( ! isset( $styles['fill'] ) ) {
+			$fill = '';
+			foreach ( array_merge( array( $text ), iterator_to_array( $xpath->query( './/*', $text ) ) ) as $element ) {
+				if ( preg_match( '/(?:^|;)\s*fill\s*:\s*([^;]+)/i', $element->getAttribute( 'style' ), $match ) ) {
+					$fill = strtolower( trim( $match[1] ) );
+				} elseif ( $element->hasAttribute( 'fill' ) ) {
+					$fill = strtolower( trim( $element->getAttribute( 'fill' ) ) );
+				}
+			}
+			if ( '' === $fill || 'none' === $fill ) {
+				$styles['fill'] = 'currentColor';
+			}
+		}
+		if ( ! $styles ) {
+			return;
+		}
+
+		foreach ( array_keys( $styles ) as $property ) {
+			foreach ( array_merge( array( $text ), iterator_to_array( $xpath->query( './/*', $text ) ) ) as $element ) {
+				$element->removeAttribute( $property );
+				if ( $element->hasAttribute( 'style' ) ) {
+					$element->setAttribute( 'style', img_svg_block_strip_declaration( $element->getAttribute( 'style' ), $property, $element ) );
+				}
+			}
+		}
+
+		$declarations = array();
+		foreach ( $styles as $property => $value ) {
+			$declarations[] = $property . ':' . $value;
+		}
+		$own = trim( $text->getAttribute( 'style' ), "; \t\n" );
+		$text->setAttribute( 'style', trim( $own . ';' . implode( ';', $declarations ), ';' ) );
 	}
 }
 
@@ -491,18 +598,32 @@ if ( ! function_exists( 'img_svg_block_inline_svg' ) ) {
 	 * @param array  $overrides             CSS properties the block sets on the
 	 *                                      container and the drawing must inherit.
 	 * @param string $text                  Replaces the words drawn along a path.
+	 * @param array|null $text_styles       CSS property => value for the
+	 *                                      drawing's own text — see
+	 *                                      img_svg_block_style_text(). Null
+	 *                                      leaves the text as the file has it.
 	 * @return string Sanitized `<svg>` markup, or an empty string when the file
 	 *                cannot be read or parsed.
 	 */
-	function img_svg_block_inline_svg( $attachment_id, $url, $preserve_aspect_ratio, $overrides = array(), $text = '' ) {
+	function img_svg_block_inline_svg( $attachment_id, $url, $preserve_aspect_ratio, $overrides = array(), $text = '', $text_styles = null ) {
 		$path = img_svg_block_svg_path( $attachment_id, $url );
 
 		if ( ! $path ) {
 			return '';
 		}
 
+		// A file picked before the block split photos out on selection
+		// (edit.js): split it now, once — see includes/externalize.php.
+		if ( function_exists( 'img_svg_block_externalize_images' ) && img_svg_block_may_need_externalizing( $path ) ) {
+			$id = (int) $attachment_id ? (int) $attachment_id : attachment_url_to_postid( $url );
+			if ( $id ) {
+				img_svg_block_externalize_images( $id );
+				clearstatcache( true, $path );
+			}
+		}
+
 		static $cache = array();
-		$cache_key = $path . '|' . filemtime( $path ) . '|' . $preserve_aspect_ratio . '|' . implode( ' ', $overrides ) . '|' . $text;
+		$cache_key = $path . '|' . filemtime( $path ) . '|' . $preserve_aspect_ratio . '|' . implode( ' ', $overrides ) . '|' . $text . '|' . wp_json_encode( $text_styles );
 		if ( isset( $cache[ $cache_key ] ) ) {
 			return $cache[ $cache_key ];
 		}
@@ -547,6 +668,10 @@ if ( ! function_exists( 'img_svg_block_inline_svg' ) ) {
 			}
 		}
 
+		if ( null !== $text_styles ) {
+			img_svg_block_style_text( $xpath, $text_styles );
+		}
+
 		$svg = $dom->documentElement;
 		$svg->setAttribute( 'class', trim( $svg->getAttribute( 'class' ) . ' ' . $scope ) );
 		if ( in_array( 'fill', $overrides, true ) ) {
@@ -587,11 +712,18 @@ $fg_textpath_color = img_svg_block_safe_css_value( $attributes['fg-textpath-colo
 $fg_textpath_font_family    = img_svg_block_safe_css_value( $attributes['fg-textpath-font-family'] ?? '' );
 $fg_textpath_font_size      = img_svg_block_safe_css_value( $attributes['fg-textpath-font-size'] ?? '' );
 $fg_textpath_letter_spacing = img_svg_block_safe_css_value( $attributes['fg-textpath-letter-spacing'] ?? '' );
-$has_textpath     = ! $is_pixel_fg && ! empty( $attributes['fg-textpath-enable'] ) && $fg_textpath_url;
+$has_textpath     = ! empty( $attributes['fg-textpath-enable'] ) && $fg_textpath_url;
 
-// How the textPath layer is fitted into the block: whole and centred, since
-// it frames the foreground rather than being framed with it.
-$textpath_aspect_ratio = 'xMidYMid meet';
+// How the textPath layer is fitted into the block. Over a vector graphic:
+// whole and centred, since it frames the foreground rather than being framed
+// with it. Over a photo: exactly like the photo — `slice` is what
+// `object-fit: cover` does, pinned where the focal point pins the photo — so
+// a path drawn on the photo stays on it. Drawn in a file the size of the
+// photo, the two line up exactly; the block takes the photo's aspect ratio,
+// so nothing is cropped unless CSS forces another one.
+$textpath_aspect_ratio = $is_pixel_fg
+	? str_replace( ' meet', ' slice', img_svg_block_preserve_aspect_ratio( $fg_focal_point ) )
+	: 'xMidYMid meet';
 
 $svg_url          = $attributes['svg-url'] ?? '';
 // Only single CSS values reach a `style` attribute — see img_svg_block_safe_css_value().
@@ -653,11 +785,25 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 		// Embedded rather than referenced: an `<img>` would put the SVG into
 		// secure static mode, where an `<image>` inside it — a cut-out photo
 		// from the media library — never loads.
+		// Text in the drawing itself (textPath and artwork in one file): the
+		// block's text settings apply to it — unless a separate textPath file
+		// is layered on top, which then takes them.
+		$fg_text_styles = $has_textpath ? null : array_filter(
+			array(
+				'fill'           => $fg_textpath_color,
+				'font-family'    => $fg_textpath_font_family,
+				'font-size'      => $fg_textpath_font_size,
+				'letter-spacing' => $fg_textpath_letter_spacing,
+			)
+		);
+
 		$inline_svg = img_svg_block_inline_svg(
 			$fg_svg_id,
 			$fg_svg_url,
 			img_svg_block_preserve_aspect_ratio( $fg_focal_point ),
-			$fg_svg_color ? array( 'fill' ) : array()
+			$fg_svg_color ? array( 'fill' ) : array(),
+			$has_textpath ? '' : $fg_textpath_text,
+			$fg_text_styles
 		);
 
 		// The embedded SVG inherits this `color` for every fill that named a
