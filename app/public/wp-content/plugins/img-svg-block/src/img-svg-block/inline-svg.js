@@ -282,6 +282,36 @@ const takeOverProperty = ( svg, property ) => {
 const findTextNode = ( svg ) => svg.querySelector( 'textPath' ) || svg.querySelector( 'text' );
 
 /**
+ * Hides the lines words run along. A textPath only points at a `<path>`
+ * (`href="#path1"`) — the line itself is a shape of its own and, left as drawn,
+ * shows up as a stroke under the text. Hiding it is a step easily forgotten in
+ * the drawing program, and the words follow the line all the same: the
+ * reference reads its geometry, whether it is displayed or not. A line inside
+ * `<defs>` is never drawn and is left alone. Mirrors
+ * img_svg_block_hide_text_path_guides() in render.php.
+ *
+ * @param {SVGElement} svg Root SVG element (mutated in place).
+ */
+const hideTextPathGuides = ( svg ) => {
+	svg.querySelectorAll( 'textPath' ).forEach( ( textPath ) => {
+		const reference =
+			textPath.getAttribute( 'href' ) ||
+			textPath.getAttributeNS( 'http://www.w3.org/1999/xlink', 'href' ) ||
+			'';
+		if ( ! reference.startsWith( '#' ) ) {
+			return;
+		}
+		const guide = svg.querySelector( `[id="${ window.CSS.escape( reference.slice( 1 ) ) }"]` );
+		if ( ! guide || guide.closest( 'defs' ) ) {
+			return;
+		}
+		const style = stripDeclaration( guide.getAttribute( 'style' ) || '', 'display', () => false ).replace( /[;\s]+$/, '' );
+		guide.setAttribute( 'style', style ? `${ style };display:none` : 'display:none' );
+		guide.removeAttribute( 'display' );
+	} );
+};
+
+/**
  * Hands the typography and color of a drawing's own text over to the block —
  * for a textPath that lives in the same file as the artwork. Works on the text
  * alone, unlike `takeOverProperty`: the artwork keeps its fills, the words get
@@ -391,6 +421,7 @@ export const prepareInlineSvg = ( source, { preserveAspectRatio, overrides = [],
 
 	const scope = scopeName( source );
 	sanitizeSvg( svg, scope );
+	hideTextPathGuides( svg );
 	svg.setAttribute( 'class', `${ svg.getAttribute( 'class' ) ?? '' } ${ scope }`.trim() );
 
 	overrides.forEach( ( property ) => takeOverProperty( svg, property ) );

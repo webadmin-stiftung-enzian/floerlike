@@ -511,6 +511,40 @@ if ( ! function_exists( 'img_svg_block_sanitize_svg' ) ) {
 	}
 }
 
+if ( ! function_exists( 'img_svg_block_hide_text_path_guides' ) ) {
+	/**
+	 * Hides the lines words run along. A textPath only points at a `<path>`
+	 * (`href="#path1"`) — the line itself is a shape of its own and, left as
+	 * drawn, shows up as a stroke under the text. Hiding it is a step easily
+	 * forgotten in the drawing program, and the words follow the line all the
+	 * same: the reference reads its geometry, whether it is displayed or not.
+	 * A line inside `<defs>` is never drawn and is left alone.
+	 *
+	 * @param DOMXPath $xpath XPath over the parsed document.
+	 */
+	function img_svg_block_hide_text_path_guides( $xpath ) {
+		$by_id = array();
+		foreach ( $xpath->query( '//*[@id]' ) as $element ) {
+			$by_id[ $element->getAttribute( 'id' ) ] = $element;
+		}
+
+		foreach ( $xpath->query( "//*[local-name()='textPath']" ) as $text_path ) {
+			$reference = $text_path->getAttribute( 'href' );
+			if ( '' === $reference ) {
+				$reference = $text_path->getAttributeNS( 'http://www.w3.org/1999/xlink', 'href' );
+			}
+			$guide = '#' === substr( $reference, 0, 1 ) ? ( $by_id[ substr( $reference, 1 ) ] ?? null ) : null;
+			if ( ! $guide || $xpath->query( "ancestor::*[local-name()='defs']", $guide )->length ) {
+				continue;
+			}
+
+			$style = trim( img_svg_block_strip_declaration( $guide->getAttribute( 'style' ), 'display', $guide ), "; \t\n" );
+			$guide->setAttribute( 'style', '' === $style ? 'display:none' : $style . ';display:none' );
+			$guide->removeAttribute( 'display' );
+		}
+	}
+}
+
 if ( ! function_exists( 'img_svg_block_style_text' ) ) {
 	/**
 	 * Hands the typography and color of a drawing's own text over to the
@@ -645,6 +679,7 @@ if ( ! function_exists( 'img_svg_block_inline_svg' ) ) {
 		$scope = 'img-svg-block-scope-' . substr( md5( $path ), 0, 8 );
 
 		img_svg_block_sanitize_svg( $dom, $xpath, $scope );
+		img_svg_block_hide_text_path_guides( $xpath );
 
 		foreach ( $overrides as $property ) {
 			img_svg_block_take_over_property( $dom, $xpath, $property );
