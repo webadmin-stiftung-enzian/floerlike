@@ -19,6 +19,10 @@
 		},
 		"path-text": {
 			"type": "string"
+		},
+		"overlay-position": {
+			"type": "string",
+			"default": "top right"
 		}
 	},
 	"supports": {

@@ -20,8 +20,17 @@ import { useBlockProps } from '@wordpress/block-editor';
  * @see https://www.npmjs.com/package/@wordpress/scripts#using-css
  */
 import './editor.scss';
-import { InnerBlocks, InspectorControls, useSettings} from "@wordpress/block-editor";
-import { Panel, PanelBody, PanelRow, ColorPalette } from "@wordpress/components";
+import { InnerBlocks, InspectorControls, useSettings, useInnerBlocksProps } from "@wordpress/block-editor";
+import {
+	Panel,
+	PanelBody,
+	PanelRow,
+	ColorPalette,
+	BaseControl,
+	// eslint-disable-next-line @wordpress/no-unsafe-wp-apis -- WordPress exports no stable equivalent.
+	__experimentalAlignmentMatrixControl as AlignmentMatrixControl,
+} from "@wordpress/components";
+import { useSelect } from '@wordpress/data';
 import { background, textHorizontal } from '@wordpress/icons';
 import ServerSideRender from '@wordpress/server-side-render';
 
@@ -33,14 +42,34 @@ import ServerSideRender from '@wordpress/server-side-render';
  *
  * @return {Element} Element to render.
  */
-export default function Edit({ attributes, setAttributes }) {
+/**
+ * Blocks a "Störer" over the hero can be built from. A group may hold anything
+ * in turn — paragraphs, buttons — so this only limits what sits directly in
+ * the cell.
+ */
+const ALLOWED_BLOCKS = [ 'core/group', 'core/heading', 'core/image', 'stiftung-enzian/img-svg-block' ];
+
+export default function Edit({ attributes, setAttributes, clientId }) {
 	const {
 		'foreground-color': foregroundColor,
 		'background-image': backgroundImage,
 		'background-color': backgroundColor,
 		'path-text': pathText,
+		'overlay-position': overlayPosition,
 	} = attributes;
 	const blockProps = useBlockProps();
+
+	// The cell of the 3 × 3 grid the "Störer" sits in — see render.php.
+	const position = overlayPosition || 'top right';
+	const [ row, column ] = position.split( ' ' );
+	const hasInnerBlocks = useSelect(
+		( select ) => select( 'core/block-editor' ).getBlockCount( clientId ) > 0,
+		[ clientId ]
+	);
+	const innerBlocksProps = useInnerBlocksProps(
+		{ className: `hero-svg-block__cell is-row-${ row } is-column-${ column }${ hasInnerBlocks ? '' : ' is-empty' }` },
+		{ allowedBlocks: ALLOWED_BLOCKS, renderAppender: InnerBlocks.ButtonBlockAppender }
+	);
 	// Liest die Farbpalette aus theme.json (settings.color.palette) statt sie
 	// hier zu duplizieren -- theme.json bleibt damit die Single Source of
 	// Truth. useSettings() spiegelt automatisch jede Änderung an der Palette
@@ -77,6 +106,19 @@ export default function Edit({ attributes, setAttributes }) {
 						/>
 						</PanelRow>
 					</PanelBody>
+					<PanelBody title={__('Störer', 'hero-svg-block')} initialOpen={ true }>
+						<BaseControl
+							id={ `${ clientId }-overlay-position` }
+							label={ __( 'Position', 'hero-svg-block' ) }
+							help={ __( 'In welchem Feld eines 3 × 3-Rasters über der Grafik der Störer liegt. Auf dem Handy reicht er über zwei Felder. Inhalt: Gruppe, Überschrift, Bild oder Bild mit SVG-Hintergrund – über das Plus im Feld.', 'hero-svg-block' ) }
+						>
+							<AlignmentMatrixControl
+								id={ `${ clientId }-overlay-position` }
+								value={ position }
+								onChange={ ( value ) => setAttributes( { 'overlay-position': value } ) }
+							/>
+						</BaseControl>
+					</PanelBody>
 					<PanelBody title={__('Pfad Text', 'hero-svg-block')} icon={ textHorizontal } initialOpen={ true }>
 						<PanelRow>
 						<input
@@ -90,6 +132,9 @@ export default function Edit({ attributes, setAttributes }) {
 			</InspectorControls>
 			<div {...blockProps}>
 				<ServerSideRender block="stiftung-enzian/hero-svg-block" attributes={attributes} />
+				<div className="hero-svg-block__raster">
+					<div { ...innerBlocksProps } />
+				</div>
 			</div>
 		</>
 	);

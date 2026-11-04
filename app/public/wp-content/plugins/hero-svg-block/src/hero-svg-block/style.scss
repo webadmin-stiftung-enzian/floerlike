@@ -1,17 +1,66 @@
 /**
- * The following styles get applied both on the front of your site
- * and in the editor.
- *
- * Replace them with your own styles or remove the file completely.
+ * Hero: the artwork, and over it a 3 × 3 grid with one cell for a "Störer"
+ * built from inner blocks (render.php, edit.js). Applies on the page and in
+ * the editor.
  */
 
-.wp-block-stiftung-enzian-hero-svg-block svg {
+.wp-block-stiftung-enzian-hero-svg-block {
+	position: relative;
+}
+
+// Only the hero's own artwork — the direct child. An img-svg-block in the
+// "Störer" embeds SVGs too, and must keep its own sizing and lettering.
+.wp-block-stiftung-enzian-hero-svg-block > svg {
 	width: 100%;
 	height: auto;
 	display: block;
 }
 
-
-.wp-block-stiftung-enzian-hero-svg-block svg text {
+.wp-block-stiftung-enzian-hero-svg-block > svg text {
 	letter-spacing: 1rem;
+}
+
+// Covers the artwork; lets clicks through except where the "Störer" is.
+.hero-svg-block__raster {
+	position: absolute;
+	inset: 0;
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	grid-template-rows: repeat(3, 1fr);
+	pointer-events: none;
+}
+
+.hero-svg-block__cell {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	min-width: 0;
+	min-height: 0;
+	pointer-events: auto;
+
+	&.is-row-top { grid-row: 1; }
+	&.is-row-center { grid-row: 2; }
+	&.is-row-bottom { grid-row: 3; }
+
+	&.is-column-left { grid-column: 1; }
+	&.is-column-center { grid-column: 2; }
+	&.is-column-right { grid-column: 3; }
+
+	// An img-svg-block as vector graphic has no height of its own: it fills
+	// the cell. As photo it keeps the photo's aspect ratio.
+	> .wp-block-stiftung-enzian-img-svg-block {
+		flex: 1 1 auto;
+		min-height: 0;
+		width: 100%;
+	}
+}
+
+// A third of a phone screen is too narrow: two thirds, centred ones the
+// full width. Same breakpoint as WordPress's columns.
+@media (max-width: 781px) {
+	.hero-svg-block__cell {
+		&.is-column-left { grid-column: 1 / span 2; }
+		&.is-column-center { grid-column: 1 / span 3; }
+		&.is-column-right { grid-column: 2 / span 2; }
+	}
 }

@@ -24,6 +24,10 @@ return array(
 			),
 			'path-text' => array(
 				'type' => 'string'
+			),
+			'overlay-position' => array(
+				'type' => 'string',
+				'default' => 'top right'
 			)
 		),
 		'supports' => array(

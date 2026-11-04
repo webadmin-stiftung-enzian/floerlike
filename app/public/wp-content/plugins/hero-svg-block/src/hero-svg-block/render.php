@@ -49,6 +49,31 @@ if (!function_exists('stiftung_enzian_hero_svg_block_color')) {
 	}
 }
 
+if (!function_exists('stiftung_enzian_hero_svg_block_position')) {
+	/**
+	 * The cell of the 3 × 3 grid the inner blocks sit in, as "row column" —
+	 * the values AlignmentMatrixControl hands out (edit.js). Anything else is
+	 * not something the control can produce and falls back to the default.
+	 *
+	 * @param mixed $value Attribute value.
+	 * @return string[] Row (top|center|bottom) and column (left|center|right).
+	 */
+	function stiftung_enzian_hero_svg_block_position($value)
+	{
+		$parts = is_string($value) ? explode(' ', trim($value)) : [];
+
+		if (
+			2 !== count($parts)
+			|| !in_array($parts[0], ['top', 'center', 'bottom'], true)
+			|| !in_array($parts[1], ['left', 'center', 'right'], true)
+		) {
+			return ['top', 'right'];
+		}
+
+		return $parts;
+	}
+}
+
 if (!function_exists('stiftung_enzian_hero_svg_block_render')) {
 	/**
 	 * Renders the hero: the theme's artwork with the block's colors and its
@@ -63,10 +88,15 @@ if (!function_exists('stiftung_enzian_hero_svg_block_render')) {
 	 * pass and does not rescan, so a value that looks like a placeholder is not
 	 * substituted a second time.
 	 *
-	 * @param array $attributes Block attributes.
+	 * Inner blocks — a "Störer" built from a group, a heading, an image or an
+	 * img-svg-block — are laid over the artwork in one cell of a 3 × 3 grid.
+	 * Without any, the hero is the artwork alone, as before.
+	 *
+	 * @param array  $attributes Block attributes.
+	 * @param string $content    Rendered inner blocks.
 	 * @return string Markup, or an empty string when the artwork is missing.
 	 */
-	function stiftung_enzian_hero_svg_block_render($attributes)
+	function stiftung_enzian_hero_svg_block_render($attributes, $content = '')
 	{
 		$path = get_stylesheet_directory() . '/assets/files/hero-artwork.svg';
 
@@ -90,12 +120,24 @@ if (!function_exists('stiftung_enzian_hero_svg_block_render')) {
 			'{{FOREGROUND-COLOR}}' => esc_attr(stiftung_enzian_hero_svg_block_color($attributes['foreground-color'] ?? '', '#ffffff')),
 		];
 
+		$overlay = '';
+		if ('' !== trim((string) $content)) {
+			[$row, $column] = stiftung_enzian_hero_svg_block_position($attributes['overlay-position'] ?? '');
+			$overlay = sprintf(
+				'<div class="hero-svg-block__raster"><div class="hero-svg-block__cell is-row-%1$s is-column-%2$s">%3$s</div></div>',
+				esc_attr($row),
+				esc_attr($column),
+				$content // Rendered blocks, escaped by each block itself.
+			);
+		}
+
 		return sprintf(
-			'<section %s>%s</section>',
+			'<section %s>%s%s</section>',
 			get_block_wrapper_attributes(),
-			strtr($svg, $replacements)
+			strtr($svg, $replacements),
+			$overlay
 		);
 	}
 }
 
-echo stiftung_enzian_hero_svg_block_render($attributes); // phpcs:ignore WordPress.Security.EscapingOutput.OutputNotEscaped -- The theme's own artwork; every substituted value is escaped above.
+echo stiftung_enzian_hero_svg_block_render($attributes, $content); // phpcs:ignore WordPress.Security.EscapingOutput.OutputNotEscaped -- The theme's own artwork; every substituted value is escaped above, inner blocks by themselves.

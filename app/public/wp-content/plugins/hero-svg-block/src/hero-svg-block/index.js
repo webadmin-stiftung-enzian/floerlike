@@ -4,6 +4,7 @@
  * @see https://developer.wordpress.org/block-editor/reference-guides/block-api/block-registration/
  */
 import { registerBlockType } from '@wordpress/blocks';
+import { InnerBlocks } from '@wordpress/block-editor';
 import { image } from '@wordpress/icons';
 
 /**
@@ -32,4 +33,8 @@ registerBlockType( metadata.name, {
 	 * @see ./edit.js
 	 */
 	edit: Edit,
+	// Dynamic block (render.php); saved are only the inner blocks of the
+	// "Störer". A hero without any saves nothing, as before, so existing
+	// heroes stay valid.
+	save: () => <InnerBlocks.Content />,
 } );

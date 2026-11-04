@@ -1,18 +1,1 @@
-/*!******************************************************************************************************************************************************************************************************************************************************!*\
-  !*** css ./node_modules/css-loader/dist/cjs.js??ruleSet[1].rules[4].use[1]!./node_modules/postcss-loader/dist/cjs.js??ruleSet[1].rules[4].use[2]!./node_modules/sass-loader/dist/cjs.js??ruleSet[1].rules[4].use[3]!./src/hero-svg-block/style.scss ***!
-  \******************************************************************************************************************************************************************************************************************************************************/
-/**
- * The following styles get applied both on the front of your site
- * and in the editor.
- *
- * Replace them with your own styles or remove the file completely.
- */
-.wp-block-stiftung-enzian-hero-svg-block svg {
-  width: 100%;
-  height: auto;
-  display: block;
-}
-
-.wp-block-stiftung-enzian-hero-svg-block svg text {
-  letter-spacing: 1rem;
-}
+.wp-block-stiftung-enzian-hero-svg-block{position:relative}.wp-block-stiftung-enzian-hero-svg-block>svg{display:block;height:auto;width:100%}.wp-block-stiftung-enzian-hero-svg-block>svg text{letter-spacing:1rem}.hero-svg-block__raster{display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(3,1fr);inset:0;pointer-events:none;position:absolute}.hero-svg-block__cell{display:flex;flex-direction:column;justify-content:center;min-height:0;min-width:0;pointer-events:auto}.hero-svg-block__cell.is-row-top{grid-row:1}.hero-svg-block__cell.is-row-center{grid-row:2}.hero-svg-block__cell.is-row-bottom{grid-row:3}.hero-svg-block__cell.is-column-left{grid-column:1}.hero-svg-block__cell.is-column-center{grid-column:2}.hero-svg-block__cell.is-column-right{grid-column:3}.hero-svg-block__cell>.wp-block-stiftung-enzian-img-svg-block{flex:1 1 auto;min-height:0;width:100%}@media(max-width:781px){.hero-svg-block__cell.is-column-left{grid-column:1/span 2}.hero-svg-block__cell.is-column-center{grid-column:1/span 3}.hero-svg-block__cell.is-column-right{grid-column:2/span 2}}

@@ -1,16 +1,10 @@
 /**
- * The following styles get applied inside the editor only.
- *
- * Replace them with your own styles or remove the file completely.
+ * Editor only: an empty "Störer" cell shows just the plus button; give it a
+ * visible frame so it can be found on the artwork.
  */
 
-.wp-block-stiftung-enzian-hero-svg-block svg {
-	width: 100%;
-	height: auto;
-	display: block;
-}
-
-
-.wp-block-stiftung-enzian-hero-svg-block svg {
-	letter-spacing: 1rem;
+.hero-svg-block__cell.is-empty {
+	align-items: center;
+	outline: 1px dashed currentColor;
+	outline-offset: -8px;
 }
