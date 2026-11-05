@@ -188,6 +188,10 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
     --icon: url("../files/arrow_back_24dp_1F1F1F_FILL0_wght300_GRAD0_opsz24.svg");
 }
 
+.icon--logout {
+    --icon: url("../files/icon-logout.svg");
+}
+
 /* Akkordeon-Überschrift mit Symbol: grösser, und beim Öffnen wird von --icon
    auf --icon-open überblendet. Ein Masken-Bild lässt sich nicht animieren --
    das zweite Symbol liegt deshalb auf ::after exakt über dem ersten, und die
@@ -2101,7 +2105,7 @@ label[for="woo-order-ext-delivery-date"] {
     box-sizing: border-box;
     max-width: 64rem;
     margin-inline: auto;
-    padding: 3rem 1.5rem 4rem;
+    padding: 6rem 1.5rem 6rem;
     font-family: var(--wp--preset--font-family--neue-frutiger-world);
     font-size: var(--wp--preset--font-size--normal);
     font-weight: 300;
@@ -2129,6 +2133,39 @@ label[for="woo-order-ext-delivery-date"] {
     line-height: var(--wp--custom--heading--mittel--line-height);
     letter-spacing: var(--wp--custom--heading--mittel--letter-spacing);
     color: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+/* ---------------------------------------------------------------------------
+   Kopf: Statuszeile mit Abmelden, Titel der Unterseite
+   ---------------------------------------------------------------------------
+   Beides kommt aus woocommerce/myaccount/navigation.php. Abmelden ist eine
+   Aktion, kein Bereich: klein und als Textlink über dem Menü, damit es nicht
+   mit den Pillen der Bereiche verwechselt wird. */
+
+.woocommerce-account .wp-block-post-content > .woocommerce .floerlike-account-status {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem 1.25rem;
+    margin: 0 0 2rem;
+    font-size: var(--wp--preset--font-size--s);
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .floerlike-account-status__logout {
+    color: inherit;
+    text-decoration: none;
+    transition: color 0.25s ease-in-out;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .floerlike-account-status__logout:is(:hover, :focus-visible) {
+    color: var(--wp--preset--color--main-1-pistachio);
+    text-decoration: underline;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce > h1 {
+    margin-block: 0 1.5rem;
+    text-align: center;
 }
 
 /* ---------------------------------------------------------------------------
@@ -2271,6 +2308,21 @@ label[for="woo-order-ext-delivery-date"] {
     content: none;
 }
 
+/* Schmal: WooCommerce setzt den Link rechts neben den Text (float) -- dafür
+   ist kein Platz, er läge über dem Text. Dann steht er darunter. */
+@media (max-width: 600px) {
+    .woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner__content {
+        display: flex;
+        flex-direction: column-reverse;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner__content > :is(a.button, button.button) {
+        float: none;
+    }
+}
+
 /* Kleiner in Tabellen ("Ansehen") und beim Blättern. */
 .woocommerce-account .wp-block-post-content > .woocommerce :is(.shop_table, .woocommerce-pagination) .button {
     padding: 0.6rem 1.1rem;
@@ -2396,6 +2448,15 @@ label[for="woo-order-ext-delivery-date"] {
 
 .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table a:not(.button) {
     color: inherit;
+}
+
+.woocommerce-EditAccountForm #account_display_name_description {
+    margin-top: 0.5rem;
+    display: block;
+}
+
+.woocommerce-page form .form-row-last {
+    width: calc(50% - -1rem);
 }
 
 /* Schmale Ansicht: WooCommerce stapelt jede Bestellung zu Zeilen mit

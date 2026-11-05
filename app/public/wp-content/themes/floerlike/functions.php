@@ -227,3 +227,31 @@ add_filter('render_block_core/accordion', function ($content) {
     wp_enqueue_script('floerlike-accordion-animation');
     return $content;
 });
+
+// Kontoseite (Mein Konto): im Menü nur echte Bereiche -- Bestellungen,
+// Adressen, Kontodetails. Das Dashboard zeigt nichts, was das Menü nicht
+// schon bietet; Abmelden ist eine Aktion und steht klein über dem Menü
+// (woocommerce/myaccount/navigation.php). "Downloads" blendet die Einstellung
+// WooCommerce → Einstellungen → Erweitert → Kundenkonto-Endpunkte aus.
+add_filter('woocommerce_account_menu_items', function ($items) {
+    unset($items['dashboard'], $items['customer-logout']);
+    return $items;
+});
+
+// Ohne Dashboard: die Startseite des Kontos zeigt die Bestellungen. Nur für
+// angemeldete Besucher und nur beim Aufruf der Seite selbst -- Anmelden,
+// Passwort vergessen und alle Unterseiten bleiben, wie sie sind; Formulare
+// (POST) werden nie umgeleitet.
+add_action('template_redirect', function () {
+    if (
+        !function_exists('is_account_page') || !is_account_page() || !is_user_logged_in()
+        || 'GET' !== ($_SERVER['REQUEST_METHOD'] ?? '')
+        || '' !== WC()->query->get_current_endpoint()
+        // Ist der Bereich "Bestellungen" ausgeschaltet, gibt es kein Ziel.
+        || '' === (string) get_option('woocommerce_myaccount_orders_endpoint', 'orders')
+    ) {
+        return;
+    }
+    wp_safe_redirect(wc_get_account_endpoint_url('orders'));
+    exit;
+});
