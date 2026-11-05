@@ -2,6 +2,10 @@ h2 {
     margin-block-end: 1.5rem !important;
 }
 
+textPath {
+    font-weight: 200 !important;
+}
+
 header.wp-block-template-part {
     position: fixed;
     /* Der Abstand zum Bildschirmrand gehört hierher, nicht an die .navbar:
@@ -30,8 +34,8 @@ header.wp-block-template-part {
 
 .wp-block-site-logo {}
 
-section.info h2 {
-    padding: 2rem 2rem 0 2rem;
+section.info {
+    padding: 4rem 2rem;
 }
 
 section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
@@ -47,7 +51,7 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
     font-size: var(--wp--preset--font-size--m);
     line-height: 1.5;
     color: var(--wp--preset--color--main-1-pistachio-dark);
-    padding: 1.5rem 2.5rem;
+    padding: 1rem 2.5rem;
     background-color: var(--wp--preset--color--main-1-pistachio-ultralight);
     border-radius: 3rem;
 }
@@ -98,15 +102,19 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
    hidden="until-found" (content-visibility: hidden, Innenabstand 0 mit
    !important). Während einer Animation trägt das Panel die Klasse
    is-animating: dann bleibt es sichtbar, und der Innenabstand oben und unten
-   folgt der Variable, die das Skript animiert. Seitlich bleibt er stehen --
-   sonst bräche der Text während der Bewegung laufend neu um. */
+   folgt der Variable, die das Skript animiert (es liest den Wert oben aus
+   dem Panel, eine Änderung dort genügt). Seitlich bleibt er stehen -- sonst
+   bräche der Text während der Bewegung laufend neu um.
+
+   Nur eine Animation: keine transition auf height/padding am Panel, sonst
+   liefen CSS und GSAP gegeneinander. */
 .wp-block-accordion-panel.is-animating {
     /* Die animierte Höhe ist die gemessene Gesamthöhe samt Innenabstand --
        mit content-box käme der Innenabstand noch dazu, und am Ende spränge
        das Panel um genau diesen Betrag zurück. */
     box-sizing: border-box;
     overflow: clip;
-    padding-block: var(--accordion-panel-padding, 1.5rem) !important;
+    padding-block: var(--accordion-panel-padding) !important;
 }
 
 .wp-block-accordion-panel.is-animating[hidden] {
@@ -493,7 +501,7 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 /* ---------------------------------------------------------------------------
    Freie Button-Klasse
    --------------------------------------------------------------------------- */
-
+.wc-block-components-button.wp-block-woocommerce-mini-cart-cart-button-block,
 .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,
 .button.solid,
 .button.outline,
@@ -522,6 +530,7 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
     -webkit-appearance: none;
 }
 
+.wc-block-components-button.wp-block-woocommerce-mini-cart-cart-button-block:hover,
 .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option:hover,
 .button.solid:hover,
 .button.solid:focus-visible,
@@ -572,6 +581,7 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 }
 
 /* Hell · Rand: dunkler Rand, beim Hover fährt Hellgrün ein. */
+.wc-block-components-button.wp-block-woocommerce-mini-cart-cart-button-block,
 .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,
 .button.outline,
 .wp-block-button.is-style-outline-dark .wp-block-button__link {
@@ -1366,7 +1376,7 @@ section.services .services-wrapper .wp-block-image img {
 section.feature div.wp-block-column:has(figure) {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr 1fr;
 }
 
 section.feature .img-svg-block__textpath {
@@ -1375,12 +1385,12 @@ section.feature .img-svg-block__textpath {
 
 section.feature div.wp-block-column figure {
     grid-column: 1 / span 3;
-    grid-row: 1/ span 3;
+    grid-row: 1/ span 5;
 }
 
 section.feature div.wp-block-group:has(.wp-block-woocommerce-product-price) {
-    grid-column: 3 / span 3;
-    grid-row: 3 / span 3;
+    grid-column: 3 / span 2;
+    grid-row: 4 / span 1;
     display: flex;
     justify-content: start;
     align-items: start;
@@ -1812,8 +1822,8 @@ footer .footer-wrapper a:visited {
     .wc-block-cart__submit-button,
     .wc-block-components-checkout-place-order-button,
     .wc-block-components-totals-coupon__button):is(:hover, :focus-visible) {
-    background-color: var(--btn-bg);
-    color: var(--btn-text-hover);
+    background-color: var(--btn-bg) !important;
+    color: var(--btn-text-hover) !important;
     border-color: var(--btn-border-hover);
     box-shadow: none;
 }
@@ -2068,4 +2078,420 @@ label[for="woo-order-ext-delivery-date"] {
 
 :is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart) .wc-block-cart-item__remove-link:hover {
     color: var(--wp--preset--color--main-1-pistachio) !important;
+}
+
+
+/* ===========================================================================
+   MEIN KONTO
+   ===========================================================================
+   Die Kontoseite baut der Shortcode [woocommerce_my_account] im klassischen
+   HTML von WooCommerce auf (Anmeldung, Dashboard, Bestellungen, Adressen,
+   Kontodetails). Hier bekommt sie Schrift, Farben, Felder und Buttons des
+   Themes -- wie Mini-Cart und Kasse (Abschnitt oben). Das Menü steht als
+   Reihe von Pillen zentriert über dem Inhalt.
+
+   Alle Regeln hängen am Shortcode in der Seite (.wp-block-post-content >
+   .woocommerce auf body.woocommerce-account): WooCommerce setzt die Klasse
+   "woocommerce" auch an Blöcke im Header, die hier nicht gemeint sind. Die
+   eigenen Regeln von WooCommerce (woocommerce.css, -layout.css) sind
+   schwächer und werden so überstimmt.
+   =========================================================================== */
+
+.woocommerce-account .wp-block-post-content > .woocommerce {
+    box-sizing: border-box;
+    max-width: 64rem;
+    margin-inline: auto;
+    padding: 3rem 1.5rem 4rem;
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-size: var(--wp--preset--font-size--normal);
+    font-weight: 300;
+    line-height: 1.5;
+    letter-spacing: 0.02em;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+/* Fett gibt es im Theme nicht (wie in Warenkorb und Kasse) -- WooCommerce
+   setzt es auch an Tabellenzellen der Summen. */
+.woocommerce-account .wp-block-post-content > .woocommerce :is(strong, b, th, td, mark) {
+    font-weight: 400;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce mark {
+    background: none;
+    color: inherit;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(h2, h3) {
+    margin-block: 0 1.5rem !important;
+    font-family: var(--wp--custom--heading--mittel--font-family);
+    font-size: var(--wp--custom--heading--mittel--font-size);
+    font-weight: var(--wp--custom--heading--font-weight);
+    line-height: var(--wp--custom--heading--mittel--line-height);
+    letter-spacing: var(--wp--custom--heading--mittel--letter-spacing);
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+/* ---------------------------------------------------------------------------
+   Menü: Pillen in einer Reihe, zentriert
+   ---------------------------------------------------------------------------
+   Wie "button outline" (Abschnitt BUTTONS): Rand, beim Hover fährt Hellgrün
+   von links ein; der aktuelle Bereich steht gefüllt. */
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation {
+    float: none;
+    width: auto;
+    margin-block-end: 3rem;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation ul {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.5rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+/* WooCommerce gibt den Menüpunkten ausser dem ersten Innenabstand oben. */
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation li {
+    margin: 0;
+    padding: 0;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation a {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-block;
+    padding: 0.75rem 1.25rem;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
+    border-radius: 3rem;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    line-height: 1;
+    text-decoration: none;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--wp--preset--color--main-1-pistachio-light);
+    transform: translateX(-100%);
+    opacity: 0;
+    transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation a:is(:hover, :focus-visible)::after,
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation .is-active a::after {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation a:focus-visible {
+    outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
+    outline-offset: 2px;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-content {
+    float: none;
+    width: auto;
+}
+
+/* ---------------------------------------------------------------------------
+   Buttons: wie "button solid" (Abschnitt BUTTONS)
+   --------------------------------------------------------------------------- */
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button) {
+    --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-text-hover: var(--wp--preset--color--neutral-light);
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    display: inline-block;
+    padding: 1rem 1.5rem;
+    border: 1px solid var(--btn-border);
+    border-radius: 3rem;
+    background: var(--btn-bg);
+    box-shadow: none;
+    color: var(--btn-text);
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-size: var(--wp--preset--font-size--normal);
+    font-weight: 300;
+    line-height: 1;
+    letter-spacing: normal;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.25s ease-in-out, border-color 0.25s ease-in-out;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button)::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background-color: var(--btn-fill);
+    transform: translateX(-100%);
+    opacity: 0;
+    transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button):is(:hover, :focus-visible) {
+    background: var(--btn-bg);
+    color: var(--btn-text-hover);
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button):is(:hover, :focus-visible)::after {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button):focus-visible {
+    outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
+    outline-offset: 2px;
+}
+
+/* Der Link in einem Hinweis ("E-Mail bestätigen") bleibt ein Link. */
+.woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner :is(a.button, button.button) {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: none;
+    color: inherit;
+    text-decoration: underline;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner :is(a.button, button.button)::after {
+    content: none;
+}
+
+/* Kleiner in Tabellen ("Ansehen") und beim Blättern. */
+.woocommerce-account .wp-block-post-content > .woocommerce :is(.shop_table, .woocommerce-pagination) .button {
+    padding: 0.6rem 1.1rem;
+    font-size: var(--wp--preset--font-size--s);
+}
+
+/* ---------------------------------------------------------------------------
+   Formulare: Kacheln, Felder wie an der Kasse
+   --------------------------------------------------------------------------- */
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(form.login, form.register, form.lost_reset_password) {
+    max-width: 32rem;
+    margin: 0 auto 2rem;
+    padding: 2rem;
+    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border-radius: 1.5rem;
+}
+
+/* Die Überschrift "Login" über dem Formular mittig zur Kachel. */
+.woocommerce-account .wp-block-post-content > .woocommerce > h2 {
+    max-width: 32rem;
+    margin-inline: auto !important;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .form-row {
+    margin: 0 0 1.25rem;
+    padding: 0;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .form-row label {
+    display: block;
+    margin-block-end: 0.4rem;
+    line-height: 1.4;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .required {
+    color: var(--wp--preset--color--main-5-flame-pea);
+    text-decoration: none;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(input.input-text, textarea, select, .select2-container .select2-selection--single) {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 50%, transparent);
+    border-radius: 0.75rem;
+    background-color: var(--wp--preset--color--neutral-light);
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    font: inherit;
+    letter-spacing: inherit;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(input.input-text, textarea, select):focus,
+.woocommerce-account .wp-block-post-content > .woocommerce .select2-container--focus .select2-selection--single {
+    border-color: var(--wp--preset--color--main-1-pistachio-dark);
+    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark);
+    outline: none;
+}
+
+/* Länder- und Kantonsauswahl (select2): Schrift wie die übrigen Felder,
+   Text und Pfeil mittig. */
+.woocommerce-account .wp-block-post-content > .woocommerce .select2-container,
+.woocommerce-account .wp-block-post-content > .woocommerce .select2-container .select2-selection--single .select2-selection__rendered {
+    font: inherit;
+    letter-spacing: inherit;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .select2-container .select2-selection--single .select2-selection__rendered {
+    padding: 0;
+    color: inherit;
+    line-height: 1.4;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .select2-container .select2-selection--single .select2-selection__arrow {
+    top: 50%;
+    right: 0.75rem;
+    translate: 0 -50%;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce input[type="checkbox"] {
+    accent-color: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce fieldset {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border-radius: 1.5rem;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce legend {
+    padding-inline: 0.5rem;
+}
+
+/* ---------------------------------------------------------------------------
+   Tabellen (Bestellungen, Bestelldetails) und Adressen
+   --------------------------------------------------------------------------- */
+
+.woocommerce-account .wp-block-post-content > .woocommerce table.shop_table {
+    width: 100%;
+    margin: 0 0 2rem;
+    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border-radius: 1.5rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    overflow: hidden;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce table.shop_table :is(th, td) {
+    padding: 0.9rem 1.25rem;
+    border: 0;
+    border-block-start: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 15%, transparent);
+    vertical-align: middle;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce table.shop_table thead th {
+    border-block-start: 0;
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    font-size: var(--wp--preset--font-size--s);
+    letter-spacing: 0.0125em;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce table.shop_table a:not(.button) {
+    color: inherit;
+}
+
+/* Schmale Ansicht: WooCommerce stapelt jede Bestellung zu Zeilen mit
+   Beschriftung (data-title) und blendet dabei die Kopfzelle aus -- in der
+   steht aber die Bestellnummer. Hier kommt sie mit Beschriftung zurück. */
+@media (max-width: 768px) {
+    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tbody th {
+        display: block;
+        text-align: right;
+    }
+
+    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tbody th::before {
+        content: attr(data-title) ": ";
+        float: left;
+    }
+
+    /* Beschriftungen nicht fett, kein graues Zebra -- die Bestellungen trennt
+       die kräftigere Linie unten. */
+    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tr td::before {
+        font-weight: 400;
+    }
+
+    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tr:nth-child(2n) td {
+        background-color: transparent;
+    }
+
+    /* Jede Bestellung mit kräftigerer Linie von der nächsten getrennt. */
+    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tbody tr + tr :is(th, td):first-child {
+        border-block-start-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 40%, transparent);
+    }
+}
+
+/* Kontodaten und Adressen als helle Kacheln wie die Store-Info. */
+.woocommerce-account .wp-block-post-content > .woocommerce .u-columns.addresses {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+    gap: 1.5rem;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .u-columns.addresses::before,
+.woocommerce-account .wp-block-post-content > .woocommerce .u-columns.addresses::after {
+    content: none;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce :is(.woocommerce-Address, .woocommerce-customer-details address) {
+    float: none;
+    width: auto;
+    padding: 1.5rem;
+    border: 0;
+    border-radius: 1.5rem;
+    background-color: var(--wp--preset--color--main-1-pistachio-light);
+    font-style: normal;
+}
+
+/* Die Hilfselemente fürs Floaten von WooCommerce stünden im Flex-Kopf als
+   leere Elemente zwischen Titel und Link. */
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title::before,
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title::after {
+    content: none;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title :is(h2, h3, a) {
+    float: none;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.5rem 1rem;
+    margin-block-end: 1rem;
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title :is(h2, h3) {
+    margin: 0 !important;
+    font-family: var(--wp--custom--heading--klein--font-family);
+    font-size: var(--wp--custom--heading--klein--font-size);
+    line-height: var(--wp--custom--heading--klein--line-height);
+    letter-spacing: var(--wp--custom--heading--klein--letter-spacing);
+}
+
+.woocommerce-account .wp-block-post-content > .woocommerce address {
+    font-style: normal;
+}
+
+/* Lieferdatum und Newsletter unter der Bestellung (Plugin woo-order-ext):
+   das Plugin setzt Grau und Ecken als style-Attribut, daher !important. */
+.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-order-details > div[style] {
+    margin: 0 0 2rem !important;
+    padding: 1.25rem 1.5rem !important;
+    border-radius: 1.5rem !important;
+    background: var(--wp--preset--color--main-1-pistachio-light) !important;
+}
+
+/* Hinweise (z. B. "E-Mail bestätigen") mit den runden Ecken der Kacheln. */
+.woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner {
+    border-radius: 0.75rem;
 }

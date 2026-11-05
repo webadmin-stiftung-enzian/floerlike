@@ -16,7 +16,9 @@
  * Den Innenabstand setzt main.css mit !important (WordPress auch, für das
  * geschlossene Panel) -- ein Inline-Wert käme dagegen nicht an. Animiert wird
  * deshalb die Variable --accordion-panel-padding, die main.css während der
- * Animation verwendet.
+ * Animation verwendet. Ihr Zielwert ist der Innenabstand, den main.css dem
+ * offenen Panel gibt -- gelesen, nicht hier festgelegt, damit eine Änderung
+ * dort genügt.
  *
  * Ohne GSAP oder bei "Bewegung reduzieren" klappt das Akkordeon wie gewohnt
  * ohne Animation.
@@ -38,26 +40,29 @@
 	// Unrundet: offsetHeight rundet auf ganze Pixel, am Ende der Animation
 	// bliebe ein Rest von einem Bruchteil eines Pixels als Ruck.
 	const exactHeight = ( element ) => element.getBoundingClientRect().height;
+	const paddingOf = ( element ) => window.getComputedStyle( element ).paddingTop;
 
 	function setup( panel ) {
-		// Höhe im offenen Zustand -- beim Schliessen ist sie schon weg, weil
-		// WordPress das Panel vor der Animation versteckt.
+		// Höhe und Innenabstand im offenen Zustand -- beim Schliessen sind sie
+		// schon weg, weil WordPress das Panel vor der Animation versteckt.
 		let openHeight = panel.hidden ? 0 : exactHeight( panel );
+		let openPadding = panel.hidden ? '' : paddingOf( panel );
 		let timeline = null;
 
-		new ResizeObserver( () => {
+		const remember = () => {
 			if ( ! panel.hidden && ! panel.classList.contains( 'is-animating' ) ) {
 				openHeight = exactHeight( panel );
+				openPadding = paddingOf( panel );
 			}
-		} ).observe( panel );
+		};
+
+		new ResizeObserver( remember ).observe( panel );
 
 		const finish = () => {
 			panel.classList.remove( 'is-animating' );
 			gsap.set( panel, { clearProps: 'height,--accordion-panel-padding' } );
 			gsap.set( panel.children, { clearProps: 'transform,opacity,visibility' } );
-			if ( ! panel.hidden ) {
-				openHeight = exactHeight( panel );
-			}
+			remember();
 		};
 
 		new MutationObserver( () => {
@@ -71,6 +76,9 @@
 			}
 
 			const children = Array.from( panel.children );
+			// Beim Öffnen hat WordPress das Panel gerade freigegeben: jetzt,
+			// vor is-animating, steht dort der Innenabstand aus main.css.
+			const padding = panel.hidden ? openPadding || '0px' : paddingOf( panel );
 			panel.classList.add( 'is-animating' );
 
 			if ( panel.hidden ) {
@@ -78,23 +86,23 @@
 					.timeline( { onComplete: finish } )
 					.fromTo(
 						panel,
-						{ height: openHeight, '--accordion-panel-padding': '1.5rem' },
-						{ height: 0, '--accordion-panel-padding': '0rem', ...CLOSE },
+						{ height: openHeight, '--accordion-panel-padding': padding },
+						{ height: 0, '--accordion-panel-padding': '0px', ...CLOSE },
 						0
 					)
 					.to( children, { autoAlpha: 0, duration: CLOSE.duration * 0.6, ease: 'power1.in' }, 0 );
 				return;
 			}
 
-			gsap.set( panel, { '--accordion-panel-padding': '1.5rem' } );
+			gsap.set( panel, { '--accordion-panel-padding': padding } );
 			const height = exactHeight( panel );
 
 			timeline = gsap
 				.timeline( { onComplete: finish } )
 				.fromTo(
 					panel,
-					{ height: 0, '--accordion-panel-padding': '0rem' },
-					{ height, '--accordion-panel-padding': '1.5rem', ...OPEN },
+					{ height: 0, '--accordion-panel-padding': '0px' },
+					{ height, '--accordion-panel-padding': padding, ...OPEN },
 					0
 				)
 				.from(
