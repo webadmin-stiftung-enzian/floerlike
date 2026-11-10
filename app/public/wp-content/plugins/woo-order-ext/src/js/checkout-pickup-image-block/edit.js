@@ -20,7 +20,6 @@ import {
 	TextControl,
 	ToggleControl,
 } from '@wordpress/components';
-import { useSelect } from '@wordpress/data';
 import { mapMarker } from '@wordpress/icons';
 import './style.scss';
 
@@ -38,13 +37,6 @@ export const Edit = ( { attributes, setAttributes } ) => {
 	const blockProps = useBlockProps( {
 		className: enabled ? undefined : 'is-disabled',
 	} );
-
-	// Auch im Editor schaltet der Block "Lieferung" zwischen Versand und
-	// Abholung um (gleicher Speicher wie an der Kasse).
-	const prefersCollection = useSelect(
-		( select ) => select( 'wc/store/checkout' )?.prefersCollection?.(),
-		[]
-	);
 
 	const onSelect = ( media ) =>
 		setAttributes( {
@@ -81,17 +73,12 @@ export const Edit = ( { attributes, setAttributes } ) => {
 					<img src={ url } alt={ alt } />
 				</figure>
 				<p className="woo-order-ext-pickup-image__hint">
-					{ ! enabled
-						? __(
+					{ enabled
+						? HINT
+						: __(
 								'Ausgeschaltet – das Bild bleibt hinterlegt, erscheint aber nicht an der Kasse.',
 								'woo-order-ext'
-						  )
-						: ! prefersCollection
-						? `${ HINT } ${ __(
-								'(Hier im Editor gerade „Versand“ gewählt.)',
-								'woo-order-ext'
-						  ) }`
-						: HINT }
+						  ) }
 				</p>
 			</>
 		);

@@ -83,7 +83,7 @@ return array(
 		'version' => '1.0.0',
 		'title' => 'Bild bei Abholung',
 		'category' => 'woocommerce',
-		'description' => 'Zeigt im Block „Lieferung“ ein Bild, z. B. einen Kartenausschnitt mit dem Laden – nur wenn „Im Laden abholen“ gewählt ist.',
+		'description' => 'Zeigt im Block „Abholart“ ein Bild, z. B. einen Kartenausschnitt mit dem Laden – nur wenn „Im Laden abholen“ gewählt ist.',
 		'keywords' => array(
 			'karte',
 			'abholung',
@@ -126,7 +126,7 @@ return array(
 			)
 		),
 		'parent' => array(
-			'woocommerce/checkout-shipping-method-block'
+			'woocommerce/checkout-pickup-options-block'
 		),
 		'textdomain' => 'woo-order-ext'
 	),

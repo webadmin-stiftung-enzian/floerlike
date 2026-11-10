@@ -1,11 +1,11 @@
 /**
- * Das Bild an der Kasse -- nur, wenn "Im Laden abholen" gewählt ist.
+ * Das Bild an der Kasse.
  *
- * Die Wahl steht im Checkout-Speicher von WooCommerce (prefersCollection):
- * true, sobald der Kunde im Block "Lieferung" auf "Im Laden abholen" klickt.
- * useSelect rendert neu, wenn sie wechselt.
+ * Der Block steht im Block "Abholart" (woocommerce/checkout-pickup-options-block)
+ * -- und den zeigt WooCommerce nur, wenn "Im Laden abholen" gewählt ist. Wann
+ * das Bild erscheint, entscheidet also der Elternblock; hier geht es nur um
+ * das Bild selbst.
  */
-import { useSelect } from '@wordpress/data';
 import './style.scss';
 
 // WooCommerce gibt die Einstellungen an der Kasse als einzelne Props weiter
@@ -16,12 +16,7 @@ import './style.scss';
 const Block = ( { enabled = true, url = '', alt = '', linkUrl = '' } ) => {
 	const isEnabled = enabled !== false && enabled !== 'false';
 
-	const prefersCollection = useSelect(
-		( select ) => select( 'wc/store/checkout' ).prefersCollection(),
-		[]
-	);
-
-	if ( ! isEnabled || ! url || ! prefersCollection ) {
+	if ( ! isEnabled || ! url ) {
 		return null;
 	}
 
