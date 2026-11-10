@@ -6,6 +6,10 @@ textPath {
     font-weight: 200 !important;
 }
 
+:root :where(p) {
+    font-weight: 300;
+}
+
 header.wp-block-template-part {
     position: fixed;
     /* Der Abstand zum Bildschirmrand gehört hierher, nicht an die .navbar:
@@ -237,8 +241,9 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
    Menüpunkte und Symbole im Header
    ---------------------------------------------------------------------------
    Dieselbe Mechanik wie die Buttons (Abschnitt BUTTONS): eine Farbfläche
-   (::after) fährt von links ein, die Schrift bzw. das Symbol wechselt auf
-   Hell -- beim Hover UND bei Tastatur-Fokus (:focus-visible), dazu derselbe
+   (::after) fährt von links ein -- Hellgrün, die Schrift bzw. das Symbol
+   bleibt Pistazie dunkel, wie bei den Buttons und überall auf der Seite --
+   beim Hover UND bei Tastatur-Fokus (:focus-visible), dazu derselbe
    Fokusring. Farben als Tokens wie dort:
 
      --btn-fill        einfahrende Fläche
@@ -252,8 +257,8 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 .wc-block-customer-account__link,
 .wp-block-navigation__responsive-container-open,
 .wc-block-mini-cart__quantity-badge {
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-lightdark);
-    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
     position: relative;
     isolation: isolate;
     border-radius: 3rem;
@@ -382,7 +387,7 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
     /* Höhe und Innenabstand: siehe "gleich grosse Hover-Fläche" oben. */
 }
 
-/* Schrift hell, solange die Fläche steht. Doppelte Klasse, weil der Kern
+/* Schriftfarbe, solange die Fläche steht. Doppelte Klasse, weil der Kern
    die Farbe mit ".wp-block-navigation .…__content.…__content" vererbt. */
 .wp-block-navigation .wp-block-navigation-item__content.wp-block-navigation-item__content:is(:hover, :focus-visible) {
     color: var(--btn-text-hover);
@@ -467,7 +472,7 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 .button.solid,
 .button.outline,
 .wp-block-button .wp-block-button__link {
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
     position: relative;
     /* eigener Stapelkontext: erst dadurch liegt ::after über dem Hintergrund
        des Buttons und trotzdem unter seiner Beschriftung */
@@ -559,17 +564,18 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
     outline-offset: 2px;
 }
 
-/* Hell · Voll: heller Grund mit dunklem Rand, beim Hover fährt Dunkel ein.
-   Zugleich der Standard für Core-Buttons ohne gewählten Stil. */
+/* Hell · Voll: heller Grund mit dunklem Rand, beim Hover fährt Hellgrün ein
+   -- wie bei allen Buttons und in der Navigation: einheitlich Hellgrün mit
+   dunkler Schrift. Zugleich der Standard für Core-Buttons ohne Stil. */
 .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,   
 .button.solid,
 .wp-block-button .wp-block-button__link {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
     --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
-    --btn-text-hover: var(--wp--preset--color--neutral-light);
-    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
 }
 
 /* Dunkel · Voll: heller Grund ohne sichtbaren Rand. Beim Hover fährt ein
@@ -806,6 +812,10 @@ div.single-buttons-wrapper .wp-block-button {
     letter-spacing: var(--wp--custom--heading--klein--letter-spacing);
 }
 
+.wc-block-product .wp-block-post-title {
+    margin-bottom: 0;
+}
+
 /* Die freie Klasse auch für Nicht-Überschriften (z. B. <p>): Gewicht und
    Farbe wie bei den Überschriften. */
 .heading:is(.gross, .mittel, .klein, .mono-gross, .mono-mittel, .mono-klein) {
@@ -897,12 +907,15 @@ div.single-buttons-wrapper .wp-block-button {
     border: 1px solid var(--wp--preset--color--main-1-pistachio-lightdark);
 }
 
-/* Pfeil-Knöpfe aller drei Quellen: Optik und Verhalten wie "button outline"
+/* Pfeil-Knöpfe aller Quellen: Optik und Verhalten wie "button outline"
    (Abschnitt BUTTONS) -- dieselben Tokens, dieselbe von links einfahrende
    Fläche, derselbe Fokusring. Die Fläche liegt hier auf ::before, weil
-   ::after bei Swiper das Pfeil-Symbol trägt (Carousel, siehe unten). */
+   ::after bei Swiper das Pfeil-Symbol trägt (Carousel, siehe unten).
+   Dieselben Pfeile blättern im Konto durch die Bestellungen
+   (.floerlike-pagination__arrow, woocommerce/myaccount/orders.php). */
 :is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next),
-.wc-block-next-previous-buttons__button {
+.wc-block-next-previous-buttons__button,
+.floerlike-pagination__arrow {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
@@ -923,7 +936,8 @@ div.single-buttons-wrapper .wp-block-button {
 }
 
 :is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next)::before,
-.wc-block-next-previous-buttons__button::before {
+.wc-block-next-previous-buttons__button::before,
+.floerlike-pagination__arrow::before {
     content: '';
     position: absolute;
     inset: 0;
@@ -936,19 +950,22 @@ div.single-buttons-wrapper .wp-block-button {
 }
 
 :is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next):is(:hover, :focus-visible)::before,
-.wc-block-next-previous-buttons__button:is(:hover, :focus-visible)::before {
+.wc-block-next-previous-buttons__button:is(:hover, :focus-visible)::before,
+.floerlike-pagination__arrow:is(:hover, :focus-visible)::before {
     transform: translateX(0);
     opacity: 1;
 }
 
 :is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next):is(:hover, :focus-visible),
-.wc-block-next-previous-buttons__button:is(:hover, :focus-visible) {
+.wc-block-next-previous-buttons__button:is(:hover, :focus-visible),
+.floerlike-pagination__arrow:is(:hover, :focus-visible) {
     color: var(--btn-text-hover);
     border-color: var(--btn-border-hover);
 }
 
 :is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next):focus-visible,
-.wc-block-next-previous-buttons__button:focus-visible {
+.wc-block-next-previous-buttons__button:focus-visible,
+.floerlike-pagination__arrow:focus-visible {
     outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
     outline-offset: 2px;
 }
@@ -995,7 +1012,8 @@ div.single-buttons-wrapper .wp-block-button {
    gesperrter Button (.button[disabled]) der ganze Knopf blass. WooCommerce
    setzt bei der Galerie sonst nur das Symbol auf 30%. */
 :is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next).swiper-button-disabled,
-.wc-block-next-previous-buttons__button[aria-disabled="true"] {
+.wc-block-next-previous-buttons__button[aria-disabled="true"],
+.floerlike-pagination__arrow[aria-disabled="true"] {
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
@@ -1060,7 +1078,8 @@ div.single-buttons-wrapper .wp-block-button {
     content: none;
 }
 
-:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next):not(:has(svg))::after {
+:is(.cb-carousel-block, .slider)>:is(.swiper-button-prev, .swiper-button-next):not(:has(svg))::after,
+.floerlike-pagination__arrow::after {
     content: '';
     width: 11px;
     height: 11px;
@@ -1071,7 +1090,8 @@ div.single-buttons-wrapper .wp-block-button {
 }
 
 /* Gleiche Form für beide Richtungen, für "zurück" gespiegelt. */
-:is(.cb-carousel-block, .slider)>.swiper-button-prev:not(:has(svg))::after {
+:is(.cb-carousel-block, .slider)>.swiper-button-prev:not(:has(svg))::after,
+.floerlike-pagination__arrow--previous::after {
     transform: scaleX(-1);
 }
 
@@ -1175,6 +1195,8 @@ section.highlight .swiper-slide {
     aspect-ratio: 3/2;
 }
 
+
+section.contact .wp-block-columns,
 section.category .wp-block-columns,
 section.cta .wp-block-columns,
 section.highlight .swiper-slide .wp-block-columns {
@@ -1186,6 +1208,7 @@ section.cta .wp-block-columns {
     flex-wrap: nowrap;
 }
 
+section.contact .wp-block-columns>.wp-block-column,
 section.category .wp-block-columns>.wp-block-column,
 section.cta .wp-block-columns>.wp-block-column,
 section.highlight .swiper-slide .wp-block-columns>.wp-block-column {
@@ -1263,6 +1286,7 @@ section.cta .cta-message div.wp-block-buttons {
 }
 
 section.topic .wp-block-columns .wp-block-column,
+section.contact .contact-form-wrapper,
 section.category .category-text-wrapper {
     padding: 3rem;
 }
@@ -1328,9 +1352,14 @@ section.category .category-text-wrapper .wp-block-buttons {
     width: 100%;
 }
 
+section.contact .contact-img-wrapper,
 section.category .category-img-wrapper {
-    padding: 1.5rem;
+    padding: 3rem;
     aspect-ratio: 1 / 1;
+}
+
+section.contact .contact-img-wrapper img{
+    aspect-ratio: 2/3 !important;
 }
 
 section.category .category-img-wrapper figure {
@@ -1469,6 +1498,8 @@ section.shop-window .wp-block-product-showcase-variation-range .psb-variation-ra
     border-radius: 100%;
     border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
     padding: 0.8rem 1.25rem;
+    display: inline-block;
+    width: fit-content;
 }
 
 .woocommerce-Price-amount,
@@ -1480,8 +1511,22 @@ section.product.single .wp-block-woocommerce-product-price {
     line-height: 1.33;
     color: var(--wp--preset--color--main-1-pistachio-dark);
     font-size: var(--wp--preset--font-size--m);
-    margin-block-end: 2.5rem;
-    margin-block-start: 2.5rem;
+    margin-block-end: 1rem;
+    margin-block-start: 1rem;
+}
+
+.wp-block-product-showcase-term-list {
+    margin-block-start: 0.5rem;
+}
+
+.wp-block-product-showcase-variation-range {
+    display: flex;
+    flex-direction: column;
+}
+
+.wp-block-product-showcase-variation-range:has(>.psb-variation-range__prefix) .psb-variation-range__value {
+    position: relative;
+    top: -0.35rem;
 }
 
 .wp-block-product-showcase-variation-range span,
@@ -1492,7 +1537,7 @@ section.product.single .wc-block-breadcrumbs {
     letter-spacing: 0.0125em;
     line-height: 1.33;
     color: var(--wp--preset--color--main-1-pistachio-dark);
-    font-size: 0.75rem;
+    font-size: var(--wp--preset--font-size--s);
 }
 
 
@@ -1767,9 +1812,9 @@ footer .footer-wrapper a:visited {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
     --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
-    --btn-text-hover: var(--wp--preset--color--neutral-light);
-    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-ultralight);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
+    --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -2015,10 +2060,10 @@ label[for="woo-order-ext-delivery-date"] {
     background-color: var(--wp--preset--color--main-1-pistachio-light);
 }
 
-.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option:focus-within {
+/* .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option:focus-within {
     outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
     outline-offset: 2px;
-}
+} */
 
 .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option-title {
     font-size: var(--wp--preset--font-size--normal);
@@ -2245,8 +2290,8 @@ label[for="woo-order-ext-delivery-date"] {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
     --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
-    --btn-fill: var(--wp--preset--color--main-1-pistachio-dark);
-    --btn-text-hover: var(--wp--preset--color--neutral-light);
+    --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
+    --btn-text-hover: var(--wp--preset--color--main-1-pistachio-dark);
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -2323,8 +2368,28 @@ label[for="woo-order-ext-delivery-date"] {
     }
 }
 
-/* Kleiner in Tabellen ("Ansehen") und beim Blättern. */
-.woocommerce-account .wp-block-post-content > .woocommerce :is(.shop_table, .woocommerce-pagination) .button {
+/* Blättern in den Bestellungen: die Pfeile der Slider (Abschnitt SLIDER),
+   nebeneinander links unter der Tabelle wie bei den Produkt-Slidern. Hier
+   nur, was Swiper den Slider-Pfeilen sonst selbst mitgibt: Lage des Symbols
+   und Bezugsrahmen für die einfahrende Fläche. */
+.woocommerce-account .wp-block-post-content > .woocommerce .floerlike-pagination {
+    display: flex;
+    gap: 0.5rem;
+    margin-block-start: 1.5rem;
+}
+
+.floerlike-pagination__arrow {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: content-box;
+    width: 11px;
+    text-decoration: none;
+}
+
+/* Kleiner in Tabellen ("Ansehen"). */
+.woocommerce-account .wp-block-post-content > .woocommerce .shop_table .button {
     padding: 0.6rem 1.1rem;
     font-size: var(--wp--preset--font-size--s);
 }
@@ -2425,7 +2490,7 @@ label[for="woo-order-ext-delivery-date"] {
 .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table {
     width: 100%;
     margin: 0 0 2rem;
-    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border: 1px solid  var(--wp--preset--color--main-1-pistachio-light);
     border-radius: 1.5rem;
     border-collapse: separate;
     border-spacing: 0;
@@ -2435,7 +2500,7 @@ label[for="woo-order-ext-delivery-date"] {
 .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table :is(th, td) {
     padding: 0.9rem 1.25rem;
     border: 0;
-    border-block-start: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 15%, transparent);
+    border-block-start: 1px solid var(--wp--preset--color--main-1-pistachio-light);
     vertical-align: middle;
 }
 
@@ -2555,4 +2620,151 @@ label[for="woo-order-ext-delivery-date"] {
 /* Hinweise (z. B. "E-Mail bestätigen") mit den runden Ecken der Kacheln. */
 .woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner {
     border-radius: 0.75rem;
+}
+
+
+/* ===========================================================================
+   FORMULARE (Contact Form 7)
+   ===========================================================================
+   Felder wie an der Kasse (Abschnitt MINI-CART, WARENKORB, KASSE): zarter
+   grüner Rand, runde Ecken, weisser Grund, beim Fokus kräftiger Rand. Der
+   Absende-Knopf wie "button solid" (Abschnitt BUTTONS).
+
+   Contact Form 7 gibt den Knopf als <input type="submit"> aus -- ein Input
+   kann kein ::after tragen, an dem bei den Buttons die einfahrende Fläche
+   hängt. Dieselbe Bewegung kommt hier aus dem Hintergrund: ein Verlauf mit
+   harter Kante, doppelt so breit wie der Knopf, wird beim Hover von links
+   hereingeschoben.
+   =========================================================================== */
+
+.wpcf7 {
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-size: var(--wp--preset--font-size--normal);
+    font-weight: 300 !important;
+    letter-spacing: 0.02em;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+/* Das Formular nimmt die volle Breite seiner Spalte -- in einer Gruppe mit
+   Flex-Layout schrumpfte der Block sonst auf seinen Inhalt, und die Felder
+   wären unterschiedlich breit (mit Fehlermeldungen breiter). */
+.wp-block-contact-form-7-contact-form-selector {
+    align-self: stretch;
+    width: auto;
+    padding: 1rem 3rem;
+}
+
+.wp-block-contact-form-7-contact-form-selector .wpcf7 {
+    margin-top: 3rem;
+}
+
+.wpcf7 .wpcf7-form > p {
+    margin: 0 0 1.25rem;
+}
+
+.wpcf7 label {
+    display: block;
+    line-height: 1.4;
+}
+
+/* Abstand Beschriftung → Feld (Contact Form 7 setzt ein <br> dazwischen). */
+.wpcf7 .wpcf7-form-control-wrap {
+    display: block;
+    margin-block-start: 0.4rem;
+}
+
+.wpcf7 :is(input[type="text"], input[type="email"], input[type="tel"], input[type="url"], input[type="number"], input[type="date"], select, textarea) {
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.75rem 1rem;
+    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 50%, transparent);
+    border-radius: 0.75rem;
+    background-color: var(--wp--preset--color--neutral-light);
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    font: inherit;
+    letter-spacing: inherit;
+}
+
+.wpcf7 textarea {
+    min-height: 10rem;
+    resize: vertical;
+}
+
+.wpcf7 :is(input, select, textarea):focus {
+    border-color: var(--wp--preset--color--main-1-pistachio-dark);
+    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark);
+    outline: none;
+}
+
+.wpcf7 :is(input[type="checkbox"], input[type="radio"]) {
+    accent-color: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+/* Absende-Knopf: "button solid", die Fläche aus dem Hintergrund (s. oben). */
+.wpcf7 .wpcf7-submit {
+    padding: 1rem 1.5rem;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
+    border-radius: 3rem;
+    background-color: var(--wp--preset--color--main-1-pistachio-ultralight);
+    background-image: linear-gradient(to right, var(--wp--preset--color--main-1-pistachio-light) 50%, transparent 50%);
+    background-size: 200% 100%;
+    background-position: 100% 0;
+    background-repeat: no-repeat;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-size: var(--wp--preset--font-size--normal);
+    font-weight: 300;
+    line-height: 1;
+    cursor: pointer;
+    appearance: none;
+    -webkit-appearance: none;
+    transition: background-position 0.35s ease-in-out;
+}
+
+.wpcf7 .wpcf7-submit:is(:hover, :focus-visible) {
+    background-position: 0 0;
+}
+
+.wpcf7 .wpcf7-submit:focus-visible {
+    outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
+    outline-offset: 2px;
+}
+
+.wpcf7 .wpcf7-submit:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* Läuft, solange das Formular gesendet wird. */
+.wpcf7 .wpcf7-spinner {
+    background-color: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+/* Fehler und Meldungen */
+.wpcf7 :is(input, select, textarea).wpcf7-not-valid {
+    border-color: var(--wp--preset--color--main-5-flame-pea);
+}
+
+.wpcf7 .wpcf7-not-valid-tip {
+    margin-block-start: 0.4rem;
+    color: var(--wp--preset--color--main-5-flame-pea);
+    font-size: var(--wp--preset--font-size--s);
+}
+
+.wpcf7 form .wpcf7-response-output {
+    margin: 1.5rem 0 0;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-dark);
+    border-radius: 0.75rem;
+    font-size: var(--wp--preset--font-size--normal);
+}
+
+.wpcf7 form:is(.invalid, .unaccepted, .payment-required, .failed, .aborted, .spam) .wpcf7-response-output {
+    border-color: var(--wp--preset--color--main-5-flame-pea);
+}
+
+.wpcf7 form.sent .wpcf7-response-output {
+    border-color: var(--wp--preset--color--main-1-pistachio-dark);
+    background-color: var(--wp--preset--color--main-1-pistachio-light);
 }

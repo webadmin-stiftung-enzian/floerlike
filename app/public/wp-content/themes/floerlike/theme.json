@@ -442,10 +442,10 @@
 				},
 				":hover": {
 					"color": {
-						"text": "var(--wp--preset--color--neutral-light)"
+						"text": "var(--wp--preset--color--main-1-pistachio-dark)"
 					},
 					"border": {
-						"color": "var(--wp--preset--color--main-1-pistachio-ultralight)"
+						"color": "var(--wp--preset--color--main-1-pistachio-dark)"
 					}
 				}
 			}
