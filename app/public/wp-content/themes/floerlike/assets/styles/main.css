@@ -158,9 +158,9 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
    den Titel -- daher die eigenen Zeilen für diese beiden. */
 
 .icon::before,
-.wp-block-button.icon > .wp-block-button__link::before,
-.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::before,
-div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
+.wp-block-button.icon>.wp-block-button__link::before,
+.wp-block-accordion-heading.icon>.wp-block-accordion-heading__toggle::before,
+div.single-buttons-wrapper .wp-block-button>.wp-block-button__link::before {
     content: "";
     display: inline-block;
     flex-shrink: 0;
@@ -205,11 +205,11 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
     --icon-gap: 1.5rem;
 }
 
-.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle {
+.wp-block-accordion-heading.icon>.wp-block-accordion-heading__toggle {
     position: relative;
 }
 
-.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::after {
+.wp-block-accordion-heading.icon>.wp-block-accordion-heading__toggle::after {
     content: "";
     position: absolute;
     left: 0;
@@ -224,16 +224,16 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
     pointer-events: none;
 }
 
-.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::before,
-.wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::after {
+.wp-block-accordion-heading.icon>.wp-block-accordion-heading__toggle::before,
+.wp-block-accordion-heading.icon>.wp-block-accordion-heading__toggle::after {
     transition: opacity 0.35s ease-in-out;
 }
 
-.wp-block-accordion-item.is-open > .wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::before {
+.wp-block-accordion-item.is-open>.wp-block-accordion-heading.icon>.wp-block-accordion-heading__toggle::before {
     opacity: 0;
 }
 
-.wp-block-accordion-item.is-open > .wp-block-accordion-heading.icon > .wp-block-accordion-heading__toggle::after {
+.wp-block-accordion-item.is-open>.wp-block-accordion-heading.icon>.wp-block-accordion-heading__toggle::after {
     opacity: 1;
 }
 
@@ -471,7 +471,8 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,
 .button.solid,
 .button.outline,
-.wp-block-button .wp-block-button__link {
+.wp-block-button .wp-block-button__link,
+.wc-block-order-confirmation-create-account-button {
     --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
     position: relative;
     /* eigener Stapelkontext: erst dadurch liegt ::after über dem Hintergrund
@@ -484,7 +485,8 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option:after,
 .button.solid::after,
 .button.outline::after,
-.wp-block-button .wp-block-button__link::after {
+.wp-block-button .wp-block-button__link::after,
+button.wc-block-order-confirmation-create-account-button::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -502,7 +504,9 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 .button.outline:hover::after,
 .button.outline:focus-visible::after,
 .wp-block-button .wp-block-button__link:hover::after,
-.wp-block-button .wp-block-button__link:focus-visible::after {
+.wp-block-button .wp-block-button__link:focus-visible::after,
+button.wc-block-order-confirmation-create-account-button:hover::after,
+button.wc-block-order-confirmation-create-account-button:focus-visible::after {
     transform: translateX(0);
     opacity: 1;
 }
@@ -514,7 +518,8 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,
 .button.solid,
 .button.outline,
-.wp-block-button .wp-block-button__link {
+.wp-block-button .wp-block-button__link,
+button.wc-block-order-confirmation-create-account-button {
     /* gemeinsame Form und Typografie beider Varianten */
     display: inline-flex;
     align-items: center;
@@ -539,6 +544,14 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
     -webkit-appearance: none;
 }
 
+button.wc-block-order-confirmation-create-account-button .wc-block-components-button__text {
+    color: var(--btn-text);
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-size: var(--wp--preset--font-size--normal);
+    font-weight: 300;
+    line-height: 1;
+}
+
 .wc-block-components-button.wp-block-woocommerce-mini-cart-cart-button-block:hover,
 .wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option:hover,
 .button.solid:hover,
@@ -546,7 +559,9 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 .button.outline:hover,
 .button.outline:focus-visible,
 .wp-block-button .wp-block-button__link:hover,
-.wp-block-button .wp-block-button__link:focus-visible {
+.wp-block-button .wp-block-button__link:focus-visible,
+button.wc-block-order-confirmation-create-account-button:hover,
+button.wc-block-order-confirmation-create-account-button:focus-visible {
     color: var(--btn-text-hover);
     border-color: var(--btn-border-hover);
     text-decoration: none;
@@ -567,9 +582,10 @@ div.single-buttons-wrapper .wp-block-button > .wp-block-button__link::before {
 /* Hell · Voll: heller Grund mit dunklem Rand, beim Hover fährt Hellgrün ein
    -- wie bei allen Buttons und in der Navigation: einheitlich Hellgrün mit
    dunkler Schrift. Zugleich der Standard für Core-Buttons ohne Stil. */
-.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,   
+.wp-block-woocommerce-checkout .wc-block-checkout__shipping-method-option,
 .button.solid,
-.wp-block-button .wp-block-button__link {
+.wp-block-button .wp-block-button__link,
+.wc-block-order-confirmation-create-account-button {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
     --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
@@ -1358,7 +1374,7 @@ section.category .category-img-wrapper {
     aspect-ratio: 1 / 1;
 }
 
-section.contact .contact-img-wrapper img{
+section.contact .contact-img-wrapper img {
     aspect-ratio: 2/3 !important;
 }
 
@@ -1561,12 +1577,12 @@ section.product.single .wp-block-product-showcase-variation-range span,
     font-size: var(--wp--preset--font-size--normal);
 }
 
-section.wp-block-product-showcase-row .wp-block-product-showcase-term-list span{
+section.wp-block-product-showcase-row .wp-block-product-showcase-term-list span {
     font-size: var(--wp--preset--font-size--s);
 }
 
 section.wp-block-product-showcase-row .psb-variation-range__value span.woocommerce-Price-amount,
-section.wp-block-product-showcase-row .psb-variation-range__value span.woocommerce-Price-currencySymbol{
+section.wp-block-product-showcase-row .psb-variation-range__value span.woocommerce-Price-currencySymbol {
     font-size: var(--wp--preset--font-size--m);
 }
 
@@ -1711,8 +1727,7 @@ footer .footer-wrapper a:visited {
 
 /* Fett gibt es im Theme nicht -- WooCommerce setzt 500/600 an Namen, Summen
    und Tabellenköpfen. Hervorhebung kommt hier über Grösse und Schriftart. */
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
-    .wc-block-components-product-name,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(.wc-block-components-product-name,
     .wc-block-components-totals-item__label,
     .wc-block-components-totals-item__value,
     .wc-block-components-totals-footer-item-tax,
@@ -1724,8 +1739,7 @@ footer .footer-wrapper a:visited {
 }
 
 /* Text, dem WooCommerce eine feste Farbe gibt (Links, Tabellen, Auswahl). */
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
-    a:not(.wc-block-components-button),
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(a:not(.wc-block-components-button),
     .wc-blocks-components-select__select,
     .wc-block-components-text-input input,
     .wc-block-components-text-input label,
@@ -1741,8 +1755,7 @@ footer .footer-wrapper a:visited {
    Überschriften: "Mittel" (Abschnitt ÜBERSCHRIFTEN)
    --------------------------------------------------------------------------- */
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
-    .wc-block-mini-cart__title,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(.wc-block-mini-cart__title,
     .wc-block-components-checkout-step__title,
     .wc-block-components-checkout-order-summary__title-text,
     .wc-block-cart__totals-title) {
@@ -1774,6 +1787,7 @@ footer .footer-wrapper a:visited {
    Preise: Montreal Mono wie auf der Produktseite
    --------------------------------------------------------------------------- */
 
+.wc-block-order-confirmation-totals__total,
 :is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-formatted-money-amount {
     font-family: var(--wp--preset--font-family--neue-montreal-mono);
     letter-spacing: 0.0125em;
@@ -1801,8 +1815,7 @@ footer .footer-wrapper a:visited {
    mit den Klassen von WooCommerce. Der Text steckt bei WooCommerce in
    .wc-block-components-button__text. */
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
-    .wc-block-mini-cart__footer-checkout,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(.wc-block-mini-cart__footer-checkout,
     .wc-block-mini-cart__footer-cart,
     .wc-block-mini-cart__shopping-button,
     .wc-block-cart__submit-button,
@@ -1837,8 +1850,7 @@ footer .footer-wrapper a:visited {
 }
 
 /* Nebenaktion: Hell · Rand. */
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
-    .wc-block-mini-cart__footer-cart,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(.wc-block-mini-cart__footer-cart,
     .wc-block-components-totals-coupon__button) {
     --btn-bg: transparent;
     --btn-fill: var(--wp--preset--color--main-1-pistachio-light);
@@ -1846,8 +1858,7 @@ footer .footer-wrapper a:visited {
     --btn-border-hover: var(--wp--preset--color--main-1-pistachio-dark);
 }
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
-    .wc-block-mini-cart__footer-checkout,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(.wc-block-mini-cart__footer-checkout,
     .wc-block-mini-cart__footer-cart,
     .wc-block-mini-cart__shopping-button,
     .wc-block-cart__submit-button,
@@ -1864,8 +1875,7 @@ footer .footer-wrapper a:visited {
     transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
 }
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
-    .wc-block-mini-cart__footer-checkout,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(.wc-block-mini-cart__footer-checkout,
     .wc-block-mini-cart__footer-cart,
     .wc-block-mini-cart__shopping-button,
     .wc-block-cart__submit-button,
@@ -1877,8 +1887,7 @@ footer .footer-wrapper a:visited {
     box-shadow: none;
 }
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
-    .wc-block-mini-cart__footer-checkout,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(.wc-block-mini-cart__footer-checkout,
     .wc-block-mini-cart__footer-cart,
     .wc-block-mini-cart__shopping-button,
     .wc-block-cart__submit-button,
@@ -1889,8 +1898,7 @@ footer .footer-wrapper a:visited {
 }
 
 /* Fokusring wie bei den Buttons statt des blauen von WooCommerce. */
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
-    .wc-block-mini-cart__footer-checkout,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(.wc-block-mini-cart__footer-checkout,
     .wc-block-mini-cart__footer-cart,
     .wc-block-mini-cart__shopping-button,
     .wc-block-cart__submit-button,
@@ -1900,8 +1908,7 @@ footer .footer-wrapper a:visited {
     outline: none;
 }
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
-    .wc-block-mini-cart__footer-checkout,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(.wc-block-mini-cart__footer-checkout,
     .wc-block-mini-cart__footer-cart,
     .wc-block-mini-cart__shopping-button,
     .wc-block-cart__submit-button,
@@ -1911,16 +1918,14 @@ footer .footer-wrapper a:visited {
     outline-offset: 2px;
 }
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
-    .wc-block-cart__submit-button,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(.wc-block-cart__submit-button,
     .wc-block-components-checkout-place-order-button,
     .wc-block-components-totals-coupon__button):is(:disabled, [aria-disabled="true"]) {
     opacity: 0.5;
     cursor: not-allowed;
 }
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(
-    .wc-block-mini-cart__footer-checkout,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-button:not(.is-link):is(.wc-block-mini-cart__footer-checkout,
     .wc-block-mini-cart__footer-cart,
     .wc-block-mini-cart__shopping-button,
     .wc-block-cart__submit-button,
@@ -1945,7 +1950,7 @@ footer .footer-wrapper a:visited {
 
 /* Das Häkchen-/Pfeil-Symbol im Bestellen-Knopf von WooCommerce ist weiss
    fest eingestellt. */
-.wp-block-woocommerce-checkout .wc-block-components-checkout-place-order-button .wc-block-components-button__text > svg {
+.wp-block-woocommerce-checkout .wc-block-components-checkout-place-order-button .wc-block-components-button__text>svg {
     fill: currentColor;
 }
 
@@ -1953,8 +1958,7 @@ footer .footer-wrapper a:visited {
    Eingabefelder, Auswahl, Häkchen
    --------------------------------------------------------------------------- */
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
-    .wc-block-components-text-input input,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(.wc-block-components-text-input input,
     .wc-block-components-textarea,
     .wc-blocks-components-select__select) {
     border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 50%, transparent) !important;
@@ -1967,8 +1971,7 @@ footer .footer-wrapper a:visited {
     border-radius: 0.75rem;
 }
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(
-    .wc-block-components-text-input input,
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(.wc-block-components-text-input input,
     .wc-block-components-textarea,
     .wc-blocks-components-select__select):focus {
     border-color: var(--wp--preset--color--main-1-pistachio-dark) !important;
@@ -1997,8 +2000,7 @@ footer .footer-wrapper a:visited {
 }
 
 /* Kästen um Abholort und Zahlungsart: Rand und Ecken wie die Eingaben. */
-.wp-block-woocommerce-checkout :is(
-    .wc-block-components-radio-control--highlight-checked,
+.wp-block-woocommerce-checkout :is(.wc-block-components-radio-control--highlight-checked,
     .wc-block-components-radio-control-accordion-option,
     .wc-block-components-radio-control__option) {
     border-radius: 0.75rem;
@@ -2019,6 +2021,7 @@ footer .footer-wrapper a:visited {
 
 /* Lieferdatum (Plugin woo-order-ext): Feld und Beschriftung wie die übrigen.
    Das Plugin setzt beides als style-Attribut, daher !important. */
+.wc-block-components-text-input input,
 #woo-order-ext-delivery-date {
     box-sizing: border-box;
     width: 100% !important;
@@ -2146,7 +2149,7 @@ label[for="woo-order-ext-delivery-date"] {
    schwächer und werden so überstimmt.
    =========================================================================== */
 
-.woocommerce-account .wp-block-post-content > .woocommerce {
+.woocommerce-account .wp-block-post-content>.woocommerce {
     box-sizing: border-box;
     max-width: 64rem;
     margin-inline: auto;
@@ -2161,16 +2164,16 @@ label[for="woo-order-ext-delivery-date"] {
 
 /* Fett gibt es im Theme nicht (wie in Warenkorb und Kasse) -- WooCommerce
    setzt es auch an Tabellenzellen der Summen. */
-.woocommerce-account .wp-block-post-content > .woocommerce :is(strong, b, th, td, mark) {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(strong, b, th, td, mark) {
     font-weight: 400;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce mark {
+.woocommerce-account .wp-block-post-content>.woocommerce mark {
     background: none;
     color: inherit;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(h2, h3) {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(h2, h3) {
     margin-block: 0 1.5rem !important;
     font-family: var(--wp--custom--heading--mittel--font-family);
     font-size: var(--wp--custom--heading--mittel--font-size);
@@ -2187,7 +2190,7 @@ label[for="woo-order-ext-delivery-date"] {
    Aktion, kein Bereich: klein und als Textlink über dem Menü, damit es nicht
    mit den Pillen der Bereiche verwechselt wird. */
 
-.woocommerce-account .wp-block-post-content > .woocommerce .floerlike-account-status {
+.woocommerce-account .wp-block-post-content>.woocommerce .floerlike-account-status {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -2197,18 +2200,18 @@ label[for="woo-order-ext-delivery-date"] {
     font-size: var(--wp--preset--font-size--s);
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .floerlike-account-status__logout {
+.woocommerce-account .wp-block-post-content>.woocommerce .floerlike-account-status__logout {
     color: inherit;
     text-decoration: none;
     transition: color 0.25s ease-in-out;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .floerlike-account-status__logout:is(:hover, :focus-visible) {
+.woocommerce-account .wp-block-post-content>.woocommerce .floerlike-account-status__logout:is(:hover, :focus-visible) {
     color: var(--wp--preset--color--main-1-pistachio);
     text-decoration: underline;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce > h1 {
+.woocommerce-account .wp-block-post-content>.woocommerce>h1 {
     margin-block: 0 1.5rem;
     text-align: center;
 }
@@ -2219,13 +2222,13 @@ label[for="woo-order-ext-delivery-date"] {
    Wie "button outline" (Abschnitt BUTTONS): Rand, beim Hover fährt Hellgrün
    von links ein; der aktuelle Bereich steht gefüllt. */
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-MyAccount-navigation {
     float: none;
     width: auto;
     margin-block-end: 3rem;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation ul {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-MyAccount-navigation ul {
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
@@ -2236,12 +2239,12 @@ label[for="woo-order-ext-delivery-date"] {
 }
 
 /* WooCommerce gibt den Menüpunkten ausser dem ersten Innenabstand oben. */
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation li {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-MyAccount-navigation li {
     margin: 0;
     padding: 0;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation a {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-MyAccount-navigation a {
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -2254,7 +2257,7 @@ label[for="woo-order-ext-delivery-date"] {
     text-decoration: none;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation a::after {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-MyAccount-navigation a::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -2266,18 +2269,18 @@ label[for="woo-order-ext-delivery-date"] {
     transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation a:is(:hover, :focus-visible)::after,
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation .is-active a::after {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-MyAccount-navigation a:is(:hover, :focus-visible)::after,
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-MyAccount-navigation .is-active a::after {
     transform: translateX(0);
     opacity: 1;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-navigation a:focus-visible {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-MyAccount-navigation a:focus-visible {
     outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
     outline-offset: 2px;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-MyAccount-content {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-MyAccount-content {
     float: none;
     width: auto;
 }
@@ -2286,7 +2289,7 @@ label[for="woo-order-ext-delivery-date"] {
    Buttons: wie "button solid" (Abschnitt BUTTONS)
    --------------------------------------------------------------------------- */
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button) {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(a.button, button.button, input.button) {
     --btn-text: var(--wp--preset--color--main-1-pistachio-dark);
     --btn-bg: var(--wp--preset--color--main-1-pistachio-ultralight);
     --btn-border: var(--wp--preset--color--main-1-pistachio-dark);
@@ -2312,7 +2315,7 @@ label[for="woo-order-ext-delivery-date"] {
     transition: color 0.25s ease-in-out, border-color 0.25s ease-in-out;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button)::after {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(a.button, button.button, input.button)::after {
     content: "";
     position: absolute;
     inset: 0;
@@ -2324,23 +2327,23 @@ label[for="woo-order-ext-delivery-date"] {
     transition: transform 0.35s ease-in-out, opacity 0.25s ease-in-out;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button):is(:hover, :focus-visible) {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(a.button, button.button, input.button):is(:hover, :focus-visible) {
     background: var(--btn-bg);
     color: var(--btn-text-hover);
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button):is(:hover, :focus-visible)::after {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(a.button, button.button, input.button):is(:hover, :focus-visible)::after {
     transform: translateX(0);
     opacity: 1;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(a.button, button.button, input.button):focus-visible {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(a.button, button.button, input.button):focus-visible {
     outline: 2px solid var(--wp--preset--color--main-1-pistachio-dark);
     outline-offset: 2px;
 }
 
 /* Der Link in einem Hinweis ("E-Mail bestätigen") bleibt ein Link. */
-.woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner :is(a.button, button.button) {
+.woocommerce-account .wp-block-post-content>.woocommerce .wc-block-components-notice-banner :is(a.button, button.button) {
     padding: 0;
     border: 0;
     border-radius: 0;
@@ -2349,21 +2352,21 @@ label[for="woo-order-ext-delivery-date"] {
     text-decoration: underline;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner :is(a.button, button.button)::after {
+.woocommerce-account .wp-block-post-content>.woocommerce .wc-block-components-notice-banner :is(a.button, button.button)::after {
     content: none;
 }
 
 /* Schmal: WooCommerce setzt den Link rechts neben den Text (float) -- dafür
    ist kein Platz, er läge über dem Text. Dann steht er darunter. */
 @media (max-width: 600px) {
-    .woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner__content {
+    .woocommerce-account .wp-block-post-content>.woocommerce .wc-block-components-notice-banner__content {
         display: flex;
         flex-direction: column-reverse;
         align-items: flex-start;
         gap: 0.5rem;
     }
 
-    .woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner__content > :is(a.button, button.button) {
+    .woocommerce-account .wp-block-post-content>.woocommerce .wc-block-components-notice-banner__content> :is(a.button, button.button) {
         float: none;
     }
 }
@@ -2372,7 +2375,7 @@ label[for="woo-order-ext-delivery-date"] {
    nebeneinander links unter der Tabelle wie bei den Produkt-Slidern. Hier
    nur, was Swiper den Slider-Pfeilen sonst selbst mitgibt: Lage des Symbols
    und Bezugsrahmen für die einfahrende Fläche. */
-.woocommerce-account .wp-block-post-content > .woocommerce .floerlike-pagination {
+.woocommerce-account .wp-block-post-content>.woocommerce .floerlike-pagination {
     display: flex;
     gap: 0.5rem;
     margin-block-start: 1.5rem;
@@ -2389,7 +2392,7 @@ label[for="woo-order-ext-delivery-date"] {
 }
 
 /* Kleiner in Tabellen ("Ansehen"). */
-.woocommerce-account .wp-block-post-content > .woocommerce .shop_table .button {
+.woocommerce-account .wp-block-post-content>.woocommerce .shop_table .button {
     padding: 0.6rem 1.1rem;
     font-size: var(--wp--preset--font-size--s);
 }
@@ -2398,7 +2401,7 @@ label[for="woo-order-ext-delivery-date"] {
    Formulare: Kacheln, Felder wie an der Kasse
    --------------------------------------------------------------------------- */
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(form.login, form.register, form.lost_reset_password) {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(form.login, form.register, form.lost_reset_password) {
     max-width: 32rem;
     margin: 0 auto 2rem;
     padding: 2rem;
@@ -2407,28 +2410,28 @@ label[for="woo-order-ext-delivery-date"] {
 }
 
 /* Die Überschrift "Login" über dem Formular mittig zur Kachel. */
-.woocommerce-account .wp-block-post-content > .woocommerce > h2 {
+.woocommerce-account .wp-block-post-content>.woocommerce>h2 {
     max-width: 32rem;
     margin-inline: auto !important;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .form-row {
+.woocommerce-account .wp-block-post-content>.woocommerce .form-row {
     margin: 0 0 1.25rem;
     padding: 0;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .form-row label {
+.woocommerce-account .wp-block-post-content>.woocommerce .form-row label {
     display: block;
     margin-block-end: 0.4rem;
     line-height: 1.4;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .required {
+.woocommerce-account .wp-block-post-content>.woocommerce .required {
     color: var(--wp--preset--color--main-5-flame-pea);
     text-decoration: none;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(input.input-text, textarea, select, .select2-container .select2-selection--single) {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(input.input-text, textarea, select, .select2-container .select2-selection--single) {
     box-sizing: border-box;
     width: 100%;
     min-height: 3rem;
@@ -2441,8 +2444,8 @@ label[for="woo-order-ext-delivery-date"] {
     letter-spacing: inherit;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(input.input-text, textarea, select):focus,
-.woocommerce-account .wp-block-post-content > .woocommerce .select2-container--focus .select2-selection--single {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(input.input-text, textarea, select):focus,
+.woocommerce-account .wp-block-post-content>.woocommerce .select2-container--focus .select2-selection--single {
     border-color: var(--wp--preset--color--main-1-pistachio-dark);
     box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark);
     outline: none;
@@ -2450,36 +2453,36 @@ label[for="woo-order-ext-delivery-date"] {
 
 /* Länder- und Kantonsauswahl (select2): Schrift wie die übrigen Felder,
    Text und Pfeil mittig. */
-.woocommerce-account .wp-block-post-content > .woocommerce .select2-container,
-.woocommerce-account .wp-block-post-content > .woocommerce .select2-container .select2-selection--single .select2-selection__rendered {
+.woocommerce-account .wp-block-post-content>.woocommerce .select2-container,
+.woocommerce-account .wp-block-post-content>.woocommerce .select2-container .select2-selection--single .select2-selection__rendered {
     font: inherit;
     letter-spacing: inherit;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .select2-container .select2-selection--single .select2-selection__rendered {
+.woocommerce-account .wp-block-post-content>.woocommerce .select2-container .select2-selection--single .select2-selection__rendered {
     padding: 0;
     color: inherit;
     line-height: 1.4;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .select2-container .select2-selection--single .select2-selection__arrow {
+.woocommerce-account .wp-block-post-content>.woocommerce .select2-container .select2-selection--single .select2-selection__arrow {
     top: 50%;
     right: 0.75rem;
     translate: 0 -50%;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce input[type="checkbox"] {
+.woocommerce-account .wp-block-post-content>.woocommerce input[type="checkbox"] {
     accent-color: var(--wp--preset--color--main-1-pistachio-dark);
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce fieldset {
+.woocommerce-account .wp-block-post-content>.woocommerce fieldset {
     margin: 2rem 0;
     padding: 1.5rem;
     border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
     border-radius: 1.5rem;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce legend {
+.woocommerce-account .wp-block-post-content>.woocommerce legend {
     padding-inline: 0.5rem;
 }
 
@@ -2487,31 +2490,31 @@ label[for="woo-order-ext-delivery-date"] {
    Tabellen (Bestellungen, Bestelldetails) und Adressen
    --------------------------------------------------------------------------- */
 
-.woocommerce-account .wp-block-post-content > .woocommerce table.shop_table {
+.woocommerce-account .wp-block-post-content>.woocommerce table.shop_table {
     width: 100%;
     margin: 0 0 2rem;
-    border: 1px solid  var(--wp--preset--color--main-1-pistachio-light);
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
     border-radius: 1.5rem;
     border-collapse: separate;
     border-spacing: 0;
     overflow: hidden;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce table.shop_table :is(th, td) {
+.woocommerce-account .wp-block-post-content>.woocommerce table.shop_table :is(th, td) {
     padding: 0.9rem 1.25rem;
     border: 0;
     border-block-start: 1px solid var(--wp--preset--color--main-1-pistachio-light);
     vertical-align: middle;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce table.shop_table thead th {
+.woocommerce-account .wp-block-post-content>.woocommerce table.shop_table thead th {
     border-block-start: 0;
     font-family: var(--wp--preset--font-family--neue-montreal-mono);
     font-size: var(--wp--preset--font-size--s);
     letter-spacing: 0.0125em;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce table.shop_table a:not(.button) {
+.woocommerce-account .wp-block-post-content>.woocommerce table.shop_table a:not(.button) {
     color: inherit;
 }
 
@@ -2528,45 +2531,45 @@ label[for="woo-order-ext-delivery-date"] {
    Beschriftung (data-title) und blendet dabei die Kopfzelle aus -- in der
    steht aber die Bestellnummer. Hier kommt sie mit Beschriftung zurück. */
 @media (max-width: 768px) {
-    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tbody th {
+    .woocommerce-account .wp-block-post-content>.woocommerce table.shop_table_responsive tbody th {
         display: block;
         text-align: right;
     }
 
-    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tbody th::before {
+    .woocommerce-account .wp-block-post-content>.woocommerce table.shop_table_responsive tbody th::before {
         content: attr(data-title) ": ";
         float: left;
     }
 
     /* Beschriftungen nicht fett, kein graues Zebra -- die Bestellungen trennt
        die kräftigere Linie unten. */
-    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tr td::before {
+    .woocommerce-account .wp-block-post-content>.woocommerce table.shop_table_responsive tr td::before {
         font-weight: 400;
     }
 
-    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tr:nth-child(2n) td {
+    .woocommerce-account .wp-block-post-content>.woocommerce table.shop_table_responsive tr:nth-child(2n) td {
         background-color: transparent;
     }
 
     /* Jede Bestellung mit kräftigerer Linie von der nächsten getrennt. */
-    .woocommerce-account .wp-block-post-content > .woocommerce table.shop_table_responsive tbody tr + tr :is(th, td):first-child {
+    .woocommerce-account .wp-block-post-content>.woocommerce table.shop_table_responsive tbody tr+tr :is(th, td):first-child {
         border-block-start-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 40%, transparent);
     }
 }
 
 /* Kontodaten und Adressen als helle Kacheln wie die Store-Info. */
-.woocommerce-account .wp-block-post-content > .woocommerce .u-columns.addresses {
+.woocommerce-account .wp-block-post-content>.woocommerce .u-columns.addresses {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
     gap: 1.5rem;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .u-columns.addresses::before,
-.woocommerce-account .wp-block-post-content > .woocommerce .u-columns.addresses::after {
+.woocommerce-account .wp-block-post-content>.woocommerce .u-columns.addresses::before,
+.woocommerce-account .wp-block-post-content>.woocommerce .u-columns.addresses::after {
     content: none;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce :is(.woocommerce-Address, .woocommerce-customer-details address) {
+.woocommerce-account .wp-block-post-content>.woocommerce :is(.woocommerce-Address, .woocommerce-customer-details address) {
     float: none;
     width: auto;
     padding: 1.5rem;
@@ -2578,16 +2581,16 @@ label[for="woo-order-ext-delivery-date"] {
 
 /* Die Hilfselemente fürs Floaten von WooCommerce stünden im Flex-Kopf als
    leere Elemente zwischen Titel und Link. */
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title::before,
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title::after {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-Address-title::before,
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-Address-title::after {
     content: none;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title :is(h2, h3, a) {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-Address-title :is(h2, h3, a) {
     float: none;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-Address-title {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -2596,7 +2599,7 @@ label[for="woo-order-ext-delivery-date"] {
     margin-block-end: 1rem;
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-Address-title :is(h2, h3) {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-Address-title :is(h2, h3) {
     margin: 0 !important;
     font-family: var(--wp--custom--heading--klein--font-family);
     font-size: var(--wp--custom--heading--klein--font-size);
@@ -2604,13 +2607,13 @@ label[for="woo-order-ext-delivery-date"] {
     letter-spacing: var(--wp--custom--heading--klein--letter-spacing);
 }
 
-.woocommerce-account .wp-block-post-content > .woocommerce address {
+.woocommerce-account .wp-block-post-content>.woocommerce address {
     font-style: normal;
 }
 
 /* Lieferdatum und Newsletter unter der Bestellung (Plugin woo-order-ext):
    das Plugin setzt Grau und Ecken als style-Attribut, daher !important. */
-.woocommerce-account .wp-block-post-content > .woocommerce .woocommerce-order-details > div[style] {
+.woocommerce-account .wp-block-post-content>.woocommerce .woocommerce-order-details>div[style] {
     margin: 0 0 2rem !important;
     padding: 1.25rem 1.5rem !important;
     border-radius: 1.5rem !important;
@@ -2618,10 +2621,36 @@ label[for="woo-order-ext-delivery-date"] {
 }
 
 /* Hinweise (z. B. "E-Mail bestätigen") mit den runden Ecken der Kacheln. */
-.woocommerce-account .wp-block-post-content > .woocommerce .wc-block-components-notice-banner {
+.woocommerce-account .wp-block-post-content>.woocommerce .wc-block-components-notice-banner {
     border-radius: 0.75rem;
 }
 
+.wp-block-woocommerce-order-confirmation-status,
+.wp-block-woocommerce-order-confirmation-summary,
+.wp-block-woocommerce-order-confirmation-create-account,
+.wp-block-woocommerce-order-confirmation-totals-wrapper,
+.wc-block-order-confirmation-address-wrapper,
+.wp-block-woocommerce-order-confirmation-additional-information {
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-weight: 300;
+    font-size: var(--wp--preset--font-size--normal);
+    line-height: 1.5;
+    color: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
+table.wc-block-order-confirmation-totals__table tr th,
+ul.wc-block-order-confirmation-summary-list li.wc-block-order-confirmation-summary-list-item span.wc-block-order-confirmation-summary-list-item__key {
+    font-weight: 300;
+}
+
+ul.wc-block-order-confirmation-summary-list li.wc-block-order-confirmation-summary-list-item span.wc-block-order-confirmation-summary-list-item__value {
+    font-family: var(--wp--preset--font-family--neue-montreal-mono);
+    font-weight: 300;
+}
+
+div.wc-block-order-confirmation-address-wrapper {
+    margin-block-start: 2rem;
+}
 
 /* ===========================================================================
    FORMULARE (Contact Form 7)
@@ -2658,7 +2687,7 @@ label[for="woo-order-ext-delivery-date"] {
     margin-top: 3rem;
 }
 
-.wpcf7 .wpcf7-form > p {
+.wpcf7 .wpcf7-form>p {
     margin: 0 0 1.25rem;
 }
 
