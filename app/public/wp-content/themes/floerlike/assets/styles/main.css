@@ -1961,7 +1961,7 @@ footer .footer-wrapper a:visited {
 :is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(.wc-block-components-text-input input,
     .wc-block-components-textarea,
     .wc-blocks-components-select__select) {
-    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 50%, transparent) !important;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light) !important;
     border-radius: 0.75rem !important;
     background-color: var(--wp--preset--color--neutral-light);
     font-size: var(--wp--preset--font-size--normal) !important;
@@ -2009,7 +2009,7 @@ footer .footer-wrapper a:visited {
 /* Rahmen um die ganze Liste (::after) zart, die gewählte Option darin mit
    der kräftigen Linie -- sonst lägen zwei gleich starke Linien aufeinander. */
 .wp-block-woocommerce-checkout .wc-block-components-radio-control--highlight-checked::after {
-    border-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border-color: var(--wp--preset--color--main-1-pistachio-light);
     border-radius: 0.75rem;
 }
 
@@ -2026,7 +2026,7 @@ footer .footer-wrapper a:visited {
     box-sizing: border-box;
     width: 100% !important;
     padding: 1rem 0.75rem !important;
-    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 50%, transparent) !important;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light) !important;
     border-radius: 0.75rem !important;
     background-color: var(--wp--preset--color--neutral-light);
     color: var(--wp--preset--color--main-1-pistachio-dark);
@@ -2080,19 +2080,19 @@ label[for="woo-order-ext-delivery-date"] {
 
 /* Linie links neben den nummerierten Schritten. */
 .wp-block-woocommerce-checkout .wc-block-components-checkout-step--with-step-number .wc-block-components-checkout-step__container::after {
-    border-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border-color: var(--wp--preset--color--main-1-pistachio-light);
 }
 
 /* Bestellübersicht als Kachel wie die Store-Info. */
 .wp-block-woocommerce-checkout .wp-block-woocommerce-checkout-order-summary-block {
-    border-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border-color: var(--wp--preset--color--main-1-pistachio-light);
     border-radius: 1.5rem;
 }
 
 :is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-totals-wrapper,
 .wc-block-mini-cart__drawer .wc-block-mini-cart__footer,
 .wp-block-woocommerce-checkout .wc-block-checkout__terms--with-separator {
-    border-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent) !important;
+    border-color: var(--wp--preset--color--main-1-pistachio-light) !important;
 }
 
 /* ---------------------------------------------------------------------------
@@ -2406,7 +2406,7 @@ label[for="woo-order-ext-delivery-date"] {
     max-width: 32rem;
     margin: 0 auto 2rem;
     padding: 2rem;
-    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
     border-radius: 1.5rem;
 }
 
@@ -2437,7 +2437,7 @@ label[for="woo-order-ext-delivery-date"] {
     width: 100%;
     min-height: 3rem;
     padding: 0.75rem 1rem;
-    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 50%, transparent);
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
     border-radius: 0.75rem;
     background-color: var(--wp--preset--color--neutral-light);
     color: var(--wp--preset--color--main-1-pistachio-dark);
@@ -2479,7 +2479,7 @@ label[for="woo-order-ext-delivery-date"] {
 .woocommerce-account .wp-block-post-content>.woocommerce fieldset {
     margin: 2rem 0;
     padding: 1.5rem;
-    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 25%, transparent);
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
     border-radius: 1.5rem;
 }
 
@@ -2588,7 +2588,7 @@ label[for="woo-order-ext-delivery-date"] {
 
     /* Jede Bestellung mit kräftigerer Linie von der nächsten getrennt. */
     .woocommerce-account .wp-block-post-content>.woocommerce table.shop_table_responsive tbody tr+tr :is(th, td):first-child {
-        border-block-start-color: color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 40%, transparent);
+        border-block-start-color: var(--wp--preset--color--main-1-pistachio-light);
     }
 }
 
@@ -2699,8 +2699,8 @@ div.wp-block-woocommerce-order-confirmation-totals div:has(>p) {
     margin: 0 0 2rem !important;
     padding: 1.25rem 1.5rem !important;
     border-radius: 1.5rem !important;
-    background: var(--wp--preset--color--main-1-pistachio-light) !important;
-    border: none !important;
+    background: transparent !important;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
 }
 
 div.wp-block-woocommerce-order-confirmation-status {
@@ -2762,7 +2762,7 @@ div.wp-block-woocommerce-order-confirmation-status {
     width: 100%;
     min-height: 3rem;
     padding: 0.75rem 1rem;
-    border: 1px solid color-mix(in srgb, var(--wp--preset--color--main-1-pistachio-dark) 50%, transparent);
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
     border-radius: 0.75rem;
     background-color: var(--wp--preset--color--neutral-light);
     color: var(--wp--preset--color--main-1-pistachio-dark);
