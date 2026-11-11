@@ -1709,7 +1709,7 @@ footer .footer-wrapper a:visited {
    werden deshalb in den Bereichen auf die eigenen umgelenkt.
    =========================================================================== */
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout, .wc-block-components-address-card) {
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout, .wc-block-components-address-card, .wc-block-order-confirmation-totals table) {
     --wp--preset--font-size--x-small: var(--wp--preset--font-size--s);
     --wp--preset--font-size--small: var(--wp--preset--font-size--normal);
     --wp--preset--font-size--medium: var(--wp--preset--font-size--l);
@@ -2714,7 +2714,7 @@ div.wp-block-woocommerce-order-confirmation-totals div:has(>p) {
 .wc-block-order-confirmation-billing-address {
     margin: 0 0 2rem !important;
     padding: 1.25rem 1.5rem !important;
-    border-radius: 1.5rem !important;
+    border-radius: 0.75rem !important;
     background: transparent !important;
     border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
 }
