@@ -2690,7 +2690,7 @@ div.wc-block-order-confirmation-address-wrapper {
 }
 
 div.wp-block-woocommerce-order-confirmation-totals div:has(>p) {
-    background: transparent;
+    background: transparent !important;
 }
 
 .wc-block-order-confirmation-create-account,
