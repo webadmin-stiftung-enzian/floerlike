@@ -255,3 +255,36 @@ add_action('template_redirect', function () {
     wp_safe_redirect(wc_get_account_endpoint_url('orders'));
     exit;
 });
+
+// "Erneut bestellen": WooCommerce leitet danach fest auf die Seite
+// Warenkorb um. Der Shop nutzt aber den Mini-Cart als Warenkorb -- also
+// zurück zu den Bestellungen, und dort öffnet sich die Schublade. Greift nur
+// bei dieser einen Umleitung (Link mit ?order_again=…, Ziel Warenkorb);
+// alle anderen Wege in den Warenkorb bleiben, wie sie sind.
+add_filter('wp_redirect', function ($location) {
+    if (isset($_GET['order_again']) && function_exists('wc_get_cart_url') && $location === wc_get_cart_url()) {
+        return add_query_arg('warenkorb', 'offen', wc_get_account_endpoint_url('orders'));
+    }
+    return $location;
+});
+
+// Der Merker ?warenkorb=offen öffnet die Mini-Cart-Schublade und
+// verschwindet danach aus der Adresse (beim Neuladen bleibt sie zu).
+add_action('wp_footer', function () {
+    if (empty($_GET['warenkorb'])) {
+        return;
+    }
+    ?>
+    <script>
+        window.addEventListener('load', function () {
+            var button = document.querySelector('.wc-block-mini-cart__button');
+            if (button) {
+                button.click();
+            }
+            var url = new URL(window.location.href);
+            url.searchParams.delete('warenkorb');
+            window.history.replaceState(null, '', url);
+        });
+    </script>
+    <?php
+});
