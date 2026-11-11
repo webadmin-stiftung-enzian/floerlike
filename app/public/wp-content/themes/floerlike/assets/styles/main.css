@@ -1709,7 +1709,7 @@ footer .footer-wrapper a:visited {
    werden deshalb in den Bereichen auf die eigenen umgelenkt.
    =========================================================================== */
 
-:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) {
+:is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout, .wc-block-components-address-card) {
     --wp--preset--font-size--x-small: var(--wp--preset--font-size--s);
     --wp--preset--font-size--small: var(--wp--preset--font-size--normal);
     --wp--preset--font-size--medium: var(--wp--preset--font-size--l);
@@ -1717,6 +1717,18 @@ footer .footer-wrapper a:visited {
     font-weight: 300;
     letter-spacing: 0.02em;
     color: var(--wp--preset--color--main-1-pistachio-dark);
+    border-radius: 0.75rem;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
+}
+
+.wp-block-woocommerce-cart {
+    margin-block-start: 3rem;
+    border: none;
+}
+
+.wp-block-woocommerce-checkout {
+    margin-block-start: 3rem !important;
+    border: none;
 }
 
 /* Formularelemente erben keine Schrift vom Browser her. */
@@ -1974,8 +1986,8 @@ footer .footer-wrapper a:visited {
 :is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) :is(.wc-block-components-text-input input,
     .wc-block-components-textarea,
     .wc-blocks-components-select__select):focus {
-    border-color: var(--wp--preset--color--main-1-pistachio-dark) !important;
-    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark) !important;
+    box-shadow: none !important;
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light) !important;
     outline: none;
 }
 
@@ -2000,23 +2012,25 @@ footer .footer-wrapper a:visited {
 }
 
 /* Kästen um Abholort und Zahlungsart: Rand und Ecken wie die Eingaben. */
-.wp-block-woocommerce-checkout :is(.wc-block-components-radio-control--highlight-checked,
+/* .wp-block-woocommerce-checkout :is(.wc-block-components-radio-control--highlight-checked,
     .wc-block-components-radio-control-accordion-option,
     .wc-block-components-radio-control__option) {
     border-radius: 0.75rem;
-}
+} */
 
 /* Rahmen um die ganze Liste (::after) zart, die gewählte Option darin mit
    der kräftigen Linie -- sonst lägen zwei gleich starke Linien aufeinander. */
 .wp-block-woocommerce-checkout .wc-block-components-radio-control--highlight-checked::after {
     border-color: var(--wp--preset--color--main-1-pistachio-light);
-    border-radius: 0.75rem;
+    border: none;
 }
 
 .wp-block-woocommerce-checkout .wc-block-components-radio-control-accordion-option--checked-option-highlighted,
 .wp-block-woocommerce-checkout .wc-block-components-radio-control__option--checked-option-highlighted {
-    border-radius: 0.75rem;
-    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark) !important;
+    border-radius: 0.75rem !important;
+    /* box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark) !important; */
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light) !important;
+    box-shadow: none !important;
 }
 
 /* Lieferdatum (Plugin woo-order-ext): Feld und Beschriftung wie die übrigen.
@@ -2447,8 +2461,10 @@ label[for="woo-order-ext-delivery-date"] {
 
 .woocommerce-account .wp-block-post-content>.woocommerce :is(input.input-text, textarea, select):focus,
 .woocommerce-account .wp-block-post-content>.woocommerce .select2-container--focus .select2-selection--single {
-    border-color: var(--wp--preset--color--main-1-pistachio-dark);
-    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark);
+    /* border-color: var(--wp--preset--color--main-1-pistachio-dark);
+    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark); */
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
+    box-shadow: none;
     outline: none;
 }
 
@@ -2776,8 +2792,10 @@ div.wp-block-woocommerce-order-confirmation-status {
 }
 
 .wpcf7 :is(input, select, textarea):focus {
-    border-color: var(--wp--preset--color--main-1-pistachio-dark);
-    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark);
+    /* border-color: var(--wp--preset--color--main-1-pistachio-dark);
+    box-shadow: inset 0 0 0 1px var(--wp--preset--color--main-1-pistachio-dark); */
+    border: 1px solid var(--wp--preset--color--main-1-pistachio-light);
+    box-shadow: none;
     outline: none;
 }
 
