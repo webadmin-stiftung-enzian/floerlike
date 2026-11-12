@@ -52,8 +52,8 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%;
-    width: auto;
+    /* height: 100%;
+    width: auto; */
     padding: 6rem;
 }
 
