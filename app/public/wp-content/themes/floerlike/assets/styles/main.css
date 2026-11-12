@@ -1325,18 +1325,21 @@ section.cta .cta-message div.wp-block-buttons {
     align-items: center;
 }
 
+section.event .event-content-wrapper .wp-block-column,
 section.topic .wp-block-columns .wp-block-column,
 section.contact .contact-form-wrapper,
 section.category .category-text-wrapper {
     padding: 3rem;
 }
 
+section.event .event-content-wrapper .wp-block-column div.wp-block-group,
 section.topic .wp-block-columns .wp-block-column div.wp-block-group {
     display: flex;
     flex-direction: column;
     height: 100%;
 }
 
+section.event .event-content-wrapper .wp-block-column div.wp-block-group>*,
 section.topic .wp-block-columns .wp-block-column div.wp-block-group>* {
     margin-left: 0;
     margin-right: 0;
@@ -1352,6 +1355,12 @@ section.topic .wp-block-columns .wp-block-column div.wp-block-group>h4 {
 
 section.topic .wp-block-columns .wp-block-column div.wp-block-group>.wp-block-buttons {
     margin-top: auto;
+}
+
+section.event .event-content-wrapper .wp-block-column div.wp-block-group>p {
+    font-size: var(--wp--preset--font-size--l);
+    line-height: 1.33;
+    font-weight: 300;
 }
 
 section.category .category-text-wrapper div.wp-block-group {
