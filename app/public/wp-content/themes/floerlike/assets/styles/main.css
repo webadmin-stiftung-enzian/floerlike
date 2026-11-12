@@ -48,6 +48,30 @@ section.info .wp-block-group.is-layout-grid:has(.wp-block-accordion) {
 
 }
 
+.wp-block-quote {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    width: auto;
+    padding: 6rem;
+}
+
+.wp-block-quote p::before,
+.wp-block-quote p::after {
+    font-family: var(--wp--preset--font-family--neue-frutiger-world);
+    font-weight: 300;
+    font-size: var(--wp--preset--font-size--xl);
+}
+
+.wp-block-quote p::before {
+    content: open-quote;
+}
+
+.wp-block-quote p::after {
+    content: close-quote;
+}
+
 .wp-block-accordion-panel,
 .wp-block-accordion-heading {
     font-family: var(--wp--preset--font-family--neue-frutiger-world);
@@ -2546,10 +2570,10 @@ label[for="woo-order-ext-delivery-date"] {
 
 .wc-block-components-form .wc-block-components-text-input label,
 .wc-block-components-text-input label {
-    top:auto !important;
-    left:auto;
-    right:auto;
-    bottom:auto;
+    top: auto !important;
+    left: auto;
+    right: auto;
+    bottom: auto;
     margin: 0;
     position: relative;
     transform: none !important;
@@ -2564,16 +2588,20 @@ label[for="woo-order-ext-delivery-date"] {
 }
 
 :is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-text-input label {
-    order: -1;            /* vor das Feld */
-    position: static;     /* WooCommerce legt es sonst ins Feld */
-    transform: none;      /* und verkleinert es beim Tippen */
+    order: -1;
+    /* vor das Feld */
+    position: static;
+    /* WooCommerce legt es sonst ins Feld */
+    transform: none;
+    /* und verkleinert es beim Tippen */
     max-width: none;
     margin: 0;
     /* font-size: var(--wp--preset--font-size--s); */
 }
 
 :is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-text-input input {
-    padding-top: 0;       /* Platz für das schwebende Label wird nicht mehr gebraucht */
+    padding-top: 0;
+    /* Platz für das schwebende Label wird nicht mehr gebraucht */
     padding-bottom: 0;
 }
 
@@ -2720,7 +2748,7 @@ div.wp-block-woocommerce-order-confirmation-totals div:has(>p) {
 }
 
 div.wp-block-woocommerce-order-confirmation-status {
-        margin-block-start: 3rem;
+    margin-block-start: 3rem;
 }
 
 /* ===========================================================================
