@@ -1180,7 +1180,7 @@ div.single-buttons-wrapper .wp-block-button {
     grid-column: 3;
 }
 
-section.highlight .swiper-slide .wp-block-columns {
+section.highlight :is(.swiper-slide, .wp-block-cb-slide-v2) .wp-block-columns {
     margin-bottom: 0;
 }
 
@@ -1231,15 +1231,22 @@ section.cta .wp-block-columns {
     /* height: 100%; */
 }
 
-section.highlight .swiper-slide {
+/* Im Editor heisst die Folie .wp-block-cb-slide-v2 statt .swiper-slide */
+section.highlight :is(.swiper-slide, .wp-block-cb-slide-v2) {
     aspect-ratio: 3/2;
+}
+
+/* Editor: die Hüllen zwischen Folie und Spalten auf volle Höhe */
+section.highlight .wp-block-cb-slide-v2>.block-editor-inner-blocks,
+section.highlight .wp-block-cb-slide-v2>.block-editor-inner-blocks>.block-editor-block-list__layout {
+    height: 100%;
 }
 
 
 section.contact .wp-block-columns,
 section.category .wp-block-columns,
 section.cta .wp-block-columns,
-section.highlight .swiper-slide .wp-block-columns {
+section.highlight :is(.swiper-slide, .wp-block-cb-slide-v2) .wp-block-columns {
     gap: 0;
     height: 100%;
 }
@@ -1251,7 +1258,7 @@ section.cta .wp-block-columns {
 section.contact .wp-block-columns>.wp-block-column,
 section.category .wp-block-columns>.wp-block-column,
 section.cta .wp-block-columns>.wp-block-column,
-section.highlight .swiper-slide .wp-block-columns>.wp-block-column {
+section.highlight :is(.swiper-slide, .wp-block-cb-slide-v2) .wp-block-columns>.wp-block-column {
     flex: 0 0 50%;
     min-width: 0;
     /* verhindert Überlauf durch breite Inhalte */
