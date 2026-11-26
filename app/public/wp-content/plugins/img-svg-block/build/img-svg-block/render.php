@@ -731,6 +731,10 @@ $img_url          = $attributes['img-url'] ?? '';
 $img_alt          = $attributes['img-alt'] ?? '';
 $img_width        = $attributes['img-width'] ?? 0;
 $img_height       = $attributes['img-height'] ?? 0;
+$img_id           = (int) ( $attributes['img-id'] ?? 0 );
+// The sizes WordPress made on upload, so the browser loads only what it needs.
+$img_srcset       = $img_id ? wp_get_attachment_image_srcset( $img_id, 'full' ) : '';
+$img_sizes        = $img_srcset ? wp_get_attachment_image_sizes( $img_id, 'full' ) : '';
 
 $fg_svg_url       = $attributes['fg-svg-url'] ?? '';
 $fg_svg_alt       = $attributes['fg-svg-alt'] ?? '';
@@ -803,6 +807,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 				<img
 					class="img-svg-block__image img-svg-block__image--masked"
 					src="<?php echo esc_url( $img_url ); ?>"
+					<?php if ( $img_srcset ) : ?>srcset="<?php echo esc_attr( $img_srcset ); ?>" sizes="<?php echo esc_attr( $img_sizes ); ?>"<?php endif; ?>
 					alt="<?php echo esc_attr( $img_alt ); ?>"
 					style="position: absolute; inset: 0; object-position: <?php echo esc_attr( $fg_position ); ?>; transform: scale(<?php echo esc_attr( img_svg_block_counter_scale_factor( img_svg_block_scale_factor( $svg_scale ) ) ); ?>); transform-origin: <?php echo esc_attr( img_svg_block_focal_point_position( $svg_focal_point ) ); ?>;"
 				/>
@@ -811,6 +816,7 @@ $wrapper_attributes = get_block_wrapper_attributes( array(
 			<img
 				class="img-svg-block__image"
 				src="<?php echo esc_url( $img_url ); ?>"
+				<?php if ( $img_srcset ) : ?>srcset="<?php echo esc_attr( $img_srcset ); ?>" sizes="<?php echo esc_attr( $img_sizes ); ?>"<?php endif; ?>
 				alt="<?php echo esc_attr( $img_alt ); ?>"
 				style="object-position: <?php echo esc_attr( $fg_position ); ?>;"
 			/>
