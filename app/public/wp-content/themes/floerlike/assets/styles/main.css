@@ -1220,6 +1220,13 @@ section.cta {
     overflow: clip;
 }
 
+section.cta .wp-block-group:has(>h2) {
+    display: flex;
+    flex-direction: column;
+    justify-content: right;
+    width: 100%;
+}
+
 section.highlight {
     aspect-ratio: 1.5;
 }
