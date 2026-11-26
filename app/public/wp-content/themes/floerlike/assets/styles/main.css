@@ -2589,6 +2589,10 @@ label[for="woo-order-ext-delivery-date"] {
     white-space: normal;
 }
 
+.wc-block-customer-account__visual svg {
+    fill: var(--wp--preset--color--main-1-pistachio-dark);
+}
+
 /* Label über dem Feld statt darin (Kasse, Warenkorb, Mini-Cart). */
 :is(.wc-block-mini-cart__drawer, .wp-block-woocommerce-cart, .wp-block-woocommerce-checkout) .wc-block-components-text-input {
     display: flex;
