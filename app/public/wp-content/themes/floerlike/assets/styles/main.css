@@ -1339,6 +1339,10 @@ section.cta .cta-message div.wp-block-buttons {
     align-items: center;
 }
 
+.highlight-img-wrapper > figure {
+    margin: 0;
+}
+
 section.event .event-content-wrapper .wp-block-column,
 section.topic .wp-block-columns .wp-block-column,
 section.contact .contact-form-wrapper,
